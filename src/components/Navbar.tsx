@@ -34,7 +34,7 @@ export function Logo({ className = "" }: { className?: string }) {
   );
 }
 
-/** Navbar (Figma 348:12162) with the full-screen menu (Figma "Open" 314:260). */
+/** Navbar (Figma 348:12162) with the drop-down menu overlay (Figma "Open" 314:260). */
 export function Navbar() {
   const time = useJakartaTime();
   const lenis = useLenis();
@@ -70,7 +70,8 @@ export function Navbar() {
       if (reduced) {
         tl.from(menu.current, { autoAlpha: 0, duration: 0.2 });
       } else {
-        tl.from("[data-menu-panel]", { yPercent: -110, duration: 0.7, ease: "power4.inOut" })
+        tl.from("[data-menu-backdrop]", { autoAlpha: 0, duration: 0.6, ease: "power2.out" }, 0)
+          .from("[data-menu-panel]", { yPercent: -110, duration: 0.7, ease: "power4.inOut" }, 0)
           .from("[data-menu-item]", { yPercent: 120, duration: 0.7, stagger: 0.08 }, 0.3)
           .fromTo("[data-menu-icon]", { scale: 0, rotate: -20 }, { scale: 1, rotate: 0, duration: 0.6, stagger: 0.08, ease: "back.out(2)" }, 0.4)
           .from("[data-menu-contact]", { autoAlpha: 0, y: 20, duration: 0.5 }, 0.5)
@@ -133,10 +134,12 @@ export function Navbar() {
         aria-modal="true"
         aria-label="Site menu"
         inert={!open}
-        className="invisible fixed inset-0 z-[60] overflow-hidden bg-midnight-950"
+        className="invisible fixed inset-0 z-[60] overflow-hidden"
         data-node-id="314:260"
       >
-        <div data-menu-panel className="absolute -top-141 -left-83 h-728 w-1569 max-md:-top-60 max-md:h-560">
+        {/* The panel drops over the current page; the page stays visible below it and a click there closes the menu. */}
+        <div data-menu-backdrop aria-hidden onClick={() => setOpen(false)} className="absolute inset-0 bg-midnight-950/30" />
+        <div data-menu-panel className="absolute -top-141 -left-83 h-728 w-1569 drop-shadow-[0_calc(var(--s)*24)_calc(var(--s)*48)_rgb(1_3_38/0.5)] max-md:-top-60 max-md:h-560">
           <Image
             src="/figma/nav/panel.svg"
             alt=""

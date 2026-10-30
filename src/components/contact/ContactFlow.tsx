@@ -25,6 +25,8 @@ export function ContactFlow() {
   const [service, setService] = useState<Service | null>(null);
   const [sentName, setSentName] = useState("");
   const [status, setStatus] = useState<Status>({ state: "idle" });
+  const [needService, setNeedService] = useState(false);
+  const choices = useRef<HTMLDivElement>(null);
 
   // Intro for whichever step is mounted; re-runs on every step change.
   useGSAP(
@@ -64,6 +66,19 @@ export function ContactFlow() {
     });
   }
 
+  function next() {
+    if (service) return go("details");
+    setNeedService(true);
+    if (!prefersReducedMotion()) {
+      gsap.fromTo(choices.current, { x: 0 }, { keyframes: { x: [-12, 10, -6, 3, 0] }, duration: 0.45, ease: "none" });
+    }
+  }
+
+  function choose(s: Service) {
+    setService(s);
+    setNeedService(false);
+  }
+
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
@@ -98,8 +113,10 @@ export function ContactFlow() {
           </p>
 
           <div
+            ref={choices}
             role="radiogroup"
             aria-label="Service"
+            aria-describedby={needService ? "service-hint" : undefined}
             className="absolute top-327 left-99 flex w-1239 flex-col gap-39 max-md:static max-md:mt-32 max-md:w-full max-md:gap-16"
           >
             <div className="flex gap-39 max-md:flex-col max-md:items-center max-md:gap-16">
@@ -112,7 +129,7 @@ export function ContactFlow() {
                     role="radio"
                     aria-checked={service === s}
                     data-pop
-                    onClick={() => setService(s)}
+                    onClick={() => choose(s)}
                     className={`group relative size-387 shrink-0 overflow-hidden rounded-2xl bg-midnight-600 outline-offset-[calc(var(--s)*6)] transition-[translate,opacity] duration-300 hover:-translate-y-6 max-md:size-300 ${
                       service === s ? "outline-[calc(var(--s)*6)] outline-midnight-50 outline-solid" : ""
                     } ${service && service !== s ? "opacity-50" : ""}`}
@@ -133,7 +150,7 @@ export function ContactFlow() {
               role="radio"
               aria-checked={service === "Others"}
               data-pop
-              onClick={() => setService("Others")}
+              onClick={() => choose("Others")}
               className={`h-67 w-full rounded-2xl bg-midnight-600 font-display text-[calc(var(--s)*50)] leading-[1.2] font-semibold text-midnight-50 outline-offset-[calc(var(--s)*6)] transition-[background-color,opacity] duration-300 hover:bg-midnight-500 max-md:h-72 max-md:text-[calc(var(--s)*32)] ${
                 service === "Others" ? "outline-[calc(var(--s)*6)] outline-midnight-50 outline-solid" : ""
               } ${service && service !== "Others" ? "opacity-50" : ""}`}
@@ -142,19 +159,24 @@ export function ContactFlow() {
             </button>
           </div>
 
-          <div className="absolute top-880 left-1244 flex flex-col items-center gap-12 max-md:static max-md:mt-32 max-md:items-end">
+          <div className="absolute top-880 right-100 flex flex-col items-end gap-12 max-md:static max-md:mt-32">
             <button
               type="button"
               data-pop
               data-magnetic
-              disabled={!service}
-              onClick={() => go("details")}
+              onClick={next}
               aria-label="Next step"
-              className="flex size-96 items-center justify-center rounded-[calc(var(--s)*24.67)] bg-midnight-500 transition-[background-color,opacity] hover:bg-midnight-400 disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex size-96 items-center justify-center rounded-[calc(var(--s)*24.67)] bg-midnight-500 transition-colors hover:bg-midnight-400"
             >
               <ArrowIcon className="size-72" />
             </button>
-            <span className="font-display text-lead text-midnight-100">1 / 2</span>
+            <span
+              id="service-hint"
+              aria-live="polite"
+              className={`font-display text-lead whitespace-nowrap transition-colors ${needService ? "text-midnight-50" : "text-midnight-100"}`}
+            >
+              {needService ? "Pick a service first" : "1 / 2"}
+            </span>
           </div>
         </div>
       )}
