@@ -11,7 +11,6 @@ import {
   revealHeading,
   revealLines,
   revealUp,
-  starburst,
 } from "@/lib/motion";
 import { onPageReveal } from "@/components/transition/PageTransition";
 
@@ -49,6 +48,11 @@ const presets: Record<string, Preset> = {
     const tl = gsap.timeline();
     const headline = one(q, "[data-headline]");
     tl.add(assembleHeadline(headline), 0);
+    // One starburst straddles the seam into Projects: its white top half lives here and its
+    // blue lower half in Projects, each clipped by its own section. Moving both halves together
+    // makes it read as one shape that rises out of the seam on load and sinks into it on scroll.
+    const lower = document.querySelector<HTMLElement>("#projects [data-burst]");
+    const bursts = [one(q, "[data-burst]"), lower].filter((el): el is HTMLElement => !!el);
     if (!reduced) {
       const strokes = (sel: string) => q(`${sel} path[stroke]`);
       tl.fromTo(strokes("[data-underline]"), { drawSVG: "0%" }, { drawSVG: "100%", duration: 0.8, ease: "power2.inOut" }, 0.9)
@@ -57,14 +61,15 @@ const presets: Record<string, Preset> = {
         .from(q("[data-chip]"), { scale: 0, autoAlpha: 0, duration: 0.5, ease: "back.out(2)", stagger: 0.08 }, 1.1)
         .from(q("[data-spark]"), { scale: 0, autoAlpha: 0, duration: 0.5, ease: "back.out(2)", stagger: 0.05 }, 0.9)
         .fromTo(strokes("[data-spark-draw]"), { drawSVG: "0%" }, { drawSVG: "100%", duration: 0.6, ease: "power2.out" }, 1.2)
-        .from(q("[data-burst]"), { yPercent: 50, scale: 0.6, rotate: -45, duration: 1.2 }, 0.6);
+        .from(bursts, { yPercent: 50, scale: 0.6, rotate: -45, duration: 1.2 }, 0.6);
 
       parallax(section);
-      gsap.to(q("[data-burst] > *"), {
-        rotate: 120,
-        ease: "none",
-        scrollTrigger: { trigger: section, start: "top top", end: "bottom top", scrub: 1 },
-      });
+      // Sink: it holds the half-and-half pose until the seam is well on screen, then by the time
+      // the seam reaches the top quarter the white half has dropped fully below it, leaving only
+      // the blue spikes in Projects.
+      const sink = { trigger: section, start: "clamp(bottom 80%)", end: "bottom 25%", scrub: 1 };
+      gsap.to(bursts, { y: 140 * u, ease: "none", scrollTrigger: sink });
+      gsap.to(bursts.map((b) => b.firstElementChild), { rotate: 90, ease: "none", scrollTrigger: sink });
       gsap.to(q("[data-collage]"), {
         y: -60 * u,
         ease: "none",
@@ -78,8 +83,7 @@ const presets: Record<string, Preset> = {
     const section = one(q, "section");
     headings(q);
     q("[data-lines]").forEach((el) => revealLines(el, { delay: 0.2 }));
-    const burst = one(q, "[data-burst]");
-    if (burst) starburst(burst, { trigger: section });
+    // The blue starburst at the top is moved by the hero preset, in step with its white half.
     const grid = one(q, "[data-grid]");
     revealUp(q("[data-card]"), { trigger: grid, y: 60, stagger: 0.1, start: "top 85%" });
     parallax(section);

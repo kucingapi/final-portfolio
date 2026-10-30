@@ -41,6 +41,8 @@ export function Navbar() {
   const [open, setOpen] = useState(false);
   const bar = useRef<HTMLElement>(null);
   const menu = useRef<HTMLDivElement>(null);
+  const lineTop = useRef<HTMLSpanElement>(null);
+  const lineBottom = useRef<HTMLSpanElement>(null);
   const menuTl = useRef<gsap.core.Timeline | null>(null);
 
   // Load-in + hide on scroll down / show on scroll up.
@@ -67,15 +69,21 @@ export function Navbar() {
       const reduced = prefersReducedMotion();
       const tl = gsap.timeline({ paused: true });
       tl.set(menu.current, { autoAlpha: 1 });
+      // The hamburger's two lines slide together onto the middle, then cross into an X
+      // (and play backwards on close). The y offsets move each line's centre to 50%.
+      tl.to(lineTop.current, { yPercent: 210, duration: reduced ? 0.1 : 0.3, ease: "power2.in" }, 0)
+        .to(lineBottom.current, { yPercent: -230, duration: reduced ? 0.1 : 0.3, ease: "power2.in" }, 0)
+        // Shorter, slightly bolder arms keep the X compact and as heavy as the logo beside it.
+        .to(lineTop.current, { rotate: 45, scaleX: 0.8, scaleY: 1.25, duration: reduced ? 0.1 : 0.5, ease: reduced ? "none" : "back.out(2)" }, reduced ? 0.1 : 0.3)
+        .to(lineBottom.current, { rotate: -45, scaleX: 0.8, scaleY: 1.25, duration: reduced ? 0.1 : 0.5, ease: reduced ? "none" : "back.out(2)" }, reduced ? 0.1 : 0.3);
       if (reduced) {
-        tl.from(menu.current, { autoAlpha: 0, duration: 0.2 });
+        tl.from(menu.current, { autoAlpha: 0, duration: 0.2 }, 0);
       } else {
         tl.from("[data-menu-backdrop]", { autoAlpha: 0, duration: 0.6, ease: "power2.out" }, 0)
           .from("[data-menu-panel]", { yPercent: -110, duration: 0.7, ease: "power4.inOut" }, 0)
           .from("[data-menu-item]", { yPercent: 120, duration: 0.7, stagger: 0.08 }, 0.3)
           .fromTo("[data-menu-icon]", { scale: 0, rotate: -20 }, { scale: 1, rotate: 0, duration: 0.6, stagger: 0.08, ease: "back.out(2)" }, 0.4)
-          .from("[data-menu-contact]", { autoAlpha: 0, y: 20, duration: 0.5 }, 0.5)
-          .from("[data-menu-close]", { rotate: -90, autoAlpha: 0, duration: 0.5 }, 0.3);
+          .from("[data-menu-contact]", { autoAlpha: 0, y: 20, duration: 0.5 }, 0.5);
       }
       menuTl.current = tl;
     },
@@ -88,6 +96,8 @@ export function Navbar() {
     if (open) {
       lenis.current?.stop();
       document.documentElement.style.overflow = "hidden";
+      // The bar stays on top of the open menu, so bring it back if scrolling had tucked it away.
+      gsap.to(bar.current, { yPercent: 0, duration: 0.4, ease: "power3.out", overwrite: "auto" });
       tl.timeScale(1).play();
     } else {
       lenis.current?.start();
@@ -105,9 +115,15 @@ export function Navbar() {
 
   return (
     <>
-      <header ref={bar} className="fixed inset-x-0 top-0 z-50 invisible" data-node-id="348:12162">
+      {/* Sits above the menu overlay (z-70 vs z-60) so the logo, clock and toggle stay put when it opens. */}
+      <header ref={bar} className="fixed inset-x-0 top-0 z-[70] invisible" data-node-id="348:12162">
         <div className="container-x flex h-100 items-center justify-between max-md:h-64">
-          <TransitionLink href="/" aria-label={`${site.name} — home`} className="flex items-end gap-20 max-md:gap-12">
+          <TransitionLink
+            href="/"
+            onClick={() => setOpen(false)}
+            aria-label={`${site.name} — home`}
+            className="flex items-end gap-20 max-md:gap-12"
+          >
             <Logo />
             <span className="font-display text-clock tracking-[-0.005em] whitespace-nowrap text-white" suppressHydrationWarning>
               <span className={time ? "" : "invisible"}>{time ?? "0:00 AM"}</span> (GMT+7)
@@ -115,14 +131,21 @@ export function Navbar() {
           </TransitionLink>
           <button
             type="button"
-            onClick={() => setOpen(true)}
+            onClick={() => setOpen((o) => !o)}
             aria-expanded={open}
             aria-controls="site-menu"
-            aria-label="Open menu"
-            className="group relative size-110 max-md:size-56"
+            aria-label={open ? "Close menu" : "Open menu"}
+            className="relative size-110 transition-[rotate] duration-300 aria-expanded:hover:rotate-90 max-md:size-56"
           >
-            <span className="absolute top-[38.18%] left-[24.55%] h-[4.55%] w-1/2 rounded-full bg-white transition-transform duration-300 group-hover:-translate-x-[12%]" />
-            <span className="absolute top-[58.18%] left-[24.55%] h-[4.55%] w-1/2 rounded-full bg-white transition-transform duration-300 group-hover:translate-x-[12%]" />
+            {/* Hover nudges the lines apart only while closed; GSAP morphs them into the X (see the menu timeline). */}
+            <span
+              ref={lineTop}
+              className="absolute top-[38.18%] left-[24.55%] h-[4.55%] w-1/2 rounded-full bg-white transition-[translate] duration-300 [[aria-expanded=false]:hover>&]:-translate-x-[12%]"
+            />
+            <span
+              ref={lineBottom}
+              className="absolute top-[58.18%] left-[24.55%] h-[4.55%] w-1/2 rounded-full bg-white transition-[translate] duration-300 [[aria-expanded=false]:hover>&]:translate-x-[12%]"
+            />
           </button>
         </div>
       </header>
@@ -131,7 +154,6 @@ export function Navbar() {
         ref={menu}
         id="site-menu"
         role="dialog"
-        aria-modal="true"
         aria-label="Site menu"
         inert={!open}
         className="invisible fixed inset-0 z-[60] overflow-hidden"
@@ -139,61 +161,61 @@ export function Navbar() {
       >
         {/* The panel drops over the current page; the page stays visible below it and a click there closes the menu. */}
         <div data-menu-backdrop aria-hidden onClick={() => setOpen(false)} className="absolute inset-0 bg-midnight-950/30" />
-        <div data-menu-panel className="absolute -top-141 -left-83 h-728 w-1569 drop-shadow-[0_calc(var(--s)*24)_calc(var(--s)*48)_rgb(1_3_38/0.5)] max-md:-top-60 max-md:h-560">
+        {/*
+          The panel spans the full viewport on any screen width (the SVG stretches freely). On desktop it
+          also runs 200px higher than the Figma one so the tilt never shows its top corners on wide screens,
+          and 80px lower so the links clear the navbar sitting on top. Its bottom edge is where Figma has it.
+        */}
+        <div
+          data-menu-panel
+          className="absolute -top-341 left-1/2 h-1008 w-[max(calc(var(--s)*1569),calc(100vw+var(--s)*160))] -translate-x-1/2 drop-shadow-[0_calc(var(--s)*24)_calc(var(--s)*48)_rgb(1_3_38/0.5)] max-md:-top-60 max-md:-left-83 max-md:h-600 max-md:w-1569 max-md:translate-x-0"
+        >
           <Image
             src="/figma/nav/panel.svg"
             alt=""
             width={1523}
             height={597}
-            className="absolute top-1/2 left-1/2 h-597 w-1523 max-w-none -translate-x-1/2 -translate-y-1/2 -rotate-5 max-md:h-460"
+            className="absolute top-1/2 left-1/2 h-877 w-[calc(100%-var(--s)*46)] max-w-none -translate-x-1/2 -translate-y-1/2 -rotate-5 max-md:h-500"
           />
         </div>
 
-        <nav className="absolute top-60 left-40 origin-top-left -rotate-5 max-md:top-90 max-md:left-24">
-          <ul className="flex flex-col gap-17 max-md:gap-12">
-            {MENU.map((item) => (
-              <li key={item.href} className="line-mask">
-                <TransitionLink
-                  href={item.href}
-                  onClick={() => setOpen(false)}
-                  data-menu-item
-                  className="group flex items-center gap-10 p-10 text-midnight-950"
-                >
-                  <span className="transition-[rotate] duration-300 group-hover:rotate-[-8deg]">
-                  <Image
-                    data-menu-icon
-                    src={item.icon}
-                    alt=""
-                    width={119}
-                    height={119}
-                    className="size-119 max-md:size-56"
-                  />
-                  </span>
-                  <span className="text-h1 font-bold transition-transform duration-300 group-hover:translate-x-12">{item.label}</span>
-                </TransitionLink>
-              </li>
-            ))}
-          </ul>
-        </nav>
+        {/* Links and contact keep their Figma spots inside a centred 1440 frame, in line with the navbar. */}
+        <div className="pointer-events-none relative mx-auto h-full w-1440 *:pointer-events-auto max-md:w-full">
+          <nav className="absolute top-140 left-40 origin-top-left -rotate-5 max-md:top-90 max-md:left-24">
+            <ul className="flex flex-col gap-17 max-md:gap-12">
+              {MENU.map((item) => (
+                <li key={item.href} className="line-mask">
+                  <TransitionLink
+                    href={item.href}
+                    onClick={() => setOpen(false)}
+                    data-menu-item
+                    className="group flex items-center gap-10 p-10 text-midnight-950"
+                  >
+                    <span className="transition-[rotate] duration-300 group-hover:rotate-[-8deg]">
+                    <Image
+                      data-menu-icon
+                      src={item.icon}
+                      alt=""
+                      width={119}
+                      height={119}
+                      className="size-119 max-md:size-56"
+                    />
+                    </span>
+                    <span className="text-h1 font-bold transition-transform duration-300 group-hover:translate-x-12">{item.label}</span>
+                  </TransitionLink>
+                </li>
+              ))}
+            </ul>
+          </nav>
 
-        <div data-menu-contact className="absolute top-262 left-1046 origin-top-left -rotate-5 text-white max-md:top-540 max-md:left-34 max-md:rotate-0">
-          <p className="text-h4 font-semibold">Get in touch</p>
-          <div className="mt-21 flex flex-col gap-11 text-lead font-semibold max-md:mt-12">
-            <a href={mailHref} className="hover:underline">{site.email}</a>
-            <a href={telHref} className="hover:underline">{site.phone}</a>
+          <div data-menu-contact className="absolute top-322 left-1046 origin-top-left -rotate-5 text-white max-md:top-350 max-md:left-34 max-md:rotate-0">
+            <p className="text-h4 font-semibold">Get in touch</p>
+            <div className="mt-21 flex flex-col gap-11 text-lead font-semibold max-md:mt-12">
+              <a href={mailHref} className="hover:underline">{site.email}</a>
+              <a href={telHref} className="hover:underline">{site.phone}</a>
+            </div>
           </div>
         </div>
-
-        <button
-          type="button"
-          data-menu-close
-          onClick={() => setOpen(false)}
-          aria-label="Close menu"
-          className="absolute top-0 right-100 size-110 transition-transform duration-300 hover:rotate-90 max-md:top-4 max-md:right-20 max-md:size-56"
-        >
-          <span className="absolute top-1/2 left-1/2 h-[4.5%] w-1/2 -translate-1/2 rotate-45 rounded-full bg-white" />
-          <span className="absolute top-1/2 left-1/2 h-[4.5%] w-1/2 -translate-1/2 -rotate-45 rounded-full bg-white" />
-        </button>
       </div>
     </>
   );

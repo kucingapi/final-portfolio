@@ -1,6 +1,6 @@
 "use client";
 
-import { gsap, ScrollTrigger, SplitText, prefersReducedMotion } from "./gsap";
+import { gsap, SplitText, prefersReducedMotion } from "./gsap";
 
 /** One Figma design pixel in CSS px (mirrors `--s` in globals.css). */
 export function designUnit() {
@@ -113,28 +113,6 @@ export function drawStrokes(
     { drawSVG: "0%" },
     { drawSVG: "100%", ease: "none", scrollTrigger: { trigger, start, end, scrub } },
   );
-}
-
-/**
- * E3 — starburst rise across a section boundary, then a slow continuous spin
- * that only runs while it's on screen.
- */
-export function starburst(el: Element, { trigger, spin = true }: { trigger: Element; spin?: boolean }) {
-  if (prefersReducedMotion()) return;
-  gsap.fromTo(
-    el,
-    { yPercent: 60, scale: 0.6, rotate: -30 },
-    { yPercent: 0, scale: 1, rotate: 0, ease: "none", scrollTrigger: { trigger, start: "top bottom", end: "top 30%", scrub: 1 } },
-  );
-  if (!spin) return;
-  const inner = el.firstElementChild ?? el;
-  const loop = gsap.to(inner, { rotate: 360, duration: 40, repeat: -1, ease: "none", paused: true });
-  ScrollTrigger.create({
-    trigger: el,
-    start: "top bottom",
-    end: "bottom top",
-    onToggle: (self) => (self.isActive ? loop.play() : loop.pause()),
-  });
 }
 
 /** E4 — parallax: every `[data-speed]` inside `section` drifts at its own rate. */

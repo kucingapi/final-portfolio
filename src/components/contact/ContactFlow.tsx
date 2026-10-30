@@ -38,7 +38,15 @@ export function ContactFlow() {
       if (title) tl.add(assembleHeadline(title), 0);
       if (!reduced) {
         tl.from(q("[data-step-sub]"), { y: 30 * designUnit(), autoAlpha: 0, duration: 0.7 }, 0.3)
-          .from(q("[data-pop]"), { scale: 0.7, autoAlpha: 0, duration: 0.7, stagger: 0.1, ease: "back.out(1.4)", clearProps: "transform,translate,rotate,scale" }, 0.35)
+          // Explicit end values: the service cards also have a CSS opacity transition (for dimming the
+          // unpicked ones), so a from() could read a mid-transition opacity and end up stuck hidden.
+          // Clearing the inline styles afterwards hands opacity back to those classes.
+          .fromTo(
+            q("[data-pop]"),
+            { scale: 0.7, autoAlpha: 0 },
+            { scale: 1, autoAlpha: 1, duration: 0.7, stagger: 0.1, ease: "back.out(1.4)", clearProps: "all" },
+            0.35,
+          )
           .from(q("[data-field]"), { x: 60 * designUnit(), autoAlpha: 0, duration: 0.7, stagger: 0.08 }, 0.35)
           .from(q("[data-code-row]"), { scaleX: 0, transformOrigin: "left center", duration: 0.5, stagger: 0.03 }, 0.8);
       }
