@@ -166,14 +166,9 @@ const presets: Record<string, Preset> = {
   },
 
   testimonials(root, q) {
-    const section = one(q, "section");
+    // The card deck (TestimonialDeck) runs its own entrance and autoplay.
     headings(q);
     q("[data-lines]").forEach((el) => revealLines(el, { delay: 0.15 }));
-    if (prefersReducedMotion()) return;
-    const u = designUnit();
-    const st = { trigger: section, start: "top 60%", once: true };
-    gsap.from(q("[data-stack-card]"), { x: 120 * u, rotate: 4, autoAlpha: 0, duration: 1, stagger: { each: 0.12, from: "end" }, scrollTrigger: st });
-    gsap.from(q("[data-quote] > *"), { y: 24 * u, autoAlpha: 0, duration: 0.7, stagger: 0.1, delay: 0.5, scrollTrigger: st });
   },
 
   talk(root, q) {

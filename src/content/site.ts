@@ -50,14 +50,38 @@ export const coreValues = [
   { key: "problemSolver", title: "Problem Solver", body: "Solving problem may not be easy, but I’m the person who thinks outside of the box." },
 ] as const;
 
-/** TODO: placeholder testimonial from the Figma file. */
-export const testimonials = [
+export type Testimonial = { quote: string; name: string; relation: string; role: string; avatar?: string };
+
+/**
+ * TODO: placeholders. The first is the Figma sample, the rest are dummy copy to show the deck;
+ * replace them all with real testimonials before publishing. Cards without `avatar` show initials.
+ */
+export const testimonials: Testimonial[] = [
   {
     quote:
       "When Working with novel it is very nice and I learn a lot about the things that I don’t know, I highly recommended working with novel",
     name: "Novel B.",
     relation: "Client",
     role: "Front End Developer at Google",
+    avatar: "/figma/testimonials/avatar.png",
+  },
+  {
+    quote: "Placeholder: Novel turned our rough idea into a working web app in a few weeks and kept us in the loop the whole way.",
+    name: "Client Name",
+    relation: "Client",
+    role: "Founder, Company",
+  },
+  {
+    quote: "Placeholder: Clear communication, clean code, and he caught problems before they reached our users. Would hire again.",
+    name: "Client Name",
+    relation: "Client",
+    role: "Product Manager, Company",
+  },
+  {
+    quote: "Placeholder: Fast, reliable and easy to work with. The mobile app shipped on time and our team could pick it up right away.",
+    name: "Teammate Name",
+    relation: "Teammate",
+    role: "Designer, Company",
   },
 ];
 
