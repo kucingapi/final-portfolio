@@ -1,0 +1,171 @@
+@import "tailwindcss";
+
+/*
+ * Canvas scaling.
+ * Every size in the Figma file is authored on a 1440px desktop frame. `--s` is one
+ * design pixel, so `w-1240` / `top-195` / `gap-39` map 1:1 to the Figma numbers and
+ * the whole layout scales with the viewport (capped at 1440). Below 768px the canvas
+ * switches to a 430px phone frame and sections use their `max-md:` layouts.
+ */
+:root {
+  --s: calc(min(100cqw, 1440px) / 1440);
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 200ms;
+  --dur-small: 400ms;
+}
+
+@media (max-width: 767.98px) {
+  :root {
+    --s: calc(100cqw / 430);
+    --text-h1: calc(var(--s) * 46);
+    --text-h2: calc(var(--s) * 40);
+    --text-h3: calc(var(--s) * 34);
+    --text-h4: calc(var(--s) * 21);
+    --text-lead: calc(var(--s) * 16);
+    --text-body: calc(var(--s) * 14);
+    --text-chip: calc(var(--s) * 12);
+    --text-clock: calc(var(--s) * 18);
+    --text-mega: calc(var(--s) * 96);
+    --text-service: calc(var(--s) * 44);
+  }
+}
+
+@theme {
+  --spacing: var(--s);
+
+  --color-midnight-50: #e5f0ff;
+  --color-midnight-100: #d0e3ff;
+  --color-midnight-200: #abcbff;
+  --color-midnight-400: #4571ff;
+  --color-midnight-500: #1b3cff;
+  --color-midnight-600: #0017ff;
+  --color-midnight-700: #001aff;
+  --color-midnight-800: #0016dd;
+  --color-midnight-900: #0411ab;
+  --color-midnight-950: #010326;
+  --color-base-200: #edf0f7;
+  --color-base-800: #1b212c;
+  --color-base-900: #090c10;
+  --color-chip-teal: #0e3044;
+  --color-chip-olive: #705801;
+  --color-placeholder: #71717a;
+
+  --font-sans: var(--font-cabin), system-ui, sans-serif;
+  --font-inter: var(--font-inter-face), system-ui, sans-serif;
+  --font-display: "Chillax", var(--font-cabin), system-ui, sans-serif;
+
+  --text-h1: calc(var(--s) * 96);
+  --text-h1--line-height: 1.2;
+  --text-h2: calc(var(--s) * 80);
+  --text-h2--line-height: 1.2;
+  --text-h2--letter-spacing: -0.0075em;
+  --text-h3: calc(var(--s) * 64);
+  --text-h3--line-height: 1.2;
+  --text-h3--letter-spacing: -0.006em;
+  --text-h4: calc(var(--s) * 40);
+  --text-h4--line-height: 1.2;
+  --text-h4--letter-spacing: -0.005em;
+  --text-lead: calc(var(--s) * 20);
+  --text-lead--line-height: 1.2;
+  --text-body: calc(var(--s) * 16);
+  --text-body--line-height: 1.2;
+  --text-chip: calc(var(--s) * 16);
+  --text-chip--line-height: 1.5;
+  --text-clock: calc(var(--s) * 40);
+  --text-clock--line-height: 1.2;
+  --text-mega: calc(var(--s) * 200);
+  --text-mega--line-height: 1.2;
+  --text-mega--letter-spacing: -0.005em;
+  --text-service: calc(var(--s) * 100);
+  --text-service--line-height: 1.2;
+
+  --radius-xs: calc(var(--s) * 14);
+  --radius-sm: calc(var(--s) * 24);
+  --radius-md: calc(var(--s) * 30);
+  --radius-lg: calc(var(--s) * 40);
+  --radius-xl: calc(var(--s) * 48);
+  --radius-2xl: calc(var(--s) * 100);
+  --radius-3xl: calc(var(--s) * 128);
+  --radius-highlight: calc(var(--s) * 70);
+}
+
+html {
+  background: var(--color-midnight-950);
+  color: var(--color-midnight-50);
+}
+
+body {
+  background: var(--color-midnight-950);
+  font-family: var(--font-sans);
+  overflow-x: clip;
+}
+
+::selection {
+  background: var(--color-midnight-400);
+  color: var(--color-midnight-950);
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-midnight-400);
+  outline-offset: 4px;
+}
+
+/* Lenis */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis:not(.lenis-autoToggle).lenis-stopped {
+  overflow: clip;
+}
+.lenis [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+/*
+ * Page content is an inline-size container, so `cqw` in --s measures the content
+ * box (no scrollbar). It's a wrapper, not <body>, because containment would also
+ * trap the fixed navbar/overlay. Outside it, cqw falls back to the viewport.
+ */
+.page-canvas {
+  container-type: inline-size;
+}
+
+@layer components {
+  .container-x {
+    width: calc(var(--s) * 1240);
+    margin-inline: auto;
+  }
+  @media (max-width: 767.98px) {
+    .container-x {
+      width: calc(var(--s) * 390);
+    }
+  }
+
+  /* Asymmetric highlight bar behind section titles (Figma "Frame 159") */
+  .highlight-bar {
+    background: var(--color-midnight-400);
+    border-start-end-radius: var(--radius-highlight);
+    border-end-start-radius: var(--radius-highlight);
+  }
+
+  /* Split-line masks for heading reveals */
+  .line-mask {
+    overflow: clip;
+    overflow-clip-margin: 0.1em;
+    padding-bottom: 0.06em;
+    margin-bottom: -0.06em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}
