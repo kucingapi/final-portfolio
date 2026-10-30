@@ -53,12 +53,11 @@ export function Hero() {
               <div data-photo data-node-id="186:1926" className="relative size-full overflow-hidden rounded-lg border-2 border-base-200 bg-midnight-950">
                 <Image
                   src="/figma/hero/photo-main.jpg"
-                  alt="Novel Bafagih at work"
-                  width={431}
-                  height={646}
+                  alt="Novel speaking with a microphone"
+                  fill
                   priority
                   sizes="(max-width: 768px) 60vw, 30vw"
-                  className="absolute -top-103 -left-40 h-646 w-431 max-w-none object-cover opacity-80"
+                  className="origin-[57%_38%] scale-[1.35] object-cover object-[60%_30%] opacity-80"
                 />
               </div>
             </div>
@@ -70,11 +69,10 @@ export function Hero() {
               <div data-photo data-node-id="186:1915" className="relative h-333 w-251 flex-none -rotate-[22.5deg] overflow-hidden rounded-lg border-2 border-base-200 bg-base-800">
                 <Image
                   src="/figma/hero/photo-left.jpg"
-                  alt="Novel with friends outside campus"
-                  width={264}
-                  height={466}
+                  alt="Novel Bafagih at an event"
+                  fill
                   sizes="(max-width: 768px) 40vw, 20vw"
-                  className="absolute -top-119 -left-11 h-466 w-264 max-w-none object-contain opacity-60"
+                  className="object-cover object-[50%_30%] opacity-60"
                 />
               </div>
             </div>
@@ -86,11 +84,10 @@ export function Hero() {
               <div data-photo data-node-id="186:1921" className="relative h-333 w-251 flex-none rotate-[22.5deg] overflow-hidden rounded-lg border-2 border-base-200 bg-base-800">
                 <Image
                   src="/figma/hero/photo-right.jpg"
-                  alt="Novel with a team"
-                  width={248}
-                  height={371}
+                  alt="Novel smiling"
+                  fill
                   sizes="(max-width: 768px) 40vw, 20vw"
-                  className="absolute -top-21 left-0 h-371 w-248 max-w-none object-cover opacity-60"
+                  className="object-cover object-[48%_50%] opacity-60"
                 />
               </div>
             </div>
