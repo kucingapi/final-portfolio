@@ -5,7 +5,6 @@ import { gsap, ScrollTrigger, useGSAP, prefersReducedMotion } from "@/lib/gsap";
 import {
   assembleHeadline,
   designUnit,
-  drawStrokes,
   magnetic,
   parallax,
   revealHeading,
@@ -153,65 +152,35 @@ const presets: Record<string, Preset> = {
     };
   },
 
-  about(root, q) {
+  /**
+   * "How I work": the brain pattern starts blank and grows as the section scrolls past, each fold
+   * drawing out from its middle, nearest the centre first (the paths are stored in that order).
+   */
+  philosophy(root, q) {
     const section = one(q, "section");
     headings(q);
-    q("[data-lines]").forEach((el) => revealLines(el, { delay: 0.15 }));
+    q("[data-lines]").forEach((el) => revealLines(el, { delay: 0.1 }));
+    q("[data-step]").forEach((step) => revealUp(step, { trigger: step, start: "top 88%" }));
     const reduced = prefersReducedMotion();
-    if (reduced) return;
-    const u = designUnit();
-    const portrait = one(q, "[data-portrait]");
-    gsap.from(portrait, {
-      y: 60 * u,
-      rotate: -6,
+    gsap.from(q("[data-span]"), {
+      scale: reduced ? 1 : 0,
       autoAlpha: 0,
-      duration: 1,
-      scrollTrigger: { trigger: portrait, start: "top 85%", once: true },
-    });
-    gsap.from(q("[data-chip]"), {
-      scale: 0,
-      duration: 0.5,
+      duration: reduced ? 0.2 : 0.5,
       ease: "back.out(2)",
-      stagger: 0.15,
-      delay: 0.5,
-      scrollTrigger: { trigger: portrait, start: "top 85%", once: true },
+      stagger: reduced ? 0 : 0.05,
+      scrollTrigger: { trigger: one(q, "[data-span]"), start: "top 90%", once: true },
     });
-    gsap.from(q("[data-spark]"), {
-      scale: 0,
-      rotate: -30,
-      duration: 0.5,
-      ease: "back.out(2)",
-      stagger: 0.1,
-      scrollTrigger: { trigger: section, start: "top 60%", once: true },
-    });
-    gsap.from(q("[data-rule]"), {
-      scaleX: 0,
-      transformOrigin: "left center",
-      duration: 1,
-      ease: "power3.inOut",
-      scrollTrigger: { trigger: section, start: "top 85%", once: true },
-    });
-  },
-
-  values(root, q) {
-    headings(q);
-    const grid = one(q, "[data-grid]");
-    revealUp(q("[data-card]"), { trigger: grid, y: 60, stagger: 0.1 });
-    if (prefersReducedMotion()) return;
-    const u = designUnit();
-    const at = (card: string) => ({ trigger: one(q, `[data-card="${card}"]`), start: "top 75%", once: true });
-    gsap.from(q('[data-card="fast"] [data-chevron]'), { x: -60 * u, skewX: -15, autoAlpha: 0, duration: 0.7, stagger: 0.06, scrollTrigger: at("fast") });
-    gsap.from(q('[data-card="reliable"] [data-bar]'), { scaleX: 0, duration: 0.6, stagger: 0.08, ease: "back.out(1.6)", scrollTrigger: at("reliable") });
-    gsap.from(q('[data-card="reliable"] [data-block]'), { scale: 0.8, autoAlpha: 0, duration: 0.6, stagger: 0.06, ease: "back.out(1.6)", scrollTrigger: at("reliable") });
-    const waves = q('[data-card="flexible"] [data-wave]');
-    waves.forEach((w) => drawStrokes(w, { trigger: one(q, '[data-card="flexible"]'), scrub: false, start: "top 75%", duration: 1.2 }));
-    waves.forEach((w, i) =>
-      gsap.to(w, { y: (i ? -8 : 8) * u, duration: 2, ease: "sine.inOut", yoyo: true, repeat: -1, delay: i * 0.4 }),
-    );
-    gsap.from(q('[data-card="aiAssisted"] [data-arrow]'), { y: -80 * u, autoAlpha: 0, duration: 0.8, ease: "back.out(1.4)", scrollTrigger: at("aiAssisted") });
-    gsap.from(q('[data-card="aiAssisted"] [data-swoop]'), { scale: 0.6, autoAlpha: 0, duration: 0.7, stagger: 0.1, scrollTrigger: at("aiAssisted") });
-    gsap.from(q('[data-card="aiAssisted"] [data-bar]'), { scaleX: 0, transformOrigin: "left center", duration: 0.5, stagger: 0.05, delay: 0.3, scrollTrigger: at("aiAssisted") });
-    gsap.from(q('[data-card="problemSolver"] [data-piece]'), { rotate: -90, scale: 0.6, autoAlpha: 0, duration: 0.8, stagger: 0.12, ease: "back.out(1.6)", scrollTrigger: at("problemSolver") });
+    const bar = one(q, "[data-pledge-bar]");
+    gsap.from(bar, { scaleX: 0, transformOrigin: "left center", duration: reduced ? 0.2 : 0.9, ease: "power3.inOut", scrollTrigger: { trigger: bar, start: "top 85%", once: true } });
+    if (reduced) return;
+    // Only the pattern shown at this width; the other one is display:none and can't be measured.
+    const pattern = q("[data-pattern]").find((svg) => getComputedStyle(svg).display !== "none");
+    if (!pattern) return;
+    const folds = pattern.querySelectorAll("path");
+    gsap
+      .timeline({ scrollTrigger: { trigger: section, start: "top 80%", end: "bottom 90%", scrub: 1 } })
+      // A zero-length round-capped stroke still paints a dot, so each fold fades in as it draws.
+      .fromTo(folds, { drawSVG: "50% 50%", autoAlpha: 0 }, { drawSVG: "0% 100%", autoAlpha: 1, duration: 1, ease: "none", stagger: 0.035 });
   },
 
   detail(root, q) {

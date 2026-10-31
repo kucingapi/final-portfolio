@@ -27,13 +27,37 @@ export const site = {
 export const about =
   "I’m Novel Bafagih, a software engineer who never goes a day without learning something new. I build scalable, flexible and robust software, mostly with React, Next.js and Kotlin Jetpack Compose. AI is part of how I work: it helps me move fast, and I review every line so the code stays clean and easy to maintain. Give me a week, a computer and an internet connection, and I’ll learn whatever the project needs.";
 
-export const coreValues = [
-  { key: "fast", title: "Fast", body: "Most of my work lands before the deadline, not on it." },
-  { key: "reliable", title: "Reliable", body: "You can count on me to put real care and effort into every piece of work." },
-  { key: "flexible", title: "Flexible", body: "I pick up whatever technology the problem needs to build the best solution." },
-  { key: "aiAssisted", title: "AI-Assisted, Human-Reviewed", body: "AI helps me ship faster. I still read, test and own every line, so the code stays clean and easy to maintain." },
-  { key: "problemSolver", title: "Problem Solver", body: "Hard problems don’t scare me. I look past the obvious answer to find one that actually works." },
-] as const;
+/** "How I work" on the home page. The numbers in the last step are from the case studies. */
+export const philosophy = {
+  title: "How I work",
+  lede: "AI is my tool, not my replacement. I take a product end to end, from the first sketch to the backend, and every step starts from facts, not hunches.",
+  span: ["Design", "Frontend", "Backend", "Testing", "Analytics"],
+  steps: [
+    {
+      title: "Start from the numbers",
+      body: "Before I change anything, I find out how it is doing: what people click, how fast it loads, what breaks. A change needs a reason, and a baseline to beat.",
+    },
+    {
+      title: "Plan before I build",
+      body: "I write down what we are making, who it is for, and how we will know it worked. Mistakes are cheapest here, on paper.",
+    },
+    {
+      title: "Make sure the AI knows exactly what I want",
+      body: "The design, the rules, the edge cases and what done looks like go in first. The AI builds what I mean, not what it guesses.",
+    },
+    {
+      title: "Build, test, iterate",
+      body: "Then it moves fast: build, run the tests, look at the real screen, fix what is off, and go again until it holds up.",
+    },
+    {
+      title: "Measure it again",
+      body: "Every change ends with a before and after. multimodal.dev's median phone Lighthouse score went from 73 to 85; in AgentFlow, people filtering their runs went from about 10% to 70%.",
+    },
+  ],
+  /** Read as one sentence; `mark` gets the highlight bar. */
+  pledge: { lead: "What the AI builds is", mark: "what I build." },
+  pledgeNote: "I read every line, I test it, and I answer for what ships.",
+};
 
 export type Testimonial = { quote: string; name: string; relation: string; role: string; avatar?: string };
 
