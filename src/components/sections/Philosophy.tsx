@@ -13,8 +13,15 @@ type PatternArt = { PATTERN_VIEWBOX: { w: number; h: number }; PATTERN_STROKE: n
 function Pattern({ art, className }: { art: PatternArt; className: string }) {
   const { w, h } = art.PATTERN_VIEWBOX;
   return (
-    <svg data-pattern aria-hidden viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="xMidYMid slice" className={`absolute inset-0 size-full ${className}`}>
-      <g fill="none" stroke="var(--color-midnight-800)" strokeWidth={art.PATTERN_STROKE} strokeLinecap="round" strokeLinejoin="round" opacity={0.38}>
+    // The folds fade out toward the top and bottom edges instead of being sliced off by them.
+    <svg
+      data-pattern
+      aria-hidden
+      viewBox={`0 0 ${w} ${h}`}
+      preserveAspectRatio="xMidYMid slice"
+      className={`absolute inset-0 size-full [mask-image:linear-gradient(to_bottom,transparent,black_calc(var(--s)*260),black_calc(100%-var(--s)*260),transparent)] ${className}`}
+    >
+      <g fill="none" stroke="var(--color-midnight-500)" strokeWidth={art.PATTERN_STROKE} strokeLinecap="round" strokeLinejoin="round" opacity={0.75}>
         {art.brainPattern.map((d, i) => (
           <path key={i} d={d} />
         ))}
@@ -27,7 +34,8 @@ function Pattern({ art, className }: { art: PatternArt; className: string }) {
 export function Philosophy() {
   return (
     <SectionMotion preset="philosophy">
-      <section id="philosophy" aria-labelledby="philosophy-title" className="relative overflow-clip bg-midnight-950">
+      <section id="philosophy" aria-labelledby="philosophy-title" className="relative overflow-clip bg-midnight-900">
+        <span aria-hidden className="absolute inset-x-0 top-0 z-10 h-px bg-white" />
         <Pattern art={wide} className="max-md:hidden" />
         <Pattern art={tall} className="md:hidden" />
 
@@ -53,7 +61,7 @@ export function Philosophy() {
                 data-step
                 className="grid grid-cols-[calc(var(--s)*140)_calc(var(--s)*500)_1fr] items-baseline gap-x-40 border-t-2 border-midnight-50/20 py-44 max-md:grid-cols-[calc(var(--s)*52)_1fr] max-md:gap-x-12 max-md:py-28"
               >
-                <span className="font-display text-h3 leading-none font-semibold text-midnight-400 tabular-nums">{String(i + 1).padStart(2, "0")}</span>
+                <span className="font-display text-h3 leading-none font-semibold text-midnight-200 tabular-nums">{String(i + 1).padStart(2, "0")}</span>
                 <h3 className="text-h4 font-semibold text-midnight-50">{step.title}</h3>
                 <p className="text-lead leading-[1.5] text-midnight-100 max-md:col-start-2 max-md:mt-12">{step.body}</p>
               </li>

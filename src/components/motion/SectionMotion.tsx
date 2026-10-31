@@ -177,10 +177,15 @@ const presets: Record<string, Preset> = {
     const pattern = q("[data-pattern]").find((svg) => getComputedStyle(svg).display !== "none");
     if (!pattern) return;
     const folds = pattern.querySelectorAll("path");
+    // One scrubbed timeline over the whole pass: the folds grow in as the section arrives, hold while
+    // it is read, and retract from the edges inward as it leaves. Scrolling back plays it in reverse.
+    const each = 0.035;
+    const sweep = 1 + each * (folds.length - 1);
     gsap
-      .timeline({ scrollTrigger: { trigger: section, start: "top 80%", end: "bottom 90%", scrub: 1 } })
-      // A zero-length round-capped stroke still paints a dot, so each fold fades in as it draws.
-      .fromTo(folds, { drawSVG: "50% 50%", autoAlpha: 0 }, { drawSVG: "0% 100%", autoAlpha: 1, duration: 1, ease: "none", stagger: 0.035 });
+      .timeline({ scrollTrigger: { trigger: section, start: "top 85%", end: "bottom 15%", scrub: 1 } })
+      // A zero-length round-capped stroke still paints a dot, so each fold fades as it draws.
+      .fromTo(folds, { drawSVG: "50% 50%", autoAlpha: 0 }, { drawSVG: "0% 100%", autoAlpha: 1, duration: 1, ease: "none", stagger: each })
+      .to(folds, { drawSVG: "50% 50%", autoAlpha: 0, duration: 1, ease: "none", stagger: { each, from: "end" } }, sweep * 3);
   },
 
   detail(root, q) {

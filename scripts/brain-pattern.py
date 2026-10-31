@@ -1,110 +1,129 @@
-"""Brain-fold wallpaper for the philosophy section (src/components/philosophy/brain-pattern.ts).
+"""Brain-fold wallpaper for the "How I work" section (src/components/philosophy/brain-pattern*.ts).
 
-The zero line of narrow-band noise meanders like the folds of a brain; cutting it into worm-length
+The zero line of narrow-band noise meanders like the folds of a brain. Cutting it into worm-length
 pieces, and cutting again wherever two come too close, gives the open ends and T-shaped meetings of
-a hand-drawn brain pattern.
+a hand-drawn brain pattern. A narrow band keeps every fold the same width, so the pattern reads as
+calm and even rather than busy.
 
-Usage: python scripts/brain-pattern.py src/components/philosophy/brain-pattern.ts 1440 2250 110 5
-       python scripts/brain-pattern.py src/components/philosophy/brain-pattern-mobile.ts 860 3650 100 9
-       (out, width, height, fold wavelength, seed). Needs numpy, scipy and matplotlib."""
-import json, sys, os, re
+Usage: python scripts/brain-pattern.py src/components/philosophy/brain-pattern.ts 1440 2250 120 5
+       python scripts/brain-pattern.py src/components/philosophy/brain-pattern-mobile.ts 860 3650 110 9
+       (out, width, height, fold wavelength, seed). Needs numpy, scipy and matplotlib.
+       Set PREVIEW=some.png to also render a preview in the site's colours (needs Pillow)."""
+import os, re, sys
 import numpy as np
 import matplotlib; matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from scipy.ndimage import uniform_filter1d
+from scipy.spatial import cKDTree
 
 out = sys.argv[1]
 W, H, LAM, SEED = (int(a) for a in sys.argv[2:6])
-SC = 4
-pad = LAM  # generate past the edges so lines run off the frame, not around it
+
+# Shape of the pattern, as fractions of the fold wavelength LAM.
+BAND = 0.07           # spread of fold widths: smaller is more even
+STROKE = 0.21         # line thickness
+MIN_APART = 0.3       # closest two lines may run, centre to centre (> STROKE, so they never touch)
+WORM = (3.6, 7.0)     # length of each worm
+GAP = 0.3             # gap left where a line is cut into worms
+SHORTEST = 0.9        # scraps shorter than this are dropped
+SMALLEST_LOOP = 1.8   # closed loops shorter than this are dropped (they read as dots and rings)
+
+SC = 4                # noise grid cell, viewBox units
+STEP = 3.0            # resampling step along a line, viewBox units
+pad = LAM             # generate past the edges so lines run off the frame, not around it
 gw, gh = (W + 2 * pad) // SC, (H + 2 * pad) // SC
 rng = np.random.default_rng(SEED)
 noise = rng.standard_normal((gh, gw))
 ky = np.fft.fftfreq(gh, d=SC)[:, None]; kx = np.fft.fftfreq(gw, d=SC)[None, :]
-k = np.hypot(kx, ky); k0 = 1 / LAM
-field = np.real(np.fft.ifft2(np.fft.fft2(noise) * np.exp(-((k - k0) / (0.14 * k0)) ** 2)))
+k0 = 1 / LAM
+field = np.real(np.fft.ifft2(np.fft.fft2(noise) * np.exp(-((np.hypot(kx, ky) - k0) / (BAND * k0)) ** 2)))
 xs = np.arange(gw) * SC - pad; ys = np.arange(gh) * SC - pad
+# Just off zero, so saddles open into two bending lines instead of an X.
 fig = plt.figure(); cs = plt.contour(xs, ys, field, levels=[0.12 * field.std()]); plt.close(fig)
+
+
+def resample(p, step=STEP):
+    d = np.r_[0, np.cumsum(np.hypot(*np.diff(p, axis=0).T))]
+    t = np.arange(0, d[-1] + 1e-6, step)
+    return np.c_[np.interp(t, d, p[:, 0]), np.interp(t, d, p[:, 1])], d[-1]
+
 
 def rdp(p, eps):
     if len(p) < 3: return p
     a, b = p[0], p[-1]; ab = b - a; n = np.hypot(*ab)
     dist = np.hypot(*(p - a).T) if n < 1e-9 else np.abs(np.cross(ab, p - a)) / n
     i = int(np.argmax(dist))
-    if dist[i] > eps: return np.vstack([rdp(p[:i+1], eps)[:-1], rdp(p[i:], eps)])
+    if dist[i] > eps: return np.vstack([rdp(p[:i + 1], eps)[:-1], rdp(p[i:], eps)])
     return np.vstack([a, b])
 
-GAP = LAM * 0.28
-worms = []
+
+# 1. Lines: drop small rings, smooth the grid wobble out of the rest.
+lines = []
 for seg in cs.allsegs[0]:
     p = np.asarray(seg)
     if len(p) < 4: continue
-    # resample evenly
-    d = np.r_[0, np.cumsum(np.hypot(*np.diff(p, axis=0).T))]
-    if d[-1] < LAM * 0.6: continue
-    t = np.arange(0, d[-1], 3.0)
-    p = np.c_[np.interp(t, d, p[:, 0]), np.interp(t, d, p[:, 1])]
-    i = int(rng.integers(0, 40))
-    while i < len(p):
-        n = int(rng.uniform(LAM * 1.2, LAM * 4.2) / 3)
-        piece = p[i:i + n]
-        i += n + int(GAP / 3)
-        # keep what is on (or near) the frame
-        on = (piece[:, 0] > -20) & (piece[:, 0] < W + 20) & (piece[:, 1] > -20) & (piece[:, 1] < H + 20)
-        if on.sum() < 6: continue
-        piece = piece[np.argmax(on): len(on) - np.argmax(on[::-1])]
-        if len(piece) < 6: continue
-        q = rdp(piece, 0.5)
-        c = q.mean(0)
-        worms.append({"d": "M" + " L".join(f"{x:.0f} {y:.0f}" for x, y in q), "x": round(float(c[0])), "y": round(float(c[1]))})
-# Keep the lines apart: where a worm comes closer than MIN to a line already placed (or doubles
-# back on itself), cut it there. Crossings become the T-shaped meetings of a drawn pattern.
-from scipy.spatial import cKDTree
-MIN = LAM * 0.22
-raw = []
-for w_ in worms:
-    pts = np.array([tuple(map(float, m)) for m in re.findall(r"(-?\d+) (-?\d+)", w_["d"])])
-    d = np.r_[0, np.cumsum(np.hypot(*np.diff(pts, axis=0).T))]
-    t = np.arange(0, d[-1] + 1e-6, 2.0)
-    raw.append(np.c_[np.interp(t, d, pts[:, 0]), np.interp(t, d, pts[:, 1])])
-order = rng.permutation(len(raw))
-placed = np.empty((0, 2)); kept = []
-for i in order:
-    p = raw[i]
-    ok = np.ones(len(p), bool)
-    if len(placed):
-        dist, _ = cKDTree(placed).query(p)
-        ok &= dist > MIN
-    # self: a point too close to an earlier point of the same worm, more than 3*MIN back along it
-    tree = cKDTree(p)
-    for j, nb in enumerate(tree.query_ball_point(p, MIN)):
-        if any(k < j - int(3 * MIN / 2) for k in nb): ok[j] = False
-    run = []
-    for j in range(len(p)):
-        if ok[j]: run.append(p[j])
-        else:
-            if len(run) * 2 > LAM * 0.35: kept.append(np.array(run))
-            run = []
-    if len(run) * 2 > LAM * 0.35: kept.append(np.array(run))
-    placed = np.vstack([placed] + [k_ for k_ in kept[-3:]]) if kept else placed
-    placed = np.vstack([placed, p[ok]]) if ok.any() else placed
+    closed = np.hypot(*(p[0] - p[-1])) < SC
+    p, length = resample(p)
+    if length < LAM * (SMALLEST_LOOP if closed else SHORTEST): continue
+    p = uniform_filter1d(p, size=7, axis=0, mode="wrap" if closed else "nearest")
+    lines.append(p)
+
+# 2. Worms: cut each line into pieces of a steady length, keeping only what is on the frame.
 worms = []
-for q in kept:
-    q = rdp(q, 0.5); c = q.mean(0)
-    worms.append({"d": "M" + " L".join(f"{x:.0f} {y:.0f}" for x, y in q), "x": round(float(c[0])), "y": round(float(c[1]))})
-worms.sort(key=lambda w_: (w_["x"] - W / 2) ** 2 + (w_["y"] - H / 2) ** 2)  # centre outward
+for p in lines:
+    i = int(rng.integers(0, int(LAM / STEP)))
+    while i < len(p):
+        n = int(rng.uniform(*WORM) * LAM / STEP)
+        piece = p[i:i + n]
+        i += n + int(GAP * LAM / STEP)
+        on = (piece[:, 0] > -30) & (piece[:, 0] < W + 30) & (piece[:, 1] > -30) & (piece[:, 1] < H + 30)
+        if on.sum() * STEP < LAM * SHORTEST: continue
+        worms.append(piece[np.argmax(on): len(on) - np.argmax(on[::-1])])
+
+# 3. Spacing: where a worm comes closer than MIN_APART to a line already placed (or doubles back on
+#    itself), cut it there. Crossings become the T-shaped meetings of a drawn pattern.
+MIN = LAM * MIN_APART
+placed = np.empty((0, 2)); kept = []
+for i in rng.permutation(len(worms)):
+    p = worms[i]
+    ok = np.ones(len(p), bool)
+    if len(placed): ok &= cKDTree(placed).query(p)[0] > MIN
+    back = int(3 * MIN / STEP)
+    for j, near in enumerate(cKDTree(p).query_ball_point(p, MIN)):
+        if any(k < j - back for k in near): ok[j] = False
+    run = []
+    for j in range(len(p) + 1):
+        if j < len(p) and ok[j]: run.append(p[j]); continue
+        if len(run) * STEP > LAM * SHORTEST: kept.append(np.array(run))
+        run = []
+    if ok.any(): placed = np.vstack([placed, p[ok]])
+
+# 4. Write, centre outward, so drawing in order grows the pattern from the middle.
+kept.sort(key=lambda q: float(np.sum((q.mean(0) - (W / 2, H / 2)) ** 2)))
+paths = ["M" + " L".join(f"{x:.0f} {y:.0f}" for x, y in rdp(q, 0.6)) for q in kept]
 ts = [
     "/**",
-    " * Brain-fold wallpaper for the philosophy section. Generated by scripts/brain-pattern.py; rerun it",
-    " * rather than editing by hand. Paths are ordered from the centre outward so drawing them in order",
-    " * grows the pattern from the middle.",
+    " * Brain-fold wallpaper for the \"How I work\" section. Generated by scripts/brain-pattern.py; rerun",
+    " * it rather than editing by hand. Paths run from the centre outward, so drawing them in order grows",
+    " * the pattern from the middle.",
     " */",
     f"export const PATTERN_VIEWBOX = {{ w: {W}, h: {H} }};",
-    f"export const PATTERN_STROKE = {LAM * 0.13:.1f};",
+    f"export const PATTERN_STROKE = {LAM * STROKE:.1f};",
     "",
     "export const brainPattern: string[] = [",
-    *[f'  "{w_["d"]}",' for w_ in worms],
+    *[f'  "{d}",' for d in paths],
     "];",
     "",
 ]
 open(out, "w", encoding="utf-8").write("\n".join(ts))
-print(len(worms), "worms,", os.path.getsize(out) // 1024, "KB")
+print(len(paths), "worms,", os.path.getsize(out) // 1024, "KB")
+
+if os.environ.get("PREVIEW"):
+    from PIL import Image, ImageDraw
+    im = Image.new("RGB", (W, H), (4, 17, 171)); dr = ImageDraw.Draw(im)
+    sw = round(LAM * STROKE)
+    for d in paths:
+        pts = [tuple(map(float, m)) for m in re.findall(r"(-?\d+) (-?\d+)", d)]
+        dr.line(pts, fill=(27, 60, 255), width=sw, joint="curve")
+        for x, y in (pts[0], pts[-1]): dr.ellipse([x - sw / 2, y - sw / 2, x + sw / 2, y + sw / 2], fill=(27, 60, 255))
+    im.save(os.environ["PREVIEW"])
