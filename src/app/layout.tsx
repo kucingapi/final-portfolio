@@ -29,7 +29,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <style>{`[data-node-id="350:12239"]{display:none}header{visibility:visible!important}`}</style>
         </noscript>
       </head>
-      <body>
+      {/* Browser extensions add classes to <body> before React loads (e.g. "vc-init"). This only
+          ignores <body>'s own attributes; mismatches inside the page are still reported. */}
+      <body suppressHydrationWarning>
         <SmoothScroll>
           <PageTransitionProvider>
             <Navbar />
