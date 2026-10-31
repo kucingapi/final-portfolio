@@ -1,0 +1,790 @@
+/**
+ * Projects: the home grid and every case-study page read from here.
+ * Numbers come from Novel's career record (PRs, PostHog, Lighthouse runs); nothing is estimated
+ * unless the copy says "about".
+ */
+
+/** Where an image sits inside a frame, in design px (see `--s` in globals.css). */
+export type Placement = { w: number; h: number; x: number; y: number };
+
+export type Art = {
+  /** Full-colour render with the real product on screen. */
+  real: string;
+  /** Flat two-tone twin of the same render; the real one opens over it. */
+  abstract: string;
+  /** Intrinsic size of both files. */
+  width: number;
+  height: number;
+  /**
+   * The circle the reveal grows from, as fractions of the image (x, y of its centre; r of its width).
+   * `drawn` circles are painted by the page as the "open" button; the others are already in the picture.
+   */
+  circle: { x: number; y: number; r: number; drawn: boolean };
+  alt: string;
+};
+
+export type Shot = { src: string; width: number; height: number; alt: string; caption?: string };
+
+export type Chapter = {
+  id: string;
+  title: string;
+  problem: string;
+  did: string[];
+  result: string;
+  /** One before/after figure that carries the chapter, set large beside the result. */
+  figure?: { from?: string; to: string; label: string };
+  /** A small data graphic instead of a screenshot. */
+  bars?: { label: string; value: number; note: string }[];
+  shot?: Shot;
+};
+
+/** A stretch of the work, for projects told in parts. It opens at chapter `from`. */
+export type Part = { from: string; title: string; period: string; lede: string };
+
+export const PLATFORMS = ["Web", "Mobile", "Desktop"] as const;
+export const CONTEXTS = ["Multimodal", "Client work", "Side project", "Study"] as const;
+export type Platform = (typeof PLATFORMS)[number];
+export type Context = (typeof CONTEXTS)[number];
+
+export type Project = {
+  slug: string;
+  title: string;
+  /** Long name, when the title is an acronym. */
+  fullName?: string;
+  client: string;
+  period: string;
+  role: string;
+  /** One line for the home grid chip. */
+  tag: string;
+  /** For the projects index: when, what kind of thing, and the one number that sums it up. */
+  year: string;
+  kind: string;
+  stat: { value: string; label: string };
+  /** Filters on the projects index. */
+  platform: Platform;
+  context: Context;
+  summary: string;
+  stack: string[];
+  intro: string[];
+  part: string[];
+  links?: { label: string; href: string }[];
+  /** Featured projects only: the device render with its circle reveal. */
+  art?: Art;
+  /** Home grid: card size and image crop. */
+  card?: { w: number; h: number; place: Placement; mobileH: number };
+  /** Case-study hero crop inside the 1240×700 frame. */
+  hero?: Placement;
+  /** Projects without a device render: a screenshot or design board for the hero and index. */
+  cover?: Shot;
+  chapters: Chapter[];
+  parts?: Part[];
+  /** How the work was done, where it is worth saying. */
+  method?: string;
+};
+
+const gallery = (src: string, alt: string, caption?: string, width = 2000, height = 1250): Shot => ({
+  src,
+  width,
+  height,
+  alt,
+  caption,
+});
+
+export const projects: Project[] = [
+  {
+    slug: "agentflow",
+    platform: "Web",
+    context: "Multimodal",
+    title: "AgentFlow",
+    client: "Multimodal",
+    period: "Aug 2024 – Oct 2026",
+    role: "Founding frontend engineer",
+    tag: "Multimodal · AI platform",
+    year: "2024 – 2026",
+    kind: "AI platform",
+    stat: { value: "450+", label: "pull requests merged" },
+    summary:
+      "The AI platform banks and credit unions use to take a document from upload to decision. I wrote its frontend's first commit and built it for two years.",
+    stack: ["Next.js", "React", "TypeScript", "Tailwind", "Storybook", "Python / FastAPI", "PostHog", "Playwright"],
+    intro: [
+      "AgentFlow takes a business document, a loan application, a balance sheet, an invoice, through AI extraction, human review and a decision. Banks, credit unions and other financial firms run their daily work on it; it grew to more than 400 users.",
+      "Reviewers live in two screens: the Runs table, where they find the document they need, and the review page, where they check what the AI read. Admins watch usage and manage their team.",
+    ],
+    part: [
+      "I wrote the first commit of AgentFlow's frontend in August 2024: the Next.js app, sign-in, the component kit and the data layer. Then I built its screens one by one as the product found its shape: review, configure, monitor, ingest, and a view for each kind of AI agent.",
+      "Over two years I merged more than 450 pull requests: workflows, runs, document review, usage, team management, and the design system that ties them together. When a feature needed backend work I wrote that too, and I was one of the team's main frontend reviewers.",
+    ],
+    art: {
+      real: "/projects/agentflow-real.webp",
+      abstract: "/projects/agentflow-abstract.webp",
+      width: 2400,
+      height: 1800,
+      circle: { x: 0.752, y: 0.29, r: 0.046, drawn: true },
+      alt: "AgentFlow's Runs table on a laptop",
+    },
+    card: { w: 813, h: 741, place: { w: 988, h: 741, x: -87, y: 0 }, mobileH: 356 },
+    hero: { w: 1300, h: 975, x: -30, y: -180 },
+    method:
+      "Most of this ran as parallel AI coding sessions that I directed: one worktree and one agent per lane, each held to written rules, tests and a review before anything merged. AI made the work fast; I read, tested and own what shipped.",
+    parts: [
+      {
+        from: "first-commit",
+        title: "The first build",
+        period: "Aug 2024 – Oct 2025",
+        lede: "AgentFlow started as a place for people to check the AI's work. I wrote the frontend's first commit, then built its screens one at a time as the product grew.",
+      },
+      {
+        from: "design-system",
+        title: "AgentFlow v3",
+        period: "Sep 2025 – Oct 2026",
+        lede: "In late 2025 the app moved to a new shell, sidebar and header. Through 2026 the work turned to making it one product: shared parts, faster tables, and features clients asked for by name.",
+      },
+    ],
+    chapters: [
+      {
+        id: "first-commit",
+        title: "Day one",
+        problem:
+          "In August 2024 AgentFlow had a backend and an idea: AI agents read business documents, and a person checks their work. There was no frontend yet.",
+        did: [
+          "Wrote the first commit: a Next.js App Router project with sign-in, a protected app shell and an analytics home.",
+          "Set the base every later screen was built on: a Tailwind and shadcn component kit, a typography scale, and React Query for server data.",
+          "Built the date-range picker the tables filter by, with typed dates, in that first commit.",
+        ],
+        result:
+          "The repository opens with my upload on 16 August 2024. The team built on that base through every redesign since; by November 2025 it had passed pull request #700.",
+        figure: { to: "16 Aug 2024", label: "my first commit, and the frontend's" },
+      },
+      {
+        id: "review-page",
+        title: "The review page",
+        problem:
+          "The whole product rests on one moment: a person checking what the AI read before it counts. That needs the document and the AI's answer side by side, and a way to fix the answer.",
+        did: [
+          "Built the review queue and the run page: the uploaded file on one side, the AI's fields as an editable form on the other, Approve and Reject at the bottom.",
+          "Made the document viewer something people can work in: zoom that holds, several files per run with their names, selectable text and search inside PDFs, and an expanded view that keeps your page.",
+          "Added what reviewers asked for: raw JSON with collapse and expand, copy and download on every table and JSON block, and a chat to ask the AI about the run.",
+        ],
+        result:
+          "It is the screen reviewers spend their day in. The picture is today's version, after the v3 redesign, but the shape is the one built in 2024 and 2025: file on the left, the AI's answer on the right, a decision at the bottom.",
+        shot: gallery("/projects/agentflow/review.webp", "The run review page: a loan application with a search hit, and the extracted fields beside it", "Today's run review page, searching inside the file. Demo data."),
+      },
+      {
+        id: "around-review",
+        title: "Set up, upload, watch",
+        problem:
+          "Around every review sit three other jobs: setting up what the AI should read, sending documents in, and seeing what ran, what failed and what it cost. Clients needed to do all three in the app, without asking the team.",
+        did: [
+          "Configure: the Create workflow flow, a page to define each document type's fields, and one to annotate sample documents for it.",
+          "Create schema using AI: describe the fields you want, pick a model, and it drafts the document type's schema for you to edit.",
+          "Ingest: upload many files at once by drag and drop, and a table of every submission with its stats.",
+          "Monitor: status cards that filter the table, live refresh while a run is going, durations in whole seconds and cost in US dollars.",
+        ],
+        result:
+          "Setup, upload and monitoring all moved into the app, and in July 2025 Home became a dashboard that leads into them.",
+      },
+      {
+        id: "agents",
+        title: "A screen for every agent",
+        problem:
+          "AgentFlow's AI does more than read fields. Each kind of agent returns something different, a report, a conversation, a decision, a class, and each needs its own way to be read and checked.",
+        did: [
+          "Report AI: rich reports with an expanded reading view.",
+          "Conversational AI: a chat that handles question-by-question flows, renders tables, code and images, and scrolls wide visuals sideways.",
+          "Decision AI: its inputs and outputs on the review page, refreshed as soon as a reviewer saves a change to the extracted data.",
+          "Classification, multi-agent runs, and a progress tracker for each step of a run.",
+        ],
+        result:
+          "Each new agent arrived with a screen to review it. The tab row on the review page, Report AI, Document AI, Conversational AI and Progress Tracker, is that work.",
+        shot: gallery("/projects/agentflow/report-ai.webp", "The Report AI tab: a credit memo with its recommendation and checks", "Today's Report AI tab beside the input file. Demo data."),
+      },
+      {
+        id: "design-system",
+        title: "One design system",
+        problem:
+          "Home, Runs and Usage looked like three different products. A count of the code found 1,689 hand-typed colours (348 distinct), 33 separate status-to-colour maps and 417 font sizes typed as pixels.",
+        did: [
+          "Audited every v3 screen with a Playwright capture rig: 166 verified findings, 141 more checked and thrown out.",
+          "Wrote the spec and made the calls: one token set, one status pill and one set of tones, one type ramp. Kept the brand orange even where it costs contrast, on purpose.",
+          "Shipped it as a stack of nine pull requests, with a pixel-diff check proving the colour codemod moved nothing on screen.",
+          "Added a lint rule, no-off-canon-color, so the next one-off colour fails the build.",
+        ],
+        result: "The whole stack merged on 22 September 2026. Every page now reads as one product, and new screens start from shared parts instead of copies.",
+        figure: { from: "33", to: "1", label: "status-to-colour maps" },
+        shot: gallery("/projects/agentflow/design-system-app.webp", "The Runs page built from the shared tokens and status pills", "The Runs page on the new tokens. Demo data."),
+      },
+      {
+        id: "finding-work",
+        title: "Finding work, fast",
+        problem:
+          "Reviewers search all day, and the tables fought them: slow search, sort controls that only showed on hover, statuses that did not match between the table and its filter.",
+        did: [
+          "One filter bar shared by every table: chips for what is set, one search field.",
+          "A status filter that can tick a Processing and a Review status together, which took a backend change as well.",
+          "Sort arrows visible at rest on every table, and one status, one colour, everywhere.",
+          "Workflow search that filters in the browser instead of asking the server on every key.",
+        ],
+        result:
+          "Typing “forum cu” used to send 10 requests and leave the list unfiltered; now it sends none and matches in 23 ms. Filter use went from about one in ten users to about seven in ten.",
+        figure: { from: "~10%", to: "~70%", label: "of users filter their runs" },
+        shot: gallery("/projects/agentflow/filters.webp", "The Runs filter panel with status groups", "The shared filter panel on Runs. Demo data."),
+      },
+      {
+        id: "credits",
+        title: "Credits you can see",
+        problem:
+          "A client's Usage page still said “Term ends Sep 20” three weeks after it ended, and nothing in the app said credits were nearly gone. Nothing stopped a run at zero, either: one client had run about 2,575 credits past its term.",
+        did: [
+          "Built the Usage dashboard through round after round of client feedback: date ranges you can type, totals that agree across pages, a layout that holds at laptop widths.",
+          "Drew 26 design boards for running out: four treatments across four states. Picked a strip on every page plus the state on the Usage card; dropped the bell, because a bell is easy to miss.",
+          "Set the rule with the team: credits cannot go over. At zero, or after the term, uploads and new runs stop and the app says why. Wrote the backend side, which refuses those requests.",
+        ],
+        result:
+          "Shipped as one pull request per repo in October 2026. Review caught two real gaps, both fixed; 158 regression checks pass, and the stopped card keeps the live card's height so nothing jumps.",
+        shot: gallery("/projects/agentflow/credits.webp", "Before and after: the Usage card and warning strip when credits are ending", "Before and after the credit-ending states.", 2000, 806),
+      },
+      {
+        id: "run-names",
+        title: "Runs that name themselves",
+        problem:
+          "Runs were named after the uploaded file, or not at all, so a reviewer looking for one applicant's loan scrolled through “scan_0042.pdf”. In client interviews it was the top complaint.",
+        did: [
+          "Names built from what is inside the document, in a fixed order of sources, and a five-to-seven-word summary that never opens with the status.",
+          "Let workflow authors tell the AI what their runs should be named after.",
+          "Masked emails and long numbers before anything reached the model: 0 of 28 personal-number probes leaked.",
+          "Made naming a 40,000-row table go from 3.2–3.6 s to 1.0–1.5 s.",
+        ],
+        result:
+          "Every run that does not fail now carries a name and a summary, in the table and in notifications. One lesson stuck: a small stand-in model passed my tests 12 times out of 12 while the real one did not, so the real model now gets checked before merge.",
+        shot: gallery("/projects/agentflow/run-names.webp", "Home showing runs with AI-written names and summaries", "Runs with their AI-written names and summaries. Demo data."),
+      },
+      {
+        id: "workbench",
+        title: "A workbench in six days",
+        problem:
+          "A prospect told us they would sign with a competitor because we had no screen for reviewing translations. The team won one last chance: show it working within a week.",
+        did: [
+          "Owned the review side: the Runs list as a review queue, and the page for checking one translated workbook.",
+          "Built it from reusable review widgets: auto-save, status pills, Find, sheet tabs like Excel, a pinned pager for 300 rows at a time, and an editor where the caret steps through HTML tags one character at a time.",
+          "Ran all 12 of the prospect's sample files through the real pipeline and checked every row.",
+        ],
+        result:
+          "First cut in three days, client test on schedule. By the last round all 12 files reached review with every row translated and no code lost; 19 of 5,867 rows were flagged for a person to check.",
+        figure: { to: "6 days", label: "from the call to the client's own test" },
+        shot: gallery("/projects/agentflow/workbench.webp", "The translation review page with status pills per row", "The translation review page. Sample content."),
+      },
+      {
+        id: "analytics",
+        title: "Data that steered the design",
+        problem:
+          "The five main pages had 132 clickable things and not one named analytics event, so every design argument was opinion.",
+        did: [
+          "Defined the tracking events for every main page in PostHog and shipped them.",
+          "Read 30 days of real use across 239 active people, customers only.",
+        ],
+        result:
+          "The numbers settled the Home redesign: almost everyone opens documents from Runs, and a typical Home visit lasts 7 seconds. Home became a doorway into each workflow's runs instead of a second Runs table.",
+        bars: [
+          { label: "Runs table", value: 84, note: "of document opens start here" },
+          { label: "Home", value: 5, note: "of document opens start here" },
+        ],
+      },
+    ],
+  },
+  {
+    slug: "multimodal-website",
+    platform: "Web",
+    context: "Multimodal",
+    title: "multimodal.dev",
+    client: "Multimodal",
+    period: "Sep – Oct 2026",
+    role: "Frontend engineer, migration and speed",
+    tag: "Multimodal · Website",
+    year: "2026",
+    kind: "Marketing site",
+    stat: { value: "73 → 85", label: "median mobile Lighthouse score" },
+    summary:
+      "I moved the company website off Webflow to Next.js and Sanity, matched it page for page, launched it, then made it faster on phones.",
+    stack: ["Next.js", "Sanity", "Vercel", "GSAP", "Lighthouse", "Beehiiv"],
+    links: [{ label: "Visit multimodal.dev", href: "https://multimodal.dev" }],
+    intro: [
+      "multimodal.dev is where banks and credit unions first meet Multimodal: solution pages, the product tour, the newsletter, the demo form. It had grown to 485 pages on Webflow, and marketing needed an engineer for every change.",
+      "The new site runs on Next.js with content in Sanity, so the team edits pages themselves.",
+    ],
+    part: [
+      "The first build of the new site matched none of the old pages. I ran the effort that made it match, fixed the gaps inside the existing code, took it through launch, and then ran the speed work.",
+      "I also wrote the site's design system from the pages that shipped, and the handbook marketing runs it from.",
+    ],
+    art: {
+      real: "/projects/website-real.webp",
+      abstract: "/projects/website-abstract.webp",
+      width: 2400,
+      height: 1800,
+      circle: { x: 0.598, y: 0.69, r: 0.036, drawn: true },
+      alt: "multimodal.dev on a phone",
+    },
+    card: { w: 390, h: 742, place: { w: 1364, h: 1023, x: -492, y: -115 }, mobileH: 742 },
+    hero: { w: 1281, h: 961, x: -25, y: -106 },
+    method:
+      "Parity and speed both ran as rounds of parallel AI agents: read-only auditors first, then small build lanes, each change measured before it merged. I set the rules, read the diffs and owned the result.",
+    chapters: [
+      {
+        id: "parity",
+        title: "Match it, page for page",
+        problem:
+          "The new site had missing text, rough animation, wrong button colours and broken blog layouts. On a comparison rig it matched 0 of 20 page widths; the closest still differed by 19.9% of its pixels.",
+        did: [
+          "Built a parity rig that compares each page against the live Webflow site at several widths, using Webflow's own export of 189 pages.",
+          "Fixed in rounds: GSAP animation, collection pages, 23 broken differences, and old security copy that 8 of 9 solution pages still carried.",
+          "Moved newsletter sign-up straight to Beehiiv, so nothing is lost when the old Zapier link is switched off.",
+        ],
+        result: "The site launched matching the old one, with no lost pages and no broken sign-ups.",
+        shot: gallery("/projects/website/home.webp", "The multimodal.dev home page", "The home page as launched."),
+      },
+      {
+        id: "launch",
+        title: "Launch day",
+        problem: "Switching a 485-page site in one afternoon, without losing analytics or a single demo request.",
+        did: [
+          "Planned the switch so rollback was one DNS edit.",
+          "Once DNS moved on 21 October 2026, set the Tag Manager and analytics settings on Vercel and checked in a browser that page views fired.",
+        ],
+        result: "The site switched at about 14:30 UTC and stayed up. Marketing now edits in Sanity without an engineer.",
+        shot: gallery("/projects/website/solution.webp", "A credit-union lending solution page", "One of the solution pages."),
+      },
+      {
+        id: "speed",
+        title: "Faster on phones",
+        problem: "Scores were uneven across the site, and the hero pages were heavy on mobile.",
+        did: [
+          "Ran seven read-only audit agents, then four build lanes, with one rule: no visible design change without the designer's sign-off.",
+          "Measured through an HTTP/2 front, after finding the local server's HTTP/1.1 made good changes look worse.",
+        ],
+        result: "Across 27 page types, measured over three alternating runs: largest paint 4.2 s to 3.2 s, pages 961 KB to 578 KB, and pages scoring 90 or more went from 3 to 8.",
+        figure: { from: "73", to: "85", label: "median mobile Lighthouse score" },
+      },
+      {
+        id: "handover",
+        title: "A site marketing can run",
+        problem: "The ten best pages came from three stylesheets that disagreed on 51 values.",
+        did: [
+          "Wrote the design system from the pages that shipped, with the designer's colour rule, and swapped 264 hard-coded values for shared ones.",
+          "Made one Book a demo block for every page, approved by the designer.",
+          "Put Sanity Studio on preview deployments, and wrote the handbook the team runs the site from.",
+        ],
+        result: "New pages come out of shared parts, and content changes no longer wait for an engineer.",
+        shot: gallery("/projects/website/idp.webp", "The Intelligent Document Processing page", "A product page built from the shared blocks."),
+      },
+    ],
+  },
+  {
+    slug: "tia",
+    platform: "Web",
+    context: "Client work",
+    title: "TIA",
+    fullName: "The Intelligent Anamnesis",
+    client: "TUM Venture Labs × TUM Sports Orthopedics",
+    period: "2023 – 2024",
+    role: "Web developer and product designer",
+    tag: "TUM · Health",
+    year: "2023 – 2024",
+    kind: "Web app",
+    stat: { value: "100+", label: "questions with branching medical logic" },
+    summary:
+      "A digital questionnaire that turns an orthopedic patient's answers into a picture a doctor can read before the consultation.",
+    stack: ["React", "Material UI", "Supabase", "PostgreSQL", "Figma"],
+    intro: [
+      "Before an orthopedic consultation, doctors need the patient's history: where it hurts, since when, what has been tried. TIA collects that through a smart questionnaire and lays it out so the doctor can take it in at a glance.",
+      "It was a pilot between TUM Venture Labs and the Sports Orthopedics department at the Technical University of Munich, built for 500+ patients and their doctors.",
+    ],
+    part: [
+      "I was the only developer and also designed the product, working with the Master's and PhD students who led the research.",
+      "I built the questionnaire's medical logic, more than 100 questions and answers that branch on what the patient says, and the backend that stores it.",
+    ],
+    art: {
+      real: "/projects/tia-real.webp",
+      abstract: "/projects/tia-abstract.webp",
+      width: 2400,
+      height: 1800,
+      circle: { x: 0.6175, y: 0.482, r: 0.068, drawn: false },
+      alt: "The TIA landing page on a laptop",
+    },
+    card: { w: 390, h: 480, place: { w: 642, h: 481, x: -126, y: -1 }, mobileH: 480 },
+    hero: { w: 1300, h: 975, x: -30, y: -180 },
+    chapters: [
+      {
+        id: "brief",
+        title: "One question at a time",
+        problem:
+          "How do you collect a full orthopedic history from patients without a form that scares them off, and still hand the doctor something they can use in the room?",
+        did: [
+          "Broke the history into single questions with a clear next step, so a patient only ever sees one thing to answer.",
+          "Encoded the medical logic: follow-up questions appear only when an earlier answer calls for them.",
+        ],
+        result: "More than 100 questions and answers, with the branching the doctors asked for, in a flow a patient can finish on their own.",
+        figure: { to: "100+", label: "questions with branching medical logic" },
+        shot: { src: "/projects/tia/question.webp", width: 806, height: 354, alt: "A TIA question step asking whether the patient has pain", caption: "One question per step." },
+      },
+      {
+        id: "design",
+        title: "Designed to ship",
+        problem: "A pilot lives or dies on getting in front of patients, not on a bespoke look.",
+        did: [
+          "Designed in Figma on Material UI's components, with a small palette and type scale of our own.",
+          "Kept the interface as plain as possible so the team could test with patients early.",
+        ],
+        result: "The design went from Figma to working screens fast, and stayed consistent because it was built from one component set.",
+        shot: { src: "/projects/tia/style-guide.webp", width: 1075, height: 782, alt: "TIA colour palette and type scale", caption: "The palette and type scale." },
+      },
+      {
+        id: "build",
+        title: "Built to be hosted by the hospital",
+        problem: "The client wanted to be able to run TIA on its own servers.",
+        did: [
+          "Built the frontend in React with a clean architecture, so screens, logic and data stay apart.",
+          "Chose Supabase on PostgreSQL for the backend because it is open source and can be self-hosted, and it kept development fast.",
+        ],
+        result: "A working pilot, built solo over seven months, ready for 500+ patients and their doctors.",
+        figure: { to: "500+", label: "patients the pilot was built for" },
+        shot: { src: "/projects/tia/landing.webp", width: 685, height: 672, alt: "The TIA landing page", caption: "The landing page." },
+      },
+    ],
+  },
+  {
+    slug: "raya-airways",
+    platform: "Web",
+    context: "Client work",
+    title: "Raya Airways cargo portal",
+    client: "Raya Airways, through Belli",
+    period: "Apr – May 2025",
+    role: "Frontend engineer (contract)",
+    tag: "Raya Airways · Customer portal",
+    year: "2025",
+    kind: "Customer portal",
+    stat: { value: "−2,280", label: "lines of unused code removed" },
+    summary:
+      "The web portal where Raya Airways' customers schedule their own cargo: find a flight, book space on it, and follow the shipment. I built its flight schedule and tightened the booking form.",
+    stack: ["Next.js", "TypeScript", "shadcn/ui", "TanStack Table", "React Hook Form", "Clerk"],
+    intro: [
+      "Raya Airways is a cargo airline. Its customers, mostly cargo agents buying space for their shipments, schedule that cargo themselves on this web portal.",
+      "It runs on Belli, an air-cargo platform that handles rates, flights, air waybills and load planning for airlines, and it is white-labelled: Raya's customers get a Raya-branded site on its own subdomain. There they check route rates, look up flights, book space (the air waybill number is filled in automatically) and follow each booking's progress.",
+    ],
+    part: [
+      "I joined the Belli team while the portal was being built for Raya Airways, and built the Flight Schedule, the page a customer opens to find a flight before booking. I also reworked the booking form and cleaned up Belli's main app.",
+    ],
+    art: {
+      real: "/projects/raya-real.webp",
+      abstract: "/projects/raya-abstract.webp",
+      width: 2400,
+      height: 1800,
+      circle: { x: 0.79, y: 0.31, r: 0.036, drawn: true },
+      alt: "The Raya Airways cargo portal's flight schedule on a laptop",
+    },
+    card: { w: 813, h: 480, place: { w: 1067, h: 800, x: -152, y: -40 }, mobileH: 230 },
+    hero: { w: 1157, h: 868, x: 13, y: -23 },
+    chapters: [
+      {
+        id: "flight-schedule",
+        title: "Find a flight, then book it",
+        problem: "Customers had to know which flight they wanted before they could start a booking.",
+        did: [
+          "Built the Flight Schedule page: pick a date, an origin and a destination, and see every upcoming flight on that route.",
+          "Destinations narrow to the routes that actually leave from the chosen origin, so a customer cannot ask for a route that does not exist.",
+          "A refresh button and a table matched to the rest of the portal: flight, departure, route, aircraft, and a Book button.",
+          "Book opens a new booking with the route and flight already filled in.",
+        ],
+        result: "Finding a flight and starting its booking is one page and one click.",
+        shot: {
+          src: "/projects/raya/flight-schedule.webp",
+          width: 2000,
+          height: 1250,
+          alt: "The Raya-branded Flight Schedule page with date, origin and destination filters and a table of flights",
+          caption: "Recreated from the shipped code in Raya's theme, with sample flights; the portal itself sits behind a login.",
+        },
+      },
+      {
+        id: "booking-form",
+        title: "A booking form that matches",
+        problem: "The order details and shipment sections of the booking form did not line up with the rest of the portal.",
+        did: ["Reworked both sections and the form around them to the portal's table style and columns."],
+        result: "Booking reads as part of the same product as the schedule it starts from.",
+      },
+      {
+        id: "housekeeping",
+        title: "Housekeeping in Belli's main app",
+        problem: "Belli's main app carried integrations nobody used, and support could not see who was writing in.",
+        did: [
+          "Removed the unused Supabase and Stigg integrations: 2,280 lines gone.",
+          "Connected Intercom with the signed-in user's details, and fixed Google Tag Manager.",
+        ],
+        result: "A smaller app, and support conversations that start with the customer's account already known.",
+        figure: { to: "−2,280", label: "lines of unused code removed" },
+      },
+    ],
+  },
+  {
+    slug: "bank-sampah",
+    platform: "Desktop",
+    context: "Side project",
+    title: "Bank Sampah",
+    client: "A neighbourhood waste bank",
+    period: "Mar – Sep 2026",
+    role: "Designer and developer, on my own",
+    tag: "Side project · Desktop app",
+    year: "2026",
+    kind: "Desktop app",
+    stat: { value: "Rp 11.9M", label: "paid out to 152 residents so far" },
+    summary:
+      "An offline desktop app that runs a neighbourhood waste bank: weigh in residents' recyclables, pay them for it, and sell the sorted material on.",
+    stack: ["Tauri", "Rust", "React", "TypeScript", "SQLite", "Tailwind", "shadcn/ui", "Cloudflare Pages"],
+    intro: [
+      "A bank sampah, a waste bank, is how many Indonesian neighbourhoods recycle. On collection days residents bring sorted waste, volunteers weigh it by category and credit each person at that day's price, and the material is later sold on to collectors at a higher one.",
+      "This one ran on Excel logbooks: 48 price categories, a weighing for every bag, a payout for every resident, and the sales to collectors on top.",
+    ],
+    part: [
+      "I designed and built it on my own, in my spare time, for the volunteers who run it. It is a Windows app that needs no internet, keeps everything in one SQLite file on the laptop, and updates itself.",
+    ],
+    cover: gallery("/projects/bank-sampah/overview.webp", "The Bank Sampah overview: total weight collected, money paid out, and the material mix", "The overview, running the real app on sample data."),
+    chapters: [
+      {
+        id: "entry",
+        title: "Keeping up with the queue",
+        problem:
+          "On a collection day residents queue with their bags while each one is weighed. Whatever the volunteer types has to keep pace with the scale.",
+        did: [
+          "A full-page deposit form with every category in price-list order, arrow keys to move through the grid, and a command palette to jump to a category.",
+          "A weight field that takes sums, so “2,5+1,75” from two weighings becomes 4.25 kg, with the comma as the decimal point, as Indonesians write it.",
+          "The payout worked out live as weights go in, split by the collector each item will be sold to.",
+        ],
+        result: "A resident's whole deposit goes in as it is weighed, with the amount owed already on screen.",
+        shot: gallery("/projects/bank-sampah/entry.webp", "Editing a deposit: weights per category and the live payout", "A deposit being edited. Sample data; the names are made up."),
+      },
+      {
+        id: "money",
+        title: "Prices, payouts and sales",
+        problem:
+          "Prices change from one collection to the next, collectors pay more for bigger loads, and residents are paid out from their savings twice a year. All of it has to add up afterwards.",
+        did: [
+          "Each session keeps its own copy of the price list, so changing a price never rewrites an old session.",
+          "Collector prices in weight tiers, worked out like tax brackets, and a sales manifest for each collector.",
+          "Semester savings payouts and collector reports that print straight from the app.",
+          "An import for the old Excel logbooks, so past sessions came along.",
+        ],
+        result: "A session closes with every resident's payout and every collector's manifest agreeing with the scale.",
+        shot: gallery("/projects/bank-sampah/session.webp", "A collection session: every deposit with its weights and payout", "One collection session. Sample data; the names are made up."),
+      },
+      {
+        id: "offline",
+        title: "Offline, and it updates itself",
+        problem:
+          "The volunteers work on one laptop, not always online, and nobody there should have to reinstall anything or worry about losing the data.",
+        did: [
+          "Tauri with a local SQLite file; the schema moves forward on its own with migrations as new versions add columns.",
+          "Signed updates served from Cloudflare Pages: the app checks on start, shows the download, and restarts on the new version.",
+          "Backups to a cloud database (Turso) and CSV exports, both from the settings page.",
+        ],
+        result:
+          "It has been in use since March 2026. Its September backup held 10 collection sessions, 407 deposits with 3,449 weighed items, and Rp 11.9 million paid out to 152 residents.",
+        figure: { to: "Rp 11.9M", label: "paid out to 152 residents" },
+      },
+    ],
+  },
+  {
+    slug: "payroll-formatter",
+    platform: "Desktop",
+    context: "Client work",
+    title: "Payroll Formatter",
+    client: "A private client's payroll team",
+    period: "Mar 2025",
+    role: "Freelance developer, on my own",
+    tag: "Client work · Desktop tool",
+    year: "2025",
+    kind: "Desktop tool",
+    stat: { value: "1 day", label: "to the first working build" },
+    summary:
+      "A small Windows tool that turns a company's old Access payroll into the upload files for Indonesia's new e-Bupot tax system, instead of retyping every employee by hand.",
+    stack: ["Python", "Tkinter", "pyodbc", "MS Access", "openpyxl", "PyInstaller", "Rust"],
+    intro: [
+      "In 2025 Indonesia moved withholding-tax reporting to e-Bupot, with its own spreadsheet formats for the upload: BPMP for each month's PPh 21 slip and BPA1 for the yearly 1721-A1.",
+      "The client's payroll lived in an old Microsoft Access program. Its exports did not match the new formats, so each period the figures had to be reshaped by hand.",
+    ],
+    part: [
+      "I built it in March 2025: the first working version, both forms, in a day, then refinements over the next three weeks. It ships as a single .exe the payroll staff run on their own machine.",
+    ],
+    chapters: [
+      {
+        id: "read",
+        title: "Reading the old system",
+        problem: "The numbers the tax forms need sit in an Access database that only the old payroll program was ever meant to read.",
+        did: [
+          "Read it directly through the Access ODBC driver, as a 32-bit build to match the client's Office.",
+          "One query per run for every employee in the file, instead of one per person.",
+          "Match each employee by national ID, falling back to tax ID, and take each person's latest month for the yearly slip.",
+        ],
+        result: "The tool pulls each employee's figures from the source, not from a copy someone retyped.",
+      },
+      {
+        id: "write",
+        title: "Writing the new forms",
+        problem: "The new formats are strict about columns and codes, and the payroll exports were not always laid out the same way.",
+        did: [
+          "Matched the Indonesian column headings loosely, so small differences between exports still work.",
+          "Put the tax rules in code: the rate from tax and gross pay, a default deduction date, full or part year and months worked, the gross-up allowance.",
+          "Filled the employer's branch ID from its tax ID as you type.",
+          "Wrote the BPMP file with its 16 columns and BPA1 with its 31, under names that never overwrite last month's.",
+        ],
+        result: "Drop in the month's export, pick the form, and get a file ready for upload to e-Bupot.",
+      },
+      {
+        id: "ship",
+        title: "Shipping one small file",
+        problem: "The payroll staff needed something they could double-click, on a machine with nothing extra installed.",
+        did: [
+          "A drag-and-drop window in Tkinter, packed into one .exe with PyInstaller.",
+          "Left out the heavy libraries the tool never uses, then wrote a version without pandas.",
+          "Tried a Rust port with iced for a smaller native binary; the trimmed Python build was the one that shipped.",
+        ],
+        result: "The download went from a 210 MB zipped build to a single 39 MB .exe.",
+        figure: { from: "210 MB", to: "39 MB", label: "to download and run" },
+      },
+    ],
+  },
+  {
+    slug: "sidaku",
+    platform: "Mobile",
+    context: "Study",
+    title: "SIDAKU",
+    fullName: "Sistem Informasi Database Koperasi dan UMKM",
+    client: "PLUT-KUMKM Kota Batu",
+    period: "Sep 2023 – Jul 2024",
+    role: "Android and API developer, my thesis",
+    tag: "Thesis · Android app",
+    year: "2024",
+    kind: "Android app and API",
+    stat: { value: "12", label: "kinds of business record owners keep themselves" },
+    summary:
+      "My undergraduate thesis: an Android app and REST API that let small businesses in Batu register with the city's business-service centre and keep their own records.",
+    stack: ["Kotlin", "Jetpack Compose", "Retrofit", "Django REST Framework", "PostgreSQL", "Docker", "Cloud Run"],
+    intro: [
+      "PLUT-KUMKM is Kota Batu's service centre for cooperatives and small businesses (UMKM). It kept their data in a web system that only its staff could edit, and its news, regulations and events lived on a website.",
+      "SIDAKU puts that system in the owners' hands: they register on their phone, the centre approves them, and from then on they keep their own business and product data up to date.",
+    ],
+    part: [
+      "The web dashboard already existed. For my thesis at Universitas Brawijaya I added a REST API to it and built the Android app from scratch, from October 2023 to June 2024. A teammate joined for a refactor pass in July 2024.",
+    ],
+    chapters: [
+      {
+        id: "api",
+        title: "An API for an existing system",
+        problem: "The centre's Django site rendered pages for its staff. There was nothing a phone app could talk to.",
+        did: [
+          "Added a REST layer with Django REST Framework and JWT sign-in, beside the existing pages.",
+          "Public endpoints for news, regulations, the business map and the city's statistics.",
+          "Twelve kinds of record an owner can keep: products, permits, suppliers, staff, machines, training and more.",
+          "Packaged it in Docker on Google Cloud Run, with PostgreSQL and files in Cloud Storage.",
+        ],
+        result: "The app and the staff dashboard read and write the same data.",
+        figure: { to: "12", label: "kinds of business record, kept by the owners" },
+      },
+      {
+        id: "approval",
+        title: "Register, get approved, take over",
+        problem: "Anyone can install an app, but only real local businesses should be able to put data into the city's records.",
+        did: [
+          "A two-step sign-up that asks for identity documents (KTP, KK, BPJS) and the business logo.",
+          "An approval switch for the centre's staff; until it is on, the app shows the account as waiting.",
+          "Once approved, owners edit their business details and add products with photos.",
+          "Events owners can join or leave from the app.",
+        ],
+        result: "The data comes from the people who run the businesses, and the centre still decides who gets in.",
+      },
+      {
+        id: "android",
+        title: "The Android app",
+        problem: "Business owners needed one place on their phone for their records and for what the centre publishes.",
+        did: [
+          "Built in Kotlin with Jetpack Compose and Material 3, in a clean MVVM structure with separate navigation for sign-in, news and events.",
+          "News, regulations you can download as PDF, and a searchable directory of local businesses, each with its map location and products.",
+          "Sign-in kept with DataStore, and requests through Retrofit; later moved to Kotlin Flow in the refactor pass.",
+        ],
+        result: "Version 3.1 covers the whole loop: sign up, get approved, keep records, and follow the centre's news and events.",
+      },
+    ],
+  },
+  {
+    slug: "breel",
+    platform: "Mobile",
+    context: "Study",
+    title: "Breel",
+    client: "Bangkit Academy capstone",
+    period: "May – Jun 2023",
+    role: "Team lead, Android developer and designer",
+    tag: "Bangkit capstone · Android app",
+    year: "2023",
+    kind: "Android app",
+    stat: { value: "1 month", label: "from idea to a working app, team of six" },
+    summary:
+      "A freelance marketplace with mentoring, for Indonesia's beginner freelancers. I led a team of six to a working Android app in a month, as our Bangkit Academy capstone.",
+    stack: ["Kotlin", "Android", "MVVM", "Firebase", "Express", "PostgreSQL", "Figma"],
+    links: [{ label: "Breel on GitHub", href: "https://github.com/Breel-capstone" }],
+    intro: [
+      "Breel connects beginner freelancers with entry-level projects and with experienced freelancers who mentor them for a monthly fee.",
+      "We started from a survey: 9 of the 16 people we asked who had tried freelancing had given up, and the research we read put the hardest part at the start, landing a first client.",
+    ],
+    part: [
+      "Bangkit Academy, run by Google, Gojek, Tokopedia and Traveloka, ends with a team capstone. I led ours as product manager, designed the app, and built it with one other Android developer, while two machine-learning and two cloud engineers built the rest.",
+    ],
+    cover: gallery("/projects/breel/screens.webp", "Breel's screens: projects, mentors, proposals and chat", "Breel's high-fidelity screens.", 1280, 960),
+    chapters: [
+      {
+        id: "plan",
+        title: "Planning a month",
+        problem: "Six people, three disciplines, no designer, and one month to a working app.",
+        did: [
+          "Split the work into a shared plan with a daily meeting, and kept every task on one calendar.",
+          "Ran it in short agile cycles so the app, the models and the backend met in the middle.",
+        ],
+        result: "More than 100 tasks closed in 30 days.",
+        figure: { to: "100+", label: "tasks closed in 30 days" },
+        shot: gallery("/projects/breel/plan.webp", "The team's May 2023 calendar of tasks and daily meetings", "The team plan for May 2023.", 1089, 866),
+      },
+      {
+        id: "design",
+        title: "Designing it",
+        problem: "With no designer on the team, the app's look and flows were mine to make, fast.",
+        did: [
+          "A style guide on Material 3: colour, type and navigation.",
+          "Wireframes for each flow, then high-fidelity screens for search, project and mentor details, proposals, chat, notifications and the profile.",
+        ],
+        result: "A full design the two of us could build from without guessing.",
+        shot: gallery("/projects/breel/hifi.webp", "Every high-fidelity screen of Breel, grouped by flow", "The high-fidelity screens, grouped by flow.", 2000, 1873),
+      },
+      {
+        id: "build",
+        title: "Building it",
+        problem: "The design had to become a working Android app in the time left.",
+        did: [
+          "Built it natively in Kotlin with an MVVM structure, on Firebase and the team's Express and PostgreSQL backend.",
+          "Kept the team on one plan as the backend, the models and the app came together.",
+        ],
+        result: "We shipped a working app on time, and I graduated from Bangkit with distinction, in the top 10% of the cohort.",
+        shot: gallery("/projects/breel/wireframes.webp", "Breel's wireframes for each flow", "The wireframes the build started from.", 2000, 1279),
+      },
+    ],
+  },
+];
+
+/** A project with a device render: it gets a home-grid card and the circle reveal. */
+export type FeaturedProject = Project & Required<Pick<Project, "art" | "card" | "hero">>;
+
+export const isFeatured = (p: Project): p is FeaturedProject => Boolean(p.art && p.card && p.hero);
+
+export const featuredProjects = projects.filter(isFeatured);
+export const moreProjects = projects.filter((p) => !isFeatured(p));
+
+export const getProject = (slug: string) => projects.find((p) => p.slug === slug);
+
+export const nextProject = (slug: string) => {
+  const i = projects.findIndex((p) => p.slug === slug);
+  return projects[(i + 1) % projects.length];
+};

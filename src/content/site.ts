@@ -27,21 +27,6 @@ export const site = {
 export const about =
   "I’m Novel Bafagih, a software engineer who never goes a day without learning something new. I build scalable, flexible and robust software, mostly with React, Next.js and Kotlin Jetpack Compose. AI is part of how I work: it helps me move fast, and I review every line so the code stays clean and easy to maintain. Give me a week, a computer and an internet connection, and I’ll learn whatever the project needs.";
 
-export type Project = {
-  /** Shown to screen readers and used as the hover label. */
-  title: string;
-  /** TODO: add case-study or live links; cards without one aren't clickable. */
-  href?: string;
-};
-
-/** Order matches the Figma grid: top-left, top-right, bottom-left, bottom-right. */
-export const projects: Project[] = [
-  { title: "Proyek mobile app" },
-  { title: "Girls in IT community website" },
-  { title: "PetHub mobile app" },
-  { title: "Patient information platform" },
-];
-
 export const coreValues = [
   { key: "fast", title: "Fast", body: "Most of my work lands before the deadline, not on it." },
   { key: "reliable", title: "Reliable", body: "You can count on me to put real care and effort into every piece of work." },

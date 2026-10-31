@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, type ReactNode } from "react";
-import { gsap, useGSAP, prefersReducedMotion } from "@/lib/gsap";
+import { gsap, ScrollTrigger, useGSAP, prefersReducedMotion } from "@/lib/gsap";
 import {
   assembleHeadline,
   designUnit,
@@ -38,6 +38,14 @@ function headings(q: (sel: string) => HTMLElement[]) {
 function magnets(q: (sel: string) => HTMLElement[]) {
   const offs = q("[data-magnetic]").map((el) => magnetic(el, Number(el.dataset.magnetic) || 12));
   return () => offs.forEach((off) => off());
+}
+
+/** Touch screens have no hover, so project art opens once its card is well into view. */
+function openArtOnScroll(cards: HTMLElement[]) {
+  if (!window.matchMedia("(hover: none)").matches) return;
+  cards.forEach((card) =>
+    ScrollTrigger.create({ trigger: card, start: "top 65%", once: true, onEnter: () => card.setAttribute("data-open", "true") }),
+  );
 }
 
 const presets: Record<string, Preset> = {
@@ -90,6 +98,59 @@ const presets: Record<string, Preset> = {
     q("[data-spin]").forEach((el) =>
       gsap.to(el, { rotate: 180, ease: "none", scrollTrigger: { trigger: section, start: "top bottom", end: "bottom top", scrub: 1 } }),
     );
+    openArtOnScroll(q("[data-card]"));
+    const more = one(q, "[data-more]");
+    revealUp(more, { trigger: more, start: "top 92%" });
+    return magnets(q);
+  },
+
+  /** Projects index: the headline assembles, then each project rises in as it is reached. */
+  index(root, q) {
+    const reduced = prefersReducedMotion();
+    const u = designUnit();
+    const tl = gsap.timeline();
+    tl.add(assembleHeadline(one(q, "[data-headline]")), 0);
+    if (!reduced) tl.from(q("[data-subline]"), { y: 40 * u, autoAlpha: 0, duration: 0.8 }, 0.3);
+    headings(q);
+    q("[data-lines]").forEach((el) => revealLines(el, { delay: 0.1 }));
+    q("[data-row]").forEach((row) => revealUp(row, { trigger: row, y: 60, start: "top 88%" }));
+    openArtOnScroll(q("[data-row]"));
+    return playOnReveal(tl);
+  },
+
+  /** Case-study page: the hero art opens from its circle as the page is uncovered. */
+  case(root, q) {
+    const reduced = prefersReducedMotion();
+    const u = designUnit();
+    const tl = gsap.timeline();
+    tl.add(assembleHeadline(one(q, "[data-headline]")), 0);
+    // Projects without a device render have a plain cover, or no hero frame at all.
+    const art = one(q, "[data-hero-art]");
+    if (!reduced) {
+      tl.from(q("[data-subline]"), { y: 40 * u, autoAlpha: 0, duration: 0.8, stagger: 0.08 }, 0.3)
+        .from(q("[data-pop]"), { scale: 0, autoAlpha: 0, duration: 0.5, ease: "back.out(2)", stagger: 0.04 }, 0.6);
+      if (art) tl.from(art, { y: 60 * u, autoAlpha: 0, duration: 0.9 }, 0.35);
+    }
+    if (art) tl.call(() => art.setAttribute("data-open", "true"), [], reduced ? 0 : 1.1);
+    headings(q);
+    q("[data-lines]").forEach((el) => revealLines(el, { delay: 0.1 }));
+    q("[data-chapter], [data-part]").forEach((ch) => revealUp(ch.querySelectorAll("[data-rise]"), { trigger: ch, stagger: 0.08 }));
+    q("[data-bar]").forEach((bar) =>
+      gsap.from(bar, {
+        scaleX: 0,
+        transformOrigin: "left center",
+        duration: reduced ? 0.2 : 1.1,
+        ease: "power3.out",
+        scrollTrigger: { trigger: bar, start: "top 85%", once: true },
+      }),
+    );
+    openArtOnScroll(q("[data-next]"));
+    const offMagnets = magnets(q);
+    const offReveal = playOnReveal(tl);
+    return () => {
+      offMagnets();
+      offReveal();
+    };
   },
 
   about(root, q) {

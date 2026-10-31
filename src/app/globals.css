@@ -151,6 +151,49 @@ html.lenis body {
     border-end-start-radius: var(--radius-highlight);
   }
 
+  /*
+   * Project art: the real render sits over its two-tone twin, clipped to the circle in the
+   * picture (`--cx`/`--cy`/`--r0`, design px). Hover, focus or `data-open` grows that circle
+   * until the real render covers the frame (`--r1`).
+   */
+  .art-real {
+    clip-path: circle(calc(var(--s) * var(--r0)) at calc(var(--s) * var(--cx)) calc(var(--s) * var(--cy)));
+    transition: clip-path 550ms var(--ease-in-out);
+  }
+  .art-real > img {
+    scale: 1.06;
+    transform-origin: calc(var(--s) * var(--ox)) calc(var(--s) * var(--oy));
+    transition: scale 550ms var(--ease-in-out);
+  }
+  .art-button {
+    transition:
+      scale var(--dur-small) var(--ease-out),
+      background-color var(--dur-micro);
+  }
+  :is(.group:hover, .group:focus-visible, [data-open="true"]) .art-real {
+    clip-path: circle(calc(var(--s) * var(--r1)) at calc(var(--s) * var(--cx)) calc(var(--s) * var(--cy)));
+    /* Starts slowly so the circle is seen to grow out of its spot, then sweeps the frame. */
+    transition-duration: 1100ms;
+    transition-timing-function: cubic-bezier(0.55, 0, 0.15, 1);
+  }
+  :is(.group:hover, .group:focus-visible, [data-open="true"]) .art-real > img {
+    scale: 1;
+    transition-duration: 1200ms;
+    transition-timing-function: var(--ease-out);
+  }
+  /* On a case page the frame is not a link: once open, the disc that started it dissolves. */
+  [data-hero-art][data-open="true"] .art-button {
+    scale: 0;
+    opacity: 0;
+    transition:
+      scale 400ms var(--ease-in-out) 900ms,
+      opacity 400ms var(--ease-in-out) 900ms;
+  }
+  :is(.group:hover, .group:focus-visible) .art-button {
+    scale: 1.12;
+    background-color: var(--color-midnight-400);
+  }
+
   /* Split-line masks for heading reveals */
   .line-mask {
     overflow: clip;
@@ -167,5 +210,10 @@ html.lenis body {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
+  }
+  /* The project art swaps to the real render instead of growing a circle across it. */
+  .art-real,
+  .art-real > img {
+    transition-duration: 1ms !important;
   }
 }
