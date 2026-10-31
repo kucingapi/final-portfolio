@@ -137,15 +137,17 @@ export function Navbar() {
             aria-label={open ? "Close menu" : "Open menu"}
             className="relative size-110 transition-[rotate] duration-300 aria-expanded:hover:rotate-90 max-md:size-56"
           >
-            {/* Hover nudges the lines apart only while closed; GSAP morphs them into the X (see the menu timeline). */}
-            <span
-              ref={lineTop}
-              className="absolute top-[38.18%] left-[24.55%] h-[4.55%] w-1/2 rounded-full bg-white transition-[translate] duration-300 [[aria-expanded=false]:hover>&]:-translate-x-[12%]"
-            />
-            <span
-              ref={lineBottom}
-              className="absolute top-[58.18%] left-[24.55%] h-[4.55%] w-1/2 rounded-full bg-white transition-[translate] duration-300 [[aria-expanded=false]:hover>&]:translate-x-[12%]"
-            />
+            {/*
+              GSAP morphs the outer spans into the X (see the menu timeline); the hover nudge lives on the
+              inner bars and only while closed. They must stay on separate elements: GSAP folds any CSS
+              `translate` it finds into its own transform, which would bake the nudge into the X.
+            */}
+            <span ref={lineTop} className="absolute top-[38.18%] left-[24.55%] h-[4.55%] w-1/2">
+              <span className="block size-full rounded-full bg-white transition-[translate] duration-300 [[aria-expanded=false]:hover_&]:-translate-x-[12%]" />
+            </span>
+            <span ref={lineBottom} className="absolute top-[58.18%] left-[24.55%] h-[4.55%] w-1/2">
+              <span className="block size-full rounded-full bg-white transition-[translate] duration-300 [[aria-expanded=false]:hover_&]:translate-x-[12%]" />
+            </span>
           </button>
         </div>
       </header>
