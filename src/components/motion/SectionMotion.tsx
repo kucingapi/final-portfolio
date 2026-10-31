@@ -10,6 +10,7 @@ import {
   revealHeading,
   revealLines,
   revealUp,
+  PLAY_ONCE,
 } from "@/lib/motion";
 import { onPageReveal } from "@/components/transition/PageTransition";
 
@@ -43,7 +44,7 @@ function magnets(q: (sel: string) => HTMLElement[]) {
 function openArtOnScroll(cards: HTMLElement[]) {
   if (!window.matchMedia("(hover: none)").matches) return;
   cards.forEach((card) =>
-    ScrollTrigger.create({ trigger: card, start: "top 65%", once: true, onEnter: () => card.setAttribute("data-open", "true") }),
+    ScrollTrigger.create({ trigger: card, start: "top 65%", onEnter: () => card.setAttribute("data-open", "true") }),
   );
 }
 
@@ -53,13 +54,15 @@ const presets: Record<string, Preset> = {
     const reduced = prefersReducedMotion();
     const u = designUnit();
     const tl = gsap.timeline();
-    const headline = one(q, "[data-headline]");
+    // One headline per mode; only the shown one assembles.
+    const headline = q("[data-headline]").find((h) => h.getClientRects().length) ?? one(q, "[data-headline]");
     tl.add(assembleHeadline(headline), 0);
     // One starburst straddles the seam into Projects: its white top half lives here and its
     // blue lower half in Projects, each clipped by its own section. Moving both halves together
     // makes it read as one shape that rises out of the seam on load and sinks into it on scroll.
-    const lower = document.querySelector<HTMLElement>("#projects [data-burst]");
-    const bursts = [one(q, "[data-burst]"), lower].filter((el): el is HTMLElement => !!el);
+    // Projects and Career (one per mode) each carry the lower half; move both.
+    const lower = Array.from(document.querySelectorAll<HTMLElement>("#projects [data-burst], #career [data-burst]"));
+    const bursts = [one(q, "[data-burst]"), ...lower].filter((el): el is HTMLElement => !!el);
     if (!reduced) {
       const strokes = (sel: string) => q(`${sel} path[stroke]`);
       tl.fromTo(strokes("[data-underline]"), { drawSVG: "0%" }, { drawSVG: "100%", duration: 0.8, ease: "power2.inOut" }, 0.9)
@@ -103,6 +106,19 @@ const presets: Record<string, Preset> = {
     return magnets(q);
   },
 
+  /** Home Career (Full-time mode): same frame as Projects, the roles rise in one by one. */
+  career(root, q) {
+    const section = one(q, "section");
+    headings(q);
+    q("[data-lines]").forEach((el) => revealLines(el, { delay: 0.2 }));
+    q("[data-row]").forEach((row) => revealUp(row, { trigger: row, y: 40, start: "top 88%" }));
+    parallax(section);
+    q("[data-spin]").forEach((el) =>
+      gsap.to(el, { rotate: 180, ease: "none", scrollTrigger: { trigger: section, start: "top bottom", end: "bottom top", scrub: 1 } }),
+    );
+    return magnets(q);
+  },
+
   /** Projects index: the headline assembles, then each project rises in as it is reached. */
   index(root, q) {
     const reduced = prefersReducedMotion();
@@ -140,7 +156,7 @@ const presets: Record<string, Preset> = {
         transformOrigin: "left center",
         duration: reduced ? 0.2 : 1.1,
         ease: "power3.out",
-        scrollTrigger: { trigger: bar, start: "top 85%", once: true },
+        scrollTrigger: { trigger: bar, start: "top 85%", ...PLAY_ONCE },
       }),
     );
     openArtOnScroll(q("[data-next]"));
@@ -168,10 +184,10 @@ const presets: Record<string, Preset> = {
       duration: reduced ? 0.2 : 0.5,
       ease: "back.out(2)",
       stagger: reduced ? 0 : 0.05,
-      scrollTrigger: { trigger: one(q, "[data-span]"), start: "top 90%", once: true },
+      scrollTrigger: { trigger: one(q, "[data-span]"), start: "top 90%", ...PLAY_ONCE },
     });
     const bar = one(q, "[data-pledge-bar]");
-    gsap.from(bar, { scaleX: 0, transformOrigin: "left center", duration: reduced ? 0.2 : 0.9, ease: "power3.inOut", scrollTrigger: { trigger: bar, start: "top 85%", once: true } });
+    gsap.from(bar, { scaleX: 0, transformOrigin: "left center", duration: reduced ? 0.2 : 0.9, ease: "power3.inOut", scrollTrigger: { trigger: bar, start: "top 85%", ...PLAY_ONCE } });
     if (reduced) return;
     // Only the pattern shown at this width; the other one is display:none and can't be measured.
     const pattern = q("[data-pattern]").find((svg) => getComputedStyle(svg).display !== "none");
@@ -199,7 +215,7 @@ const presets: Record<string, Preset> = {
         ease: "none",
         scrollTrigger: { trigger: section, start: "top bottom", end: "top 40%", scrub: 1 },
       });
-      gsap.from(q("[data-cta]"), { scale: 0.6, autoAlpha: 0, duration: 0.7, ease: "back.out(2)", scrollTrigger: { trigger: section, start: "top 75%", once: true } });
+      gsap.from(q("[data-cta]"), { scale: 0.6, autoAlpha: 0, duration: 0.7, ease: "back.out(2)", scrollTrigger: { trigger: section, start: "top 75%", ...PLAY_ONCE } });
     }
     return magnets(q);
   },
@@ -221,7 +237,7 @@ const presets: Record<string, Preset> = {
         autoAlpha: 0,
         duration: 0.9,
         ease: "back.out(1.8)",
-        scrollTrigger: { trigger: one(q, "[data-cta]"), start: "top 85%", once: true },
+        scrollTrigger: { trigger: one(q, "[data-cta]"), start: "top 85%", ...PLAY_ONCE },
       });
       gsap.fromTo(
         q("[data-talk-row]"),
@@ -235,7 +251,7 @@ const presets: Record<string, Preset> = {
   footer(root, q) {
     const section = one(q, "footer");
     if (prefersReducedMotion()) return;
-    const st = { trigger: section, start: "top 90%", once: true };
+    const st = { trigger: section, start: "top 90%", ...PLAY_ONCE };
     gsap.from(q("[data-block]"), { clipPath: "inset(100% 0 0 0)", duration: 1, ease: "power4.inOut", scrollTrigger: st });
     gsap.from(q("[data-footer-item]"), { y: 20 * designUnit(), autoAlpha: 0, duration: 0.6, stagger: 0.05, delay: 0.2, scrollTrigger: st });
   },

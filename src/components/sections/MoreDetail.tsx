@@ -1,6 +1,7 @@
 import { ArrowIcon, Heading } from "@/components/ui";
 import { SectionMotion } from "@/components/motion/SectionMotion";
 import { TransitionLink } from "@/components/transition/PageTransition";
+import { modes } from "@/content/site";
 
 /** "More Detail" CTA band (Figma 245:2581). */
 export function MoreDetail() {
@@ -18,19 +19,26 @@ export function MoreDetail() {
               <Heading size="text-h3" barTop="0.69em" barHeight="0.53em" barLeft="0" barRight="-0.1em">
                 <span id="detail-title" className="text-white">More Detail</span>
               </Heading>
-              <p data-lines className="w-813 text-h4 font-semibold text-justify text-midnight-100 max-md:w-full max-md:text-left">
-                If you’d like to know my experience in detail, I have a CV where it shows all of my experiences
-              </p>
+              {(["freelance", "fulltime"] as const).map((m) => (
+                <p key={m} data-for={m} data-lines className="w-813 text-h4 font-semibold text-justify text-midnight-100 max-md:w-full max-md:text-left">
+                  {modes[m].detail.body}
+                </p>
+              ))}
             </div>
-            <TransitionLink
-              href="/experiences"
-              aria-label="See my experiences"
-              data-cta
-              data-magnetic="14"
-              className="flex size-96 shrink-0 items-center justify-center rounded-[calc(var(--s)*24.67)] bg-midnight-500 transition-colors hover:bg-midnight-400 max-md:self-end"
-            >
-              <ArrowIcon className="size-72" />
-            </TransitionLink>
+            {/* Each mode points at the other side of the site: Freelance at the career, Full-time at the projects. */}
+            {(["freelance", "fulltime"] as const).map((m) => (
+              <TransitionLink
+                key={m}
+                data-for={m}
+                href={modes[m].detail.href}
+                aria-label={modes[m].detail.cta}
+                data-cta
+                data-magnetic="14"
+                className="flex size-96 shrink-0 items-center justify-center rounded-[calc(var(--s)*24.67)] bg-midnight-500 transition-colors hover:bg-midnight-400 max-md:self-end"
+              >
+                <ArrowIcon className="size-72" />
+              </TransitionLink>
+            ))}
           </div>
         </div>
         <span aria-hidden className="absolute inset-x-0 bottom-0 h-px bg-white" />

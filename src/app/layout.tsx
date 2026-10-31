@@ -3,6 +3,7 @@ import { Cabin, Inter } from "next/font/google";
 import { SmoothScroll } from "@/components/providers/SmoothScroll";
 import { PageTransitionProvider } from "@/components/transition/PageTransition";
 import { Navbar } from "@/components/Navbar";
+import { ModeProvider, MODE_SCRIPT } from "@/components/mode/Mode";
 import { site } from "@/content/site";
 import "./globals.css";
 
@@ -20,11 +21,26 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" data-covered="true" className={`${cabin.variable} ${inter.variable} antialiased`}>
+    // The head script sets data-mode before React loads, so <html>'s own attributes may differ.
+    <html
+      lang="en"
+      data-covered="true"
+      className={`${cabin.variable} ${inter.variable} antialiased`}
+      suppressHydrationWarning
+    >
       <head>
+        {/* Freelance / Full-time: apply the saved mode before first paint (see components/mode/Mode.tsx). */}
+        <script dangerouslySetInnerHTML={{ __html: MODE_SCRIPT }} />
         {/* Chillax (clock, "Talk" wall, service cards) isn't on Google Fonts; it's served by Fontshare. */}
-        <link rel="preconnect" href="https://api.fontshare.com" crossOrigin="" />
-        <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=chillax@400,600,700&display=swap" />
+        <link
+          rel="preconnect"
+          href="https://api.fontshare.com"
+          crossOrigin=""
+        />
+        <link
+          rel="stylesheet"
+          href="https://api.fontshare.com/v2/css?f[]=chillax@400,600,700&display=swap"
+        />
         <noscript>
           <style>{`[data-node-id="350:12239"]{display:none}header{visibility:visible!important}`}</style>
         </noscript>
@@ -32,12 +48,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       {/* Browser extensions add classes to <body> before React loads (e.g. "vc-init"). This only
           ignores <body>'s own attributes; mismatches inside the page are still reported. */}
       <body suppressHydrationWarning>
-        <SmoothScroll>
-          <PageTransitionProvider>
-            <Navbar />
-            <div className="page-canvas">{children}</div>
-          </PageTransitionProvider>
-        </SmoothScroll>
+        <ModeProvider>
+          <SmoothScroll>
+            <PageTransitionProvider>
+              <Navbar />
+              <div className="page-canvas">{children}</div>
+            </PageTransitionProvider>
+          </SmoothScroll>
+        </ModeProvider>
       </body>
     </html>
   );

@@ -27,7 +27,8 @@ The positioning is not "junior" and not "low cost". Neither framing appears in t
 
 ## Operating Context
 
-- Visitors land on the home page (hero, projects, "How I work", more detail, testimonials, contact prompt), with separate Projects, Experiences and Contact pages.
+- Visitors land on the home page (hero, projects or career, "How I work", more detail, testimonials, contact prompt), with separate Projects, Career (`/career`, formerly `/experiences`, which redirects) and Contact pages.
+- Two modes, switched from a tab in the navbar and remembered in localStorage: **Freelance** (default, for clients) leads the home page with Projects; **Full-time** (for employers) leads with Career. The hero headline and chip, the More Detail band (each mode points at the other page) and the Let's Talk copy change with it; the menu always lists both Projects and Career. Copy lives in `modes` in `site.ts`.
 - The contact flow sends enquiries by email through Resend (`POST /api/contact`); without a key it falls back to "email me directly".
 - Direct channels: email `novelbafagih09@gmail.com`, phone `+62 8953 2807 9912`, Asia/Jakarta time zone.
 - Employers will also want the resume PDF (`/resume.pdf`) and social profiles (GitHub, LinkedIn, Upwork, Instagram).
@@ -50,7 +51,7 @@ Real, but not yet in the repo (current entries are Figma placeholders and must n
 
 - **Testimonials**: genuine client and teammate quotes are coming. The four in `site.ts` are placeholders, including the Figma sample.
 - **Projects** (live, 2026-10-31): four case studies in `src/content/projects.ts`, each with its own page at `/projects/[slug]`: AgentFlow and multimodal.dev (Multimodal, lead the grid), TIA (The Intelligent Anamnesis, TUM pilot) and the Raya Airways cargo portal, where Raya's customers schedule and book cargo themselves (built on Belli's white-label air-cargo platform). Figures come from Novel's career record (`Documents/Personal/career-record`); client and prospect names inside AgentFlow work stay anonymous. The Raya Airways flight-schedule screenshot is a recreation from the shipped code with sample data and is captioned as such. Renders in `public/projects/` are the Figma device renders with real screenshots composited in, plus two-tone twins for the hover reveal. Those four are featured on the home grid; `/projects` lists them with four more case studies: Bank Sampah (an offline Tauri app a neighbourhood waste bank runs on; screenshots are the real app on made-up sample data), the Payroll Formatter (a private client's tool, kept anonymous), SIDAKU (the thesis, for PLUT-KUMKM Kota Batu) and Breel (the Bangkit capstone, images from the old portfolio).
-- **Experience history**: real Education, Leadership and Professional entries will replace the duplicated placeholder columns. Confirmed so far: Bachelor in Information Technology, Universitas Brawijaya (2020–2024); Android Developer, Bangkit Academy (Feb–Jul 2023).
+- **Career history** (2026-10-31): real Professional, Education and Leadership entries from the LinkedIn profile and CV, on the Career page and (as `career` in `site.ts`) the home Career section.
 - **Social profiles and CV**: GitHub, LinkedIn, Upwork, Instagram URLs and `public/resume.pdf` will be added.
 
 Do not invent clients, metrics, quotes, employers or project outcomes to fill these gaps.

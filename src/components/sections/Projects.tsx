@@ -21,34 +21,40 @@ const SLOTS = [
 const artSizes = (imageW: number, cardW: number) =>
   `(max-width: 768px) ${Math.round((imageW / cardW) * 91)}vw, ${Math.round(imageW / 14.4)}vw`;
 
+/**
+ * Where the hero meets the home slot: the lower half of the blue starburst rising out of the hero
+ * (193:2320) and of the striped circle (193:2333). Projects and Career (one per mode) both carry it.
+ */
+export function SeamDecor() {
+  return (
+    <>
+      <div aria-hidden data-burst className="absolute -top-127 left-593 size-254 max-md:left-88">
+        <div className="relative size-full">
+          {[0, 30, 60, 90, 120, 150].map((deg) => (
+            <span key={deg} className="absolute top-0 left-114 h-254 w-25 bg-midnight-500" style={{ transform: `rotate(${deg}deg)` }} />
+          ))}
+        </div>
+      </div>
+      <div data-spin className="absolute -top-68 left-1365 h-137 w-149 max-md:hidden">
+        <Deco src="/figma/projects/striped-circle.svg" width={150} height={137} className="inset-0" bleed="-0.37% -0.34% -0.13% -0.34%" />
+      </div>
+    </>
+  );
+}
+
 export function Projects() {
   return (
     <SectionMotion preset="projects">
-      <section id="projects" aria-labelledby="projects-title" data-node-id="193:2317" className="relative overflow-clip bg-midnight-900">
+      <section id="projects" data-for="freelance" data-slot aria-labelledby="projects-title" data-node-id="193:2317" className="relative overflow-clip bg-midnight-900">
         <div className="relative mx-auto h-1771 w-1440 max-md:h-auto max-md:w-full max-md:px-20 max-md:pt-110 max-md:pb-60">
-          {/* Blue starburst: the lower half of the burst that rises out of the hero (193:2320) */}
-          <div aria-hidden data-burst className="absolute -top-127 left-593 size-254 max-md:left-88">
-            <div className="relative size-full">
-              {[0, 30, 60, 90, 120, 150].map((deg) => (
-                <span
-                  key={deg}
-                  className="absolute top-0 left-114 h-254 w-25 bg-midnight-500"
-                  style={{ transform: `rotate(${deg}deg)` }}
-                />
-              ))}
-            </div>
-          </div>
-          {/* Lower half of the striped circle from the hero (193:2333) */}
-          <div data-spin className="absolute -top-68 left-1365 h-137 w-149 max-md:hidden">
-            <Deco src="/figma/projects/striped-circle.svg" width={150} height={137} className="inset-0" bleed="-0.37% -0.34% -0.13% -0.34%" />
-          </div>
+          <SeamDecor />
 
-          <div className="absolute top-22 left-101 max-md:static">
+          <div data-swap className="absolute top-22 left-101 max-md:relative max-md:inset-auto">
             <Heading className="" barTop="0.875em">
               <span id="projects-title">Projects</span>
             </Heading>
           </div>
-          <p data-lines className="absolute top-143 left-100 w-760 text-h4 font-semibold text-midnight-100 max-md:static max-md:mt-12 max-md:w-full">
+          <p data-swap data-lines className="absolute top-143 left-100 w-760 text-h4 font-semibold text-midnight-100 max-md:relative max-md:inset-auto max-md:mt-12 max-md:w-full">
             Two years of building AgentFlow and multimodal.dev at Multimodal, and the work before it.
           </p>
 
@@ -60,6 +66,7 @@ export function Projects() {
                 <li
                   key={project.slug}
                   data-card
+                  data-swap
                   className={`absolute h-[calc(var(--s)*var(--h))] w-[calc(var(--s)*var(--w))] ${slot.pos} max-md:relative max-md:inset-auto max-md:h-[calc(var(--s)*var(--mh))] max-md:w-full`}
                   style={{ "--w": w, "--h": h, "--mh": mobileH, "--k": 390 / w } as CSSProperties}
                 >
@@ -86,7 +93,7 @@ export function Projects() {
             })}
           </ul>
 
-          <div data-more className="absolute top-1636 right-100 max-md:static max-md:mt-40 max-md:flex max-md:justify-center">
+          <div data-more data-swap className="absolute top-1636 right-100 max-md:static max-md:mt-40 max-md:flex max-md:justify-center">
             <TransitionLink
               href="/projects"
               data-magnetic="8"

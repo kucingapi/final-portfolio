@@ -2,6 +2,8 @@ import Image from "next/image";
 import { InlineSvg } from "@/components/InlineSvg";
 import { Chip, Deco } from "@/components/ui";
 import { SectionMotion } from "@/components/motion/SectionMotion";
+import { ByMode } from "@/components/mode/Mode";
+import { modes } from "@/content/site";
 
 /**
  * Hero (Figma 186:1436). Desktop positions are Figma canvas px on the 1440 frame;
@@ -27,22 +29,34 @@ export function Hero() {
             <InlineSvg src="/figma/hero/swoosh-bottom.svg" className="absolute -inset-y-[1.36%] -inset-x-[0.75%]" />
           </div>
 
-          <h1
-            data-headline
-            data-node-id="188:1989"
-            className="absolute top-250 left-100 w-581 text-h1 font-bold text-white [text-box:trim-both_cap_alphabetic] max-md:top-120 max-md:left-20 max-md:w-390"
-          >
-            <span className="mb-53 block max-md:mb-16">Looking for a</span>
-            <span className="block">
-              <span className="relative inline-block">
-                Software
-                <span aria-hidden data-underline className="pointer-events-none absolute top-[1.13em] left-[-0.166em] h-[0.25em] w-[4.15em]">
-                  <InlineSvg src="/figma/hero/underline.svg" className="absolute -inset-y-[27.12%] -inset-x-[1.46%]" />
+          {(["freelance", "fulltime"] as const).map((m) => {
+            const { lead, mark, rest } = modes[m].hero;
+            return (
+              <h1
+                key={m}
+                data-for={m}
+                data-headline
+                data-node-id="188:1989"
+                className="absolute top-250 left-100 w-581 text-h1 font-bold text-white [text-box:trim-both_cap_alphabetic] max-md:top-120 max-md:left-20 max-md:w-390"
+              >
+                <span className="mb-53 block max-md:mb-16">{lead}</span>
+                <span className="block">
+                  <span className="relative inline-block">
+                    {mark}
+                    {/* The hand-drawn underline is sized for "Software"; "Freelance" runs a little wider. */}
+                    <span
+                      aria-hidden
+                      data-underline
+                      className={`pointer-events-none absolute top-[1.13em] left-[-0.166em] h-[0.25em] ${m === "freelance" ? "w-[4.6em]" : "w-[4.15em]"}`}
+                    >
+                      <InlineSvg src="/figma/hero/underline.svg" className="absolute -inset-y-[27.12%] -inset-x-[1.46%]" />
+                    </span>
+                  </span>{" "}
+                  {rest}
                 </span>
-              </span>{" "}
-              Engineer?
-            </span>
-          </h1>
+              </h1>
+            );
+          })}
 
           {/* Photo collage (186:1942) */}
           <div
@@ -92,7 +106,9 @@ export function Hero() {
               </div>
             </div>
             <div data-chip className="absolute top-616 left-506 flex h-73 w-101 items-center justify-center">
-              <Chip tone="olive" className="flex-none rotate-[22.5deg]">To Work</Chip>
+              <Chip tone="olive" className="flex-none rotate-[22.5deg]">
+                <ByMode freelance={modes.freelance.chip} fulltime={modes.fulltime.chip} />
+              </Chip>
             </div>
 
             {/* Doodles around the collage */}

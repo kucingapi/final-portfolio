@@ -11,6 +11,14 @@ export function designUnit() {
 const ENTER = "top 80%";
 
 /**
+ * Play a reveal the first time its trigger is reached, and leave it. Not `...PLAY_ONCE`: a `once`
+ * trigger kills itself, and when several are already past their start as a page opens (a reload
+ * restores the scroll position), they die while ScrollTrigger is still refreshing its list and it
+ * crashes ("curTrigger is undefined"). These triggers stay alive and simply do nothing after.
+ */
+export const PLAY_ONCE = { toggleActions: "play none none none" } as const;
+
+/**
  * E7 — heading reveal: lines rise out of a mask, then the highlight bar
  * (`[data-highlight]` inside the same wrapper) wipes in from the left.
  */
@@ -18,14 +26,16 @@ export function revealHeading(
   wrapper: Element,
   { trigger = wrapper, delay = 0 }: { trigger?: Element; delay?: number } = {},
 ) {
+  // Copy for the other mode (Freelance / Full-time) is display:none and can't be split; it just shows.
+  if (!wrapper.getClientRects().length) return;
   const title = wrapper.querySelector("[data-title]") ?? wrapper;
   const bar = wrapper.querySelector("[data-highlight]");
   if (prefersReducedMotion()) {
-    gsap.from(wrapper, { autoAlpha: 0, duration: 0.2, scrollTrigger: { trigger, start: ENTER, once: true } });
+    gsap.from(wrapper, { autoAlpha: 0, duration: 0.2, scrollTrigger: { trigger, start: ENTER, ...PLAY_ONCE } });
     return;
   }
   const split = SplitText.create(title, { type: "lines", mask: "lines", linesClass: "line" });
-  const tl = gsap.timeline({ delay, scrollTrigger: { trigger, start: ENTER, once: true } });
+  const tl = gsap.timeline({ delay, scrollTrigger: { trigger, start: ENTER, ...PLAY_ONCE } });
   tl.from(split.lines, { yPercent: 110, stagger: 0.12 });
   if (bar) tl.from(bar, { scaleX: 0, transformOrigin: "left center", duration: 0.5, ease: "power3.out" }, 0.2);
   return tl;
@@ -45,19 +55,20 @@ export function revealUp(
     delay,
     // Hand transforms back to CSS so Tailwind hover translate/scale works afterwards.
     clearProps: "transform,translate,rotate,scale",
-    scrollTrigger: { trigger, start, once: true },
+    scrollTrigger: { trigger, start, ...PLAY_ONCE },
   });
 }
 
 /** Body copy split into lines that rise in one after another. */
 export function revealLines(el: Element, { trigger = el, delay = 0 }: { trigger?: Element; delay?: number } = {}) {
+  if (!el.getClientRects().length) return; // hidden by the other mode: nothing to split
   if (prefersReducedMotion()) return revealUp(el, { trigger });
   const split = SplitText.create(el, { type: "lines", mask: "lines" });
   return gsap.from(split.lines, {
     yPercent: 100,
     stagger: 0.08,
     delay,
-    scrollTrigger: { trigger, start: ENTER, once: true },
+    scrollTrigger: { trigger, start: ENTER, ...PLAY_ONCE },
   });
 }
 
@@ -105,7 +116,7 @@ export function drawStrokes(
     return gsap.fromTo(
       paths,
       { drawSVG: "0%" },
-      { drawSVG: "100%", duration, delay, ease: "power2.inOut", scrollTrigger: { trigger, start, once: true } },
+      { drawSVG: "100%", duration, delay, ease: "power2.inOut", scrollTrigger: { trigger, start, ...PLAY_ONCE } },
     );
   }
   return gsap.fromTo(

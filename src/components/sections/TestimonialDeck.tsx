@@ -120,7 +120,7 @@ export function TestimonialDeck() {
           .from(shown, { x: 120 * u, rotate: 4, autoAlpha: 0, duration: 1, stagger: { each: 0.12, from: "end" } })
           .from(quote(cards[order[0]])!.children, { y: 24 * u, autoAlpha: 0, duration: 0.7, stagger: 0.1 }, 0.5);
       }
-      const enter = ScrollTrigger.create({ trigger: el, start: "top 70%", once: true, onEnter: () => intro.play() });
+      const enter = ScrollTrigger.create({ trigger: el, start: "top 70%", onEnter: () => intro.play() });
       const inView = ScrollTrigger.create({ trigger: el, start: "top bottom", end: "bottom top", onToggle: (self) => hold("view", !self.isActive) });
 
       // Swipe the front card: past a quarter of its width it is tossed that way, otherwise it springs back.

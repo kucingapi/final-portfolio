@@ -6,8 +6,8 @@ import { Footer } from "@/components/sections/Footer";
 import { about, experiences, mailHref, site, telHref } from "@/content/site";
 
 export const metadata: Metadata = {
-  title: "Experiences",
-  description: `Education, leadership and professional experience of ${site.name}.`,
+  title: "Career",
+  description: `The career of ${site.name}: roles, education and leadership.`,
 };
 
 const LINKS = [
@@ -19,8 +19,8 @@ const LINKS = [
 
 const round = "relative block size-100 shrink-0 rounded-full bg-midnight-500 transition-colors max-md:size-64";
 
-/** Experiences page (Figma 317:462). */
-export default function ExperiencesPage() {
+/** Career page (Figma 317:462, "Experiences"). */
+export default function CareerPage() {
   return (
     <>
       <SectionMotion preset="experiences">
@@ -116,7 +116,7 @@ export default function ExperiencesPage() {
 
               <div className="relative mt-16 max-md:mt-56">
                 <Heading barLeft="-0.03em" barRight="-0.03em">
-                  Experiences
+                  Career
                 </Heading>
               </div>
 

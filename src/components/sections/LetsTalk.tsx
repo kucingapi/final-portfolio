@@ -2,6 +2,7 @@ import { Heading } from "@/components/ui";
 import { Marquee } from "@/components/motion/Marquee";
 import { SectionMotion } from "@/components/motion/SectionMotion";
 import { TransitionLink } from "@/components/transition/PageTransition";
+import { modes } from "@/content/site";
 
 function TalkRow({ outline = false }: { outline?: boolean }) {
   return (
@@ -20,22 +21,24 @@ function TalkRow({ outline = false }: { outline?: boolean }) {
   );
 }
 
-/** "Interested working with me?" + the Talk wall (Figma 275:3116). */
+/** The closing call to talk, worded per mode, + the Talk wall (Figma 275:3116). */
 export function LetsTalk() {
   return (
     <SectionMotion preset="talk">
-      <section aria-labelledby="talk-title" data-node-id="275:3116" className="relative overflow-clip bg-midnight-950">
+      <section aria-label="Let’s talk" data-node-id="275:3116" className="relative overflow-clip bg-midnight-950">
         <div className="relative mx-auto h-1024 w-1440 max-md:h-auto max-md:w-full max-md:pt-80 max-md:pb-40">
-          <div className="absolute top-57 left-111 max-md:static max-md:px-20">
-            <Heading barLeft="-0.1375em" barRight="-0.06em" className="max-md:text-[calc(var(--s)*28)]">
-              <span id="talk-title">
-                Interested in working with me?
-              </span>
-            </Heading>
-          </div>
-          <p data-lines className="absolute top-205 left-100 w-953 text-h4 font-semibold text-white max-md:static max-md:mt-20 max-md:w-full max-md:px-20">
-            Get in touch any time. I’m open to freelance projects, full-time roles and quick consultations.
-          </p>
+          {(["freelance", "fulltime"] as const).map((m) => (
+            <div key={m} data-for={m} className="contents">
+              <div className="absolute top-57 left-111 max-md:static max-md:px-20">
+                <Heading barLeft="-0.1375em" barRight="-0.06em" className="max-md:text-[calc(var(--s)*28)]">
+                  <span>{modes[m].talk.title}</span>
+                </Heading>
+              </div>
+              <p data-lines className="absolute top-205 left-100 w-953 text-h4 font-semibold text-white max-md:static max-md:mt-20 max-md:w-full max-md:px-20">
+                {modes[m].talk.body}
+              </p>
+            </div>
+          ))}
 
           {/* Talk wall: three tilted marquee rows behind the CTA */}
           <div aria-hidden className="absolute -inset-x-40 top-335 -rotate-1 max-md:relative max-md:top-auto max-md:mt-40">
