@@ -6,8 +6,10 @@ import { modes, type Mode } from "@/content/site";
 
 /**
  * Freelance / Full-time. The mode lives on <html data-mode> (set before first paint by MODE_SCRIPT,
- * so the right copy shows without a flash) and in localStorage. Switching runs one sequence:
- * `mode:leave` (old copy fades out, the home slot plays its exit), the flip, then `mode:enter`.
+ * so the right copy shows without a flash) and in localStorage. A `?mode=fulltime` or
+ * `?mode=freelance` link wins over what was saved, so a link can open the site in either mode.
+ * Switching runs one sequence: `mode:leave` (old copy fades out, the home slot plays its exit),
+ * the flip, then `mode:enter`; it also writes `?mode=` so the address bar can be shared as is.
  */
 
 const KEY = "mode";
@@ -16,8 +18,17 @@ export const MODE_ENTER = "mode:enter";
 const LEAVE_MS = 280;
 const ENTER_MS = 700;
 
-/** Inline in <head>: applies the saved mode before anything paints. */
-export const MODE_SCRIPT = `try{var m=localStorage.getItem("${KEY}");if(m==="fulltime"||m==="freelance")document.documentElement.dataset.mode=m}catch(e){}`;
+const PARAM = "mode";
+
+/** Inline in <head>: applies `?mode=` (saving it), else the saved mode, before anything paints. */
+export const MODE_SCRIPT = `try{var p=new URLSearchParams(location.search).get("${PARAM}"),m=null;if(p){p=p.toLowerCase().replace(/[^a-z]/g,"");if(p==="fulltime"||p==="freelance"){m=p;localStorage.setItem("${KEY}",m)}}m=m||localStorage.getItem("${KEY}");if(m==="fulltime"||m==="freelance")document.documentElement.dataset.mode=m}catch(e){}`;
+
+/** Put the mode in the address bar, keeping the page's other parameters (like the projects filter). */
+function writeParam(mode: Mode) {
+  const url = new URL(window.location.href);
+  url.searchParams.set(PARAM, mode);
+  window.history.replaceState(window.history.state, "", url);
+}
 
 const ModeContext = createContext<{ mode: Mode; setMode: (m: Mode) => void } | null>(null);
 
@@ -61,6 +72,7 @@ export function ModeProvider({ children }: { children: ReactNode }) {
     try {
       localStorage.setItem(KEY, next);
     } catch {}
+    writeParam(next);
     html.classList.remove("mode-leaving");
     if (!reduced) html.classList.add("mode-entering");
     window.dispatchEvent(new CustomEvent(MODE_ENTER, { detail: next }));

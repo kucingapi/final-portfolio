@@ -72,7 +72,9 @@ export function ProjectFilterProvider({ items, children }: { items: FilterMeta[]
   }, [items, haystacks, query, platform, context]);
 
   useEffect(() => {
-    const params = new URLSearchParams();
+    // Rebuild only the filter's own parameters; others (like ?mode=) stay.
+    const params = new URLSearchParams(window.location.search);
+    for (const key of ["q", "platform", "context"]) params.delete(key);
     if (query.trim()) params.set("q", query.trim());
     if (platform) params.set("platform", platform);
     if (context) params.set("context", context);
