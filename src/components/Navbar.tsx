@@ -9,6 +9,7 @@ import { site, mailHref, telHref } from "@/content/site";
 
 const MENU = [
   { label: "Home", href: "/", icon: "/figma/nav/icon-home.svg" },
+  { label: "Projects", href: "/projects", icon: "/figma/nav/icon-projects.svg" },
   { label: "Experiences", href: "/experiences", icon: "/figma/nav/icon-experiences.svg" },
   { label: "Contact", href: "/contact", icon: "/figma/nav/icon-contact.svg" },
 ];
@@ -166,25 +167,26 @@ export function Navbar() {
         {/*
           The panel spans the full viewport on any screen width (the SVG stretches freely). On desktop it
           also runs 200px higher than the Figma one so the tilt never shows its top corners on wide screens,
-          and 80px lower so the links clear the navbar sitting on top. Its bottom edge is where Figma has it.
+          and 80px lower so the links clear the navbar sitting on top. Its bottom edge sits 80px below
+          Figma's (100px on phones) so a fourth link, Projects, fits.
         */}
         <div
           data-menu-panel
-          className="absolute -top-341 left-1/2 h-1008 w-[max(calc(var(--s)*1569),calc(100vw+var(--s)*160))] -translate-x-1/2 drop-shadow-[0_calc(var(--s)*24)_calc(var(--s)*48)_rgb(1_3_38/0.5)] max-md:-top-60 max-md:-left-83 max-md:h-600 max-md:w-1569 max-md:translate-x-0"
+          className="absolute -top-341 left-1/2 h-1088 w-[max(calc(var(--s)*1569),calc(100vw+var(--s)*160))] -translate-x-1/2 drop-shadow-[0_calc(var(--s)*24)_calc(var(--s)*48)_rgb(1_3_38/0.5)] max-md:-top-60 max-md:-left-83 max-md:h-700 max-md:w-1569 max-md:translate-x-0"
         >
           <Image
             src="/figma/nav/panel.svg"
             alt=""
             width={1523}
             height={597}
-            className="absolute top-1/2 left-1/2 h-877 w-[calc(100%-var(--s)*46)] max-w-none -translate-x-1/2 -translate-y-1/2 -rotate-5 max-md:h-500"
+            className="absolute top-1/2 left-1/2 h-957 w-[calc(100%-var(--s)*46)] max-w-none -translate-x-1/2 -translate-y-1/2 -rotate-5 max-md:h-600"
           />
         </div>
 
         {/* Links and contact keep their Figma spots inside a centred 1440 frame, in line with the navbar. */}
         <div className="pointer-events-none relative mx-auto h-full w-1440 *:pointer-events-auto max-md:w-full">
           <nav className="absolute top-140 left-40 origin-top-left -rotate-5 max-md:top-90 max-md:left-24">
-            <ul className="flex flex-col gap-17 max-md:gap-12">
+            <ul className="flex flex-col gap-6 max-md:gap-8">
               {MENU.map((item) => (
                 <li key={item.href} className="line-mask">
                   <TransitionLink
@@ -200,17 +202,17 @@ export function Navbar() {
                       alt=""
                       width={119}
                       height={119}
-                      className="size-119 max-md:size-56"
+                      className="size-96 max-md:size-48"
                     />
                     </span>
-                    <span className="text-h1 font-bold transition-transform duration-300 group-hover:translate-x-12">{item.label}</span>
+                    <span className="text-h2 font-bold transition-transform duration-300 group-hover:translate-x-12 max-md:text-h1">{item.label}</span>
                   </TransitionLink>
                 </li>
               ))}
             </ul>
           </nav>
 
-          <div data-menu-contact className="absolute top-322 left-1046 origin-top-left -rotate-5 text-white max-md:top-350 max-md:left-34 max-md:rotate-0">
+          <div data-menu-contact className="absolute top-322 left-1046 origin-top-left -rotate-5 text-white max-md:top-462 max-md:left-34 max-md:rotate-0">
             <p className="text-h4 font-semibold">Get in touch</p>
             <div className="mt-21 flex flex-col gap-11 text-lead font-semibold max-md:mt-12">
               <a href={mailHref} className="hover:underline">{site.email}</a>
