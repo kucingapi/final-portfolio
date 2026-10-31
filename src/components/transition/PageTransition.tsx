@@ -18,11 +18,13 @@ import { useLenis } from "@/components/providers/SmoothScroll";
 
 /**
  * E8 — circle-expand page transition (Figma "Page Transition" 350:12239).
- * A dot at the centre grows to cover the screen, the route changes underneath,
- * then the circle shrinks away. The same overlay doubles as the first-load loader.
+ * A dot grows from where the link was clicked until it covers the screen, the route changes
+ * underneath, then the circle shrinks back into that point. The same overlay doubles as the
+ * first-load loader, which starts covering and shrinks to the centre.
  */
 
-type TransitionApi = { navigate: (href: string) => void };
+type Point = { x: number; y: number };
+type TransitionApi = { navigate: (href: string, from?: Point) => void };
 const TransitionContext = createContext<TransitionApi>({ navigate: () => {} });
 export const usePageTransition = () => useContext(TransitionContext);
 
@@ -53,6 +55,14 @@ export function PageTransitionProvider({ children }: { children: ReactNode }) {
   const mark = useRef<HTMLDivElement>(null);
   const pendingHref = useRef<string | null>(null);
   const busy = useRef(false);
+
+  /** Centre the circle on `p` (viewport px), just big enough to reach the farthest corner. */
+  const placeCircle = (p: Point) => {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    const size = 2 * Math.hypot(Math.max(p.x, w - p.x), Math.max(p.y, h - p.y)) + 4;
+    gsap.set(circle.current, { left: p.x, top: p.y, width: size, height: size });
+  };
 
   const uncover = useCallback(() => {
     const reduced = prefersReducedMotion();
@@ -97,7 +107,7 @@ export function PageTransitionProvider({ children }: { children: ReactNode }) {
   }, [pathname, uncover]);
 
   const navigate = useCallback(
-    (href: string) => {
+    (href: string, from?: Point) => {
       const target = new URL(href, location.href);
       if (busy.current) return;
       if (target.pathname === pathname) {
@@ -108,6 +118,7 @@ export function PageTransitionProvider({ children }: { children: ReactNode }) {
       busy.current = true;
       lenis.current?.stop();
       document.documentElement.dataset.covered = "true";
+      placeCircle(from ?? { x: window.innerWidth / 2, y: window.innerHeight / 2 });
       gsap.set(overlay.current, { autoAlpha: 1 });
       const done = () => {
         pendingHref.current = href;
@@ -151,7 +162,10 @@ export function TransitionLink({ href, onClick, ...props }: ComponentProps<typeo
     if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
     if (props.target && props.target !== "_self") return;
     e.preventDefault();
-    navigate(href);
+    // The circle grows from the pointer; a keyboard "click" (detail 0) has none, so use the link's centre.
+    const box = e.currentTarget.getBoundingClientRect();
+    const from = e.detail > 0 ? { x: e.clientX, y: e.clientY } : { x: box.left + box.width / 2, y: box.top + box.height / 2 };
+    navigate(href, from);
   };
   return <Link href={href} onClick={handleClick} {...props} />;
 }
