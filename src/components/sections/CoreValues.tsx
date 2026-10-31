@@ -90,7 +90,7 @@ function Flexible() {
   );
 }
 
-function LowCost() {
+function AiAssisted() {
   return (
     <>
       <V data-swoop="" src="/figma/values/subtract.svg" x={511.47} y={110.47} w={194} h={187} className="-scale-x-100" />
@@ -133,7 +133,7 @@ const ART: Record<Key, () => ReactNode> = {
   fast: Fast,
   reliable: Reliable,
   flexible: Flexible,
-  lowCost: LowCost,
+  aiAssisted: AiAssisted,
   problemSolver: ProblemSolver,
 };
 
@@ -142,14 +142,14 @@ const LAYOUT: Record<Key, { w: number; h: number; radius: string; panelW: number
   fast: { w: 383, h: 443, radius: "rounded-xl", panelW: 341.5, panelH: 246.8, textTop: 283.47, bodyW: 349 },
   reliable: { w: 383, h: 443, radius: "rounded-xl", panelW: 341.5, panelH: 246.8, textTop: 283.47, bodyW: 324 },
   flexible: { w: 385, h: 443, radius: "rounded-xl", panelW: 343.5, panelH: 246.8, textTop: 283.47, bodyW: 329 },
-  lowCost: { w: 811, h: 443, radius: "rounded-lg", panelW: 770.2, panelH: 274.5, textTop: 311.15, bodyW: 465 },
+  aiAssisted: { w: 811, h: 443, radius: "rounded-lg", panelW: 770.2, panelH: 274.5, textTop: 311.15, bodyW: 465 },
   problemSolver: { w: 383, h: 443, radius: "rounded-lg", panelW: 341.5, panelH: 246.8, textTop: 283.47, bodyW: 347 },
 };
 
 function ValueCard({ value }: { value: (typeof coreValues)[number] }) {
   const l = LAYOUT[value.key];
   const Art = ART[value.key];
-  const wide = value.key === "lowCost";
+  const wide = value.key === "aiAssisted";
   return (
     <article
       data-card={value.key}
@@ -177,7 +177,7 @@ function ValueCard({ value }: { value: (typeof coreValues)[number] }) {
 
 /** Core Values (Figma 275:3118). */
 export function CoreValues() {
-  const [fast, reliable, flexible, lowCost, problemSolver] = coreValues;
+  const [fast, reliable, flexible, aiAssisted, problemSolver] = coreValues;
   return (
     <SectionMotion preset="values">
       <section aria-labelledby="values-title" data-node-id="275:3118" className="relative overflow-clip bg-midnight-900">
@@ -194,7 +194,7 @@ export function CoreValues() {
               <ValueCard value={flexible} />
             </div>
             <div className="flex gap-46 max-md:flex-col max-md:gap-16">
-              <ValueCard value={lowCost} />
+              <ValueCard value={aiAssisted} />
               <ValueCard value={problemSolver} />
             </div>
           </div>

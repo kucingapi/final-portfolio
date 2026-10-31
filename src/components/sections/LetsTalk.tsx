@@ -29,12 +29,12 @@ export function LetsTalk() {
           <div className="absolute top-57 left-111 max-md:static max-md:px-20">
             <Heading barLeft="-0.1375em" barRight="-0.06em" className="max-md:text-[calc(var(--s)*28)]">
               <span id="talk-title">
-                Interested working with me?
+                Interested in working with me?
               </span>
             </Heading>
           </div>
           <p data-lines className="absolute top-205 left-100 w-953 text-h4 font-semibold text-white max-md:static max-md:mt-20 max-md:w-full max-md:px-20">
-            Feel free to contact me any time, I’m open to new opportunities, and free for consultations
+            Get in touch any time. I’m open to freelance projects, full-time roles and quick consultations.
           </p>
 
           {/* Talk wall: three tilted marquee rows behind the CTA */}

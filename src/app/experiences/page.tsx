@@ -32,8 +32,8 @@ export default function ExperiencesPage() {
                   {site.name}
                 </h1>
                 <p className="flex flex-col text-h2 font-semibold">
-                  <span data-subline>Full-stack Developer</span>
-                  <span data-subline>Freelancer</span>
+                  <span data-subline>{site.role}</span>
+                  <span data-subline>Freelance &amp; Full-time</span>
                 </p>
               </div>
 

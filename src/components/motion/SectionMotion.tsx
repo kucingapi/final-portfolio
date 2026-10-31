@@ -147,9 +147,9 @@ const presets: Record<string, Preset> = {
     waves.forEach((w, i) =>
       gsap.to(w, { y: (i ? -8 : 8) * u, duration: 2, ease: "sine.inOut", yoyo: true, repeat: -1, delay: i * 0.4 }),
     );
-    gsap.from(q('[data-card="lowCost"] [data-arrow]'), { y: -80 * u, autoAlpha: 0, duration: 0.8, ease: "back.out(1.4)", scrollTrigger: at("lowCost") });
-    gsap.from(q('[data-card="lowCost"] [data-swoop]'), { scale: 0.6, autoAlpha: 0, duration: 0.7, stagger: 0.1, scrollTrigger: at("lowCost") });
-    gsap.from(q('[data-card="lowCost"] [data-bar]'), { scaleX: 0, transformOrigin: "left center", duration: 0.5, stagger: 0.05, delay: 0.3, scrollTrigger: at("lowCost") });
+    gsap.from(q('[data-card="aiAssisted"] [data-arrow]'), { y: -80 * u, autoAlpha: 0, duration: 0.8, ease: "back.out(1.4)", scrollTrigger: at("aiAssisted") });
+    gsap.from(q('[data-card="aiAssisted"] [data-swoop]'), { scale: 0.6, autoAlpha: 0, duration: 0.7, stagger: 0.1, scrollTrigger: at("aiAssisted") });
+    gsap.from(q('[data-card="aiAssisted"] [data-bar]'), { scaleX: 0, transformOrigin: "left center", duration: 0.5, stagger: 0.05, delay: 0.3, scrollTrigger: at("aiAssisted") });
     gsap.from(q('[data-card="problemSolver"] [data-piece]'), { rotate: -90, scale: 0.6, autoAlpha: 0, duration: 0.8, stagger: 0.12, ease: "back.out(1.6)", scrollTrigger: at("problemSolver") });
   },
 

@@ -32,15 +32,15 @@ export function Hero() {
             data-node-id="188:1989"
             className="absolute top-250 left-100 w-581 text-h1 font-bold text-white [text-box:trim-both_cap_alphabetic] max-md:top-120 max-md:left-20 max-md:w-390"
           >
-            <span className="mb-53 block max-md:mb-16">Need a Freelance</span>
+            <span className="mb-53 block max-md:mb-16">Looking for a</span>
             <span className="block">
               <span className="relative inline-block">
-                Full-stack
-                <span aria-hidden data-underline className="pointer-events-none absolute top-[1.13em] left-[-0.166em] h-[0.25em] w-[4.65em]">
+                Software
+                <span aria-hidden data-underline className="pointer-events-none absolute top-[1.13em] left-[-0.166em] h-[0.25em] w-[4.15em]">
                   <InlineSvg src="/figma/hero/underline.svg" className="absolute -inset-y-[27.12%] -inset-x-[1.46%]" />
                 </span>
               </span>{" "}
-              Developer?
+              Engineer?
             </span>
           </h1>
 

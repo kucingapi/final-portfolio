@@ -245,7 +245,7 @@ export function ContactFlow() {
                   <textarea
                     name="message"
                     rows={3}
-                    placeholder="Put any other messages or challenges that you wanted to present"
+                    placeholder="Tell me about the project, role or problem you have in mind"
                     data-lenis-prevent
                     className="peer block min-h-162 w-full resize-none bg-transparent text-h4 font-semibold text-midnight-50 placeholder:text-placeholder focus:outline-none max-md:min-h-120"
                   />

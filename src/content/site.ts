@@ -5,10 +5,10 @@
 
 export const site = {
   name: "Novel Bafagih",
-  role: "Full-stack Developer",
-  title: "Novel Bafagih — Freelance Full-stack Developer",
+  role: "Software Engineer",
+  title: "Novel Bafagih — Software Engineer",
   description:
-    "Freelance full-stack developer building fast, flexible web and mobile products with React, Next.js and Kotlin Jetpack Compose.",
+    "Software engineer building web and Android products with React, Next.js and Kotlin Jetpack Compose. AI speeds up the work; every line is still reviewed, clean and maintainable.",
   location: "Based in Indonesia, Jakarta",
   timeZone: "Asia/Jakarta",
   email: "novelbafagih09@gmail.com",
@@ -25,7 +25,7 @@ export const site = {
 };
 
 export const about =
-  "I’m Novel Bafagih, a young text book front-end developer that have no days off without learning. Over the past few Years I have learn to create scalable, flexible yet robust software. Technologies that I use daily is React JS,  Kotlin Jetpack Compose, and Next JS. But give me a week, a computer and an internet connections and I will learn the technologies needed.";
+  "I’m Novel Bafagih, a software engineer who never goes a day without learning something new. I build scalable, flexible and robust software, mostly with React, Next.js and Kotlin Jetpack Compose. AI is part of how I work: it helps me move fast, and I review every line so the code stays clean and easy to maintain. Give me a week, a computer and an internet connection, and I’ll learn whatever the project needs.";
 
 export type Project = {
   /** Shown to screen readers and used as the hover label. */
@@ -43,11 +43,11 @@ export const projects: Project[] = [
 ];
 
 export const coreValues = [
-  { key: "fast", title: "Fast", body: "Most of my works is faster than the deadline timeline." },
-  { key: "reliable", title: "Reliable", body: "You can always rely on me to put in a good work and effort." },
-  { key: "flexible", title: "Flexible", body: "I can learn any technology is needed to create the best solution for the problem." },
-  { key: "lowCost", title: "Low Cost", body: "Because I’m still a junior freelancer, hopefully my price meets with your budgets." },
-  { key: "problemSolver", title: "Problem Solver", body: "Solving problem may not be easy, but I’m the person who thinks outside of the box." },
+  { key: "fast", title: "Fast", body: "Most of my work lands before the deadline, not on it." },
+  { key: "reliable", title: "Reliable", body: "You can count on me to put real care and effort into every piece of work." },
+  { key: "flexible", title: "Flexible", body: "I pick up whatever technology the problem needs to build the best solution." },
+  { key: "aiAssisted", title: "AI-Assisted, Human-Reviewed", body: "AI helps me ship faster. I still read, test and own every line, so the code stays clean and easy to maintain." },
+  { key: "problemSolver", title: "Problem Solver", body: "Hard problems don’t scare me. I look past the obvious answer to find one that actually works." },
 ] as const;
 
 export type Testimonial = { quote: string; name: string; relation: string; role: string; avatar?: string };
