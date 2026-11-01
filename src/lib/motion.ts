@@ -2,10 +2,13 @@
 
 import { gsap, SplitText, prefersReducedMotion } from "./gsap";
 
+/** Where the 430px phone design hands over to the 1440px desktop one (mirrors `--breakpoint-md`). */
+export const DESKTOP_MIN = 1024;
+
 /** One Figma design pixel in CSS px (mirrors `--s` in globals.css). */
 export function designUnit() {
   const w = document.body.clientWidth;
-  return window.innerWidth < 768 ? w / 430 : Math.min(w, 1440) / 1440;
+  return window.innerWidth < DESKTOP_MIN ? w / 430 : Math.min(w, 1440) / 1440;
 }
 
 const ENTER = "top 80%";
@@ -128,7 +131,7 @@ export function drawStrokes(
 
 /** E4 — parallax: every `[data-speed]` inside `section` drifts at its own rate. */
 export function parallax(section: Element) {
-  if (prefersReducedMotion() || window.innerWidth < 768) return;
+  if (prefersReducedMotion() || window.innerWidth < DESKTOP_MIN) return;
   section.querySelectorAll<HTMLElement>("[data-speed]").forEach((el) => {
     const speed = parseFloat(el.dataset.speed ?? "1");
     gsap.to(el, {

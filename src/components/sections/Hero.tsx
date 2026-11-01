@@ -70,7 +70,7 @@ export function Hero() {
                   alt="Novel speaking with a microphone"
                   fill
                   priority
-                  sizes="(max-width: 768px) 60vw, 30vw"
+                  sizes="(max-width: 1023px) 60vw, 30vw"
                   className="origin-[57%_38%] scale-[1.35] object-cover object-[60%_30%] opacity-80"
                 />
               </div>
@@ -85,7 +85,7 @@ export function Hero() {
                   src="/figma/hero/photo-left.jpg"
                   alt="Novel Bafagih at an event"
                   fill
-                  sizes="(max-width: 768px) 40vw, 20vw"
+                  sizes="(max-width: 1023px) 40vw, 20vw"
                   className="object-cover object-[50%_30%] opacity-60"
                 />
               </div>
@@ -100,7 +100,7 @@ export function Hero() {
                   src="/figma/hero/photo-right.jpg"
                   alt="Novel smiling"
                   fill
-                  sizes="(max-width: 768px) 40vw, 20vw"
+                  sizes="(max-width: 1023px) 40vw, 20vw"
                   className="object-cover object-[48%_50%] opacity-60"
                 />
               </div>

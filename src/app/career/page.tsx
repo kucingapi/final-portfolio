@@ -88,7 +88,7 @@ export default function CareerPage() {
                     width={520}
                     height={520}
                     priority
-                    sizes="(max-width: 768px) 80vw, 30vw"
+                    sizes="(max-width: 1023px) 80vw, 30vw"
                     className="absolute -top-36 left-1/2 size-520 max-w-none -translate-x-1/2 opacity-80"
                   />
                 </div>

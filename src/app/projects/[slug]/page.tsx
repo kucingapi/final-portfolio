@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: PageProps<"/projects/[slug]">
 const HERO = { w: 1240, h: 700 };
 
 /** Sizes for a render drawn `w` design px wide in the 1240 frame (scaled to 390 on phones). */
-const heroSizes = (w: number) => `(max-width: 768px) ${Math.round((w / 1240) * 91)}vw, ${Math.round(w / 14.4)}vw`;
+const heroSizes = (w: number) => `(max-width: 1023px) ${Math.round((w / 1240) * 91)}vw, ${Math.round(w / 14.4)}vw`;
 
 function Arrow({ className = "" }: { className?: string }) {
   return (
@@ -96,89 +96,8 @@ function PartHeader({ part, n }: { part: Part; n: number }) {
   );
 }
 
-const CHART_TONES = ["var(--color-midnight-50)", "var(--color-midnight-400)", "var(--color-midnight-200)"];
-
-/** Weekly stacked columns, drawn in SVG; columns rise in on scroll (`data-col`). */
-function WeeklyChart({ chart }: { chart: NonNullable<Chapter["chart"]> }) {
-  const W = 640;
-  const H = 340;
-  const L = 44;
-  const R = 8;
-  const T = 24;
-  const B = 300;
-  const n = chart.weeks.length;
-  const totals = chart.weeks.map((_, i) => chart.series.reduce((sum, s) => sum + s.values[i], 0));
-  const peak = totals.indexOf(Math.max(...totals));
-  const top = Math.ceil(Math.max(...totals) / 50) * 50;
-  const y = (v: number) => B - (v / top) * (B - T);
-  const band = (W - L - R) / n;
-  const bar = band * 0.66;
-  const ticks = Array.from({ length: top / 50 + 1 }, (_, i) => i * 50);
-  const summary = `${chart.title}: from ${totals[0]} in the week of ${chart.weeks[0]} to ${totals[peak]} in the week of ${chart.weeks[peak]}, then about ${chart.level?.value ?? totals[n - 1]} a week.`;
-  return (
-    <figure data-rise className="flex flex-col gap-16">
-      <figcaption className="text-lead font-semibold text-midnight-50">{chart.title}</figcaption>
-      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={summary} className="h-auto w-full overflow-visible">
-        {ticks.map((t) => (
-          <g key={t}>
-            <line x1={L} x2={W - R} y1={y(t)} y2={y(t)} stroke="var(--color-midnight-50)" strokeOpacity={t ? 0.15 : 0.5} strokeWidth={t ? 1 : 2} />
-            <text x={L - 10} y={y(t)} dy="0.35em" textAnchor="end" className="fill-midnight-200 font-display text-[13px] tabular-nums">
-              {t}
-            </text>
-          </g>
-        ))}
-        {chart.weeks.map((week, i) => {
-          let base = 0;
-          return (
-            <g key={week} data-col>
-              {chart.series.map((s, k) => {
-                const v = s.values[i];
-                const rect = v ? (
-                  <rect key={s.label} x={L + band * i + (band - bar) / 2} y={y(base + v)} width={bar} height={y(base) - y(base + v)} fill={CHART_TONES[k]} rx={k === chart.series.length - 1 || !chart.series.slice(k + 1).some((o) => o.values[i]) ? 3 : 0} />
-                ) : null;
-                base += v;
-                return rect;
-              })}
-            </g>
-          );
-        })}
-        {chart.level && (
-          <g>
-            <line x1={L + band * chart.level.from} x2={W - R} y1={y(chart.level.value)} y2={y(chart.level.value)} stroke="var(--color-midnight-50)" strokeWidth={2} strokeDasharray="6 6" />
-            <text x={W - R} y={y(chart.level.value) - 10} textAnchor="end" className="fill-midnight-50 text-[14px] font-semibold">
-              {chart.level.label}
-            </text>
-          </g>
-        )}
-        <text x={L + band * peak + band / 2} y={y(totals[peak]) - 10} textAnchor="middle" className="fill-midnight-50 font-display text-[16px] font-semibold tabular-nums">
-          {totals[peak]}
-        </text>
-        {chart.weeks.map((week, i) => {
-          // One label per month, on its first week.
-          const day = Number(week.split(" ")[1]);
-          if (i > 0 && day > 7) return null;
-          return (
-            <text key={week} x={L + band * i + band / 2} y={B + 24} textAnchor="middle" className="fill-midnight-200 text-[13px]">
-              {week.split(" ")[0]}
-            </text>
-          );
-        })}
-      </svg>
-      <ul className="flex flex-wrap gap-x-24 gap-y-8">
-        {chart.series.map((s, k) => (
-          <li key={s.label} className="flex items-center gap-8 text-body text-midnight-100">
-            <span aria-hidden className="size-12 rounded-[3px]" style={{ background: CHART_TONES[k] }} />
-            {s.label}
-          </li>
-        ))}
-      </ul>
-      {chart.note && <p className="text-body text-midnight-200">{chart.note}</p>}
-    </figure>
-  );
-}
-
 function ChapterBlock({ chapter, flip, level }: { chapter: Chapter; flip: boolean; level: "h2" | "h3" }) {
-  const side = chapter.shot ?? chapter.chart ?? chapter.figure ?? chapter.bars;
+  const side = chapter.shot ?? chapter.figure ?? chapter.bars;
   // A chapter with nothing beside it stays left-aligned instead of alternating.
   flip = flip && Boolean(side);
   return (
@@ -222,16 +141,12 @@ function ChapterBlock({ chapter, flip, level }: { chapter: Chapter; flip: boolea
                 alt={chapter.shot.alt}
                 width={chapter.shot.width}
                 height={chapter.shot.height}
-                sizes="(max-width: 768px) 100vw, 50vw"
+                sizes="(max-width: 1023px) 100vw, 50vw"
                 className="block h-auto w-full"
               />
             </div>
             {chapter.shot.caption && <figcaption className="text-body text-midnight-200">{chapter.shot.caption}</figcaption>}
           </figure>
-        ) : chapter.chart ? (
-          <div className="min-w-0 flex-1 self-center max-md:w-full">
-            <WeeklyChart chart={chapter.chart} />
-          </div>
         ) : chapter.bars ? (
           <div className="flex-1 self-center max-md:w-full max-md:self-stretch">
             <Bars bars={chapter.bars} />
@@ -260,7 +175,8 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
               <TransitionLink
                 href="/projects"
                 data-subline
-                className="inline-flex items-center gap-10 text-lead font-semibold text-midnight-100 transition-colors hover:text-midnight-50"
+                // The padding is taken back by the margin: same look, a tap target a finger can hit.
+                className="-my-12 inline-flex items-center gap-10 py-12 text-lead font-semibold text-midnight-100 transition-colors hover:text-midnight-50"
               >
                 <Arrow className="size-24 rotate-180" />
                 All projects

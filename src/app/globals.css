@@ -4,7 +4,7 @@
  * Canvas scaling.
  * Every size in the Figma file is authored on a 1440px desktop frame. `--s` is one
  * design pixel, so `w-1240` / `top-195` / `gap-39` map 1:1 to the Figma numbers and
- * the whole layout scales with the viewport (capped at 1440). Below 768px the canvas
+ * the whole layout scales with the viewport (capped at 1440). Below 1024px the canvas
  * switches to a 430px phone frame and sections use their `max-md:` layouts.
  */
 :root {
@@ -16,16 +16,17 @@
   --dur-small: 400ms;
 }
 
-@media (max-width: 767.98px) {
+@media (max-width: 1023.98px) {
   :root {
     --s: calc(100cqw / 430);
     --text-h1: calc(var(--s) * 46);
     --text-h2: calc(var(--s) * 40);
     --text-h3: calc(var(--s) * 34);
     --text-h4: calc(var(--s) * 21);
-    --text-lead: calc(var(--s) * 16);
-    --text-body: calc(var(--s) * 14);
-    --text-chip: calc(var(--s) * 12);
+    /* Floors keep small phones (360px) readable; the design is drawn at 430. */
+    --text-lead: max(14px, calc(var(--s) * 16));
+    --text-body: max(12px, calc(var(--s) * 14));
+    --text-chip: max(11px, calc(var(--s) * 12));
     --text-clock: calc(var(--s) * 18);
     --text-mega: calc(var(--s) * 96);
     --text-service: calc(var(--s) * 44);
@@ -34,6 +35,8 @@
 
 @theme {
   --spacing: var(--s);
+  /* Tablets in portrait get the phone design, scaled up; the desktop one starts at 1024. */
+  --breakpoint-md: 64rem;
 
   --color-midnight-50: #e5f0ff;
   --color-midnight-100: #d0e3ff;
@@ -67,11 +70,12 @@
   --text-h4: calc(var(--s) * 40);
   --text-h4--line-height: 1.2;
   --text-h4--letter-spacing: -0.005em;
-  --text-lead: calc(var(--s) * 20);
+  /* Floors keep small laptops (1024 to 1280px) readable; the design is drawn at 1440. */
+  --text-lead: max(16px, calc(var(--s) * 20));
   --text-lead--line-height: 1.2;
-  --text-body: calc(var(--s) * 16);
+  --text-body: max(14px, calc(var(--s) * 16));
   --text-body--line-height: 1.2;
-  --text-chip: calc(var(--s) * 16);
+  --text-chip: max(12px, calc(var(--s) * 16));
   --text-chip--line-height: 1.5;
   --text-clock: calc(var(--s) * 40);
   --text-clock--line-height: 1.2;
@@ -138,7 +142,7 @@ html.lenis body {
     width: calc(var(--s) * 1240);
     margin-inline: auto;
   }
-  @media (max-width: 767.98px) {
+  @media (max-width: 1023.98px) {
     .container-x {
       width: calc(var(--s) * 390);
     }

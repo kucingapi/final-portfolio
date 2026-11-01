@@ -19,7 +19,7 @@ const SLOTS = [
 
 /** The render is drawn wider than its card, so ask for an image as wide as the render, not the card. */
 const artSizes = (imageW: number, cardW: number) =>
-  `(max-width: 768px) ${Math.round((imageW / cardW) * 91)}vw, ${Math.round(imageW / 14.4)}vw`;
+  `(max-width: 1023px) ${Math.round((imageW / cardW) * 91)}vw, ${Math.round(imageW / 14.4)}vw`;
 
 /**
  * Where the hero meets the home slot: the lower half of the blue starburst rising out of the hero

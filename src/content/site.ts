@@ -141,8 +141,6 @@ export type CareerRole = {
   points: string[];
   /** A case study this role is told through. */
   href?: string;
-  /** Shown in the hover preview that follows the cursor; roles without one get a type card. */
-  image?: string;
 };
 
 /** The home page's Career section, shown in Full-time mode. Newest first. */
@@ -154,11 +152,10 @@ export const career: CareerRole[] = [
     place: "New York, remote",
     kind: "Full-time",
     points: [
-      "The first full-time frontend engineer: wrote the first commit of AgentFlow's frontend when it had no users. Two years on, about 140 client people use it every week.",
+      "The first full-time frontend engineer: wrote the first commit of AgentFlow's frontend when it had no users. Two years on, more than a hundred client people use it every week.",
       "Moved multimodal.dev off Webflow; its median phone Lighthouse score went from 73 to 85.",
     ],
     href: "/projects/agentflow",
-    image: "/projects/agentflow-real.webp",
   },
   {
     period: "Mar 2023 – Jun 2024",
@@ -167,7 +164,6 @@ export const career: CareerRole[] = [
     place: "Munich, remote",
     points: ["Built TIA, a pilot with TUM for 500+ patients and their doctors, with 100+ branching medical questions."],
     href: "/projects/tia",
-    image: "/projects/tia-real.webp",
   },
   {
     period: "Jan 2023 – Mar 2024",
@@ -183,7 +179,6 @@ export const career: CareerRole[] = [
     kind: "Program",
     points: ["Graduated with distinction, in the top 10%, and led a team of six to a working app in a month."],
     href: "/projects/breel",
-    image: "/projects/breel/screens.webp",
   },
   {
     period: "Nov 2021 – Mar 2022",
@@ -199,7 +194,6 @@ export const career: CareerRole[] = [
     kind: "Degree",
     points: ["Thesis: SIDAKU, an Android app and API for Kota Batu's small businesses."],
     href: "/projects/sidaku",
-    image: "/projects/sidaku/cover.webp",
   },
 ];
 
@@ -219,14 +213,13 @@ export const careerDetail: { id: string; heading: string; roles: CareerRole[] }[
         place: "New York, remote",
         kind: "Full-time",
         points: [
-          "The first full-time frontend engineer. Wrote the first commit of AgentFlow's frontend in August 2024, when it had no users; by October 2026 about 140 client people used it every week, and its largest client, a bank, had more than 400 people on it.",
+          "The first full-time frontend engineer. Wrote the first commit of AgentFlow's frontend in August 2024, when it had no users; by October 2026 more than a hundred client people used it every week, led by a bank that rolled it out to its lending teams.",
           "Built the document review tool for a US mortgage lender: annotation got 50% faster and the client's loan processing costs fell by 80%.",
           "Made the PDF viewer keep up with fast scrolling: CPU use went from 100% to 10%.",
           "Led the design system consolidation: 33 status-to-colour maps down to one, with a lint rule that keeps it that way.",
           "Moved multimodal.dev off Webflow to Next.js and Sanity; its median phone Lighthouse score went from 73 to 85.",
         ],
         href: "/projects/agentflow",
-        image: "/projects/agentflow-real.webp",
       },
       {
         period: "Mar 2023 – Jun 2024",
@@ -239,7 +232,6 @@ export const careerDetail: { id: string; heading: string; roles: CareerRole[] }[
           "Built the backend on Supabase and PostgreSQL, working with the Master's and PhD students behind the research.",
         ],
         href: "/projects/tia",
-        image: "/projects/tia-real.webp",
       },
       {
         period: "Jan 2023 – Mar 2024",
@@ -275,7 +267,6 @@ export const careerDetail: { id: string; heading: string; roles: CareerRole[] }[
         kind: "Degree",
         points: ["Thesis: SIDAKU, an Android app and REST API that let Kota Batu's cooperatives and small businesses keep their own records."],
         href: "/projects/sidaku",
-        image: "/projects/sidaku/cover.webp",
       },
       {
         period: "Feb – Jul 2023",
@@ -287,7 +278,6 @@ export const careerDetail: { id: string; heading: string; roles: CareerRole[] }[
           "Graduated with distinction, in the top 10% of the cohort.",
           "Finished 7 Android courses on time, from the fundamentals to advanced techniques.",
         ],
-        image: "/projects/breel/screens.webp",
       },
       {
         period: "Aug 2021",
@@ -309,7 +299,6 @@ export const careerDetail: { id: string; heading: string; roles: CareerRole[] }[
         org: "Bangkit Academy",
         points: ["Led a team of six across mobile, machine learning and cloud to a working app in a month: 100+ tasks closed in 30 days."],
         href: "/projects/breel",
-        image: "/projects/breel/screens.webp",
       },
       {
         period: "Apr – Nov 2022",

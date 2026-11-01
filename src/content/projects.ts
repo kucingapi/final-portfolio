@@ -35,14 +35,6 @@ export type Chapter = {
   figure?: { from?: string; to: string; label: string };
   /** A small data graphic instead of a screenshot. */
   bars?: { label: string; value: number; note: string }[];
-  /** Weekly stacked columns (e.g. people using a product), with an optional level line from week `from`. */
-  chart?: {
-    title: string;
-    note?: string;
-    weeks: string[];
-    series: { label: string; values: number[] }[];
-    level?: { value: number; from: number; label: string };
-  };
   shot?: Shot;
 };
 
@@ -110,12 +102,12 @@ export const projects: Project[] = [
     tag: "Multimodal · AI platform",
     year: "2024 – 2026",
     kind: "AI platform",
-    stat: { value: "0 → 140", label: "client people using it every week" },
+    stat: { value: "0 → 100+", label: "client people using it every week" },
     summary:
-      "The AI platform banks and credit unions use to take a document from upload to decision. I wrote its frontend's first commit when it had no users; two years on, about 140 client people use it every week.",
+      "The AI platform banks and credit unions use to take a document from upload to decision. I wrote its frontend's first commit when it had no users; two years on, more than a hundred client people use it every week.",
     stack: ["Next.js", "React", "TypeScript", "Tailwind", "Storybook", "Python / FastAPI", "PostHog", "Playwright"],
     intro: [
-      "AgentFlow takes a business document, a loan application, a balance sheet, an invoice, through AI extraction, human review and a decision. Banks, credit unions and other financial firms run their daily work on it. The largest client, a bank, has more than 400 people on it.",
+      "AgentFlow takes a business document, a loan application, a balance sheet, an invoice, through AI extraction, human review and a decision. Banks, credit unions and other financial firms run their daily work on it. Its largest client is a bank that rolled it out to its lending teams.",
       "Reviewers live in two screens: the Runs table, where they find the document they need, and the review page, where they check what the AI read. Admins watch usage and manage their team.",
     ],
     part: [
@@ -151,7 +143,7 @@ export const projects: Project[] = [
     chapters: [
       {
         id: "growth",
-        title: "From zero to 140 people a week",
+        title: "From zero to a hundred people a week",
         problem:
           "In August 2024 AgentFlow had no frontend and no users. Whoever came would judge it by the screens they worked in all day.",
         did: [
@@ -160,18 +152,7 @@ export const projects: Project[] = [
           "Set up the product analytics, then used what people actually did to decide what to build next.",
         ],
         result:
-          "In the summer of 2026 a bank rolled AgentFlow out to its business lending teams: 202 client people used it in the week of 27 July, and about 140 every week since. The bank has more than 400 people on it; 315 were active in the last 90 days.",
-        chart: {
-          title: "Client people using AgentFlow each week, 2026",
-          note: "PostHog, people outside Multimodal only. Client names left out.",
-          weeks: ["Apr 20", "Apr 27", "May 4", "May 11", "May 18", "May 25", "Jun 1", "Jun 8", "Jun 15", "Jun 22", "Jun 29", "Jul 6", "Jul 13", "Jul 20", "Jul 27", "Aug 3", "Aug 10", "Aug 17", "Aug 24", "Aug 31", "Sep 7", "Sep 14", "Sep 21", "Sep 28", "Oct 5", "Oct 12"],
-          series: [
-            { label: "The largest client, a bank", values: [1, 0, 0, 0, 2, 2, 9, 8, 7, 26, 43, 82, 67, 106, 180, 145, 121, 127, 119, 117, 147, 126, 129, 127, 129, 146] },
-            { label: "Other clients", values: [6, 5, 6, 5, 5, 5, 5, 7, 6, 12, 8, 8, 8, 14, 16, 12, 11, 9, 16, 14, 11, 9, 9, 9, 9, 9] },
-            { label: "Credit unions on trial", values: [0, 0, 0, 0, 6, 11, 16, 17, 5, 2, 0, 3, 6, 6, 6, 4, 4, 2, 2, 1, 0, 0, 0, 0, 0, 0] },
-          ],
-          level: { value: 140, from: 15, label: "about 140 a week" },
-        },
+          "In the summer of 2026 a bank rolled AgentFlow out to its business lending teams, and since then more than a hundred client people have used it every week.",
       },
       {
         id: "first-commit",
@@ -312,7 +293,7 @@ export const projects: Project[] = [
           "The five main pages had 132 clickable things and not one named analytics event, so every design argument was opinion.",
         did: [
           "Defined the tracking events for every main page in PostHog and shipped them.",
-          "Read 30 days of real use across 239 active people, customers only.",
+          "Read 30 days of real use, customers only.",
         ],
         result:
           "The numbers settled the Home redesign: almost everyone opens documents from Runs, and a typical Home visit lasts 7 seconds. Home became a doorway into each workflow's runs instead of a second Runs table.",
@@ -565,9 +546,9 @@ export const projects: Project[] = [
     tag: "Side project · Desktop app",
     year: "2026",
     kind: "Desktop app",
-    stat: { value: "Rp 11.9M", label: "paid out to 152 residents so far" },
+    stat: { value: "7.4+ t", label: "of residents' waste weighed through it" },
     summary:
-      "An offline desktop app that runs a neighbourhood waste bank: weigh in residents' recyclables, pay them for it, and sell the sorted material on.",
+      "An offline desktop app that runs a neighbourhood waste bank: weigh in residents' recyclables, pay them for it, and sell the sorted material on. More than 7.4 tonnes of waste have gone through it so far.",
     stack: ["Tauri", "Rust", "React", "TypeScript", "SQLite", "Tailwind", "shadcn/ui", "Cloudflare Pages"],
     intro: [
       "A bank sampah, a waste bank, is how many Indonesian neighbourhoods recycle. On collection days residents bring sorted waste, volunteers weigh it by category and credit each person at that day's price, and the material is later sold on to collectors at a higher one.",
@@ -616,8 +597,8 @@ export const projects: Project[] = [
           "Backups to a cloud database (Turso) and CSV exports, both from the settings page.",
         ],
         result:
-          "It has been in use since March 2026. Its September backup held 10 collection sessions, 407 deposits with 3,449 weighed items, and Rp 11.9 million paid out to 152 residents.",
-        figure: { to: "Rp 11.9M", label: "paid out to 152 residents" },
+          "It has been in use since March 2026, and more than 7.4 tonnes of residents' waste have been weighed through it. Its September backup held 10 collection sessions, 407 deposits with 3,449 weighed items, and Rp 11.9 million paid out to 152 residents.",
+        figure: { to: "7.4+ tonnes", label: "of residents' recyclables weighed in since March 2026" },
       },
     ],
   },
@@ -632,13 +613,14 @@ export const projects: Project[] = [
     tag: "Client work · Desktop tool",
     year: "2025",
     kind: "Desktop tool",
-    stat: { value: "1 day", label: "to the first working build" },
+    stat: { value: "Minutes", label: "instead of 2 to 3 days for each tax upload" },
     summary:
-      "A small Windows tool that turns a company's old Access payroll into the upload files for Indonesia's new e-Bupot tax system, instead of retyping every employee by hand.",
+      "A small Windows tool that prepares a company group's e-Bupot tax uploads in minutes, where the payroll team used to spend 2 to 3 days digging the figures out of the database by hand. It cost 99% less than a year on the vendor's new platform, and the client owns the code.",
     stack: ["Python", "Tkinter", "pyodbc", "MS Access", "openpyxl", "PyInstaller", "Rust"],
     intro: [
       "In 2025 Indonesia moved withholding-tax reporting to e-Bupot, with its own spreadsheet formats for the upload: BPMP for each month's PPh 21 slip and BPA1 for the yearly 1721-A1.",
-      "The client's payroll lived in an old Microsoft Access program. Its exports did not match the new formats, so each period the figures had to be reshaped by hand.",
+      "The client is a group of companies whose payroll lives in an old Microsoft Access program. Its exports did not match the new formats, so each period someone went through the database sub-company by sub-company, found every employee's figures by hand and retyped them: 2 to 3 days of work.",
+      "The program's vendor offered a way out: move to its new platform, at Rp 5,000 per user each month. For about 8,000 people, that was Rp 40 million every month.",
     ],
     part: [
       "I built it in March 2025: the first working version, both forms, in a day, then refinements over the next three weeks. It ships as a single .exe the payroll staff run on their own machine.",
@@ -646,14 +628,30 @@ export const projects: Project[] = [
     chapters: [
       {
         id: "read",
-        title: "Reading the old system",
-        problem: "The numbers the tax forms need sit in an Access database that only the old payroll program was ever meant to read.",
+        title: "From days to minutes",
+        problem:
+          "The group has many sub-companies, and the figures each tax form needs sit in an Access database only the old payroll program was meant to read. Each period the payroll team looked them up by hand, company by company and employee by employee, for 2 to 3 days.",
         did: [
-          "Read it directly through the Access ODBC driver, as a 32-bit build to match the client's Office.",
-          "One query per run for every employee in the file, instead of one per person.",
+          "Read the database directly through the Access ODBC driver, as a 32-bit build to match the client's Office.",
+          "Pull every employee in the export with one query per run, instead of one lookup per person.",
           "Match each employee by national ID, falling back to tax ID, and take each person's latest month for the yearly slip.",
         ],
-        result: "The tool pulls each employee's figures from the source, not from a copy someone retyped.",
+        result:
+          "Drop in the period's export and the tool finds every figure itself. Preparing the upload went from 2 to 3 days of lookups to a couple of minutes, with the numbers taken from the source instead of retyped.",
+        figure: { from: "2–3 days", to: "Minutes", label: "to prepare each period's tax upload" },
+      },
+      {
+        id: "cost",
+        title: "99% cheaper than renting it",
+        problem:
+          "The vendor's new platform would have charged Rp 5,000 per user per month. With about 8,000 people on payroll, that was Rp 40 million every month, Rp 480 million a year, for a job that comes down to reshaping one export into two upload files.",
+        did: [
+          "Scoped the tool to exactly that job: read the payroll the client already has, write the two e-Bupot forms.",
+          "Built it to run on the payroll staff's own machine, with no server, subscription or per-user fee.",
+          "Handed over the code with the tool, so the client owns both.",
+        ],
+        result: "The client paid about Rp 3 million once: 99% less than a year on the vendor's platform, and nothing to pay after.",
+        figure: { to: "99%", label: "less than a year on the vendor's platform: Rp 3 million once, against Rp 40 million a month." },
       },
       {
         id: "write",

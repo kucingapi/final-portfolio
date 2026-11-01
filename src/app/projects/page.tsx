@@ -127,7 +127,7 @@ export default function ProjectsPage() {
                             <ProjectVisual
                               project={project}
                               frame={HERO}
-                              sizes={`(max-width: 768px) 100vw, ${Math.round(((project.hero.w / 1240) * 720) / 14.4)}vw`}
+                              sizes={`(max-width: 1023px) 100vw, ${Math.round(((project.hero.w / 1240) * 720) / 14.4)}vw`}
                             />
                           </div>
                         </div>
@@ -211,7 +211,7 @@ export default function ProjectsPage() {
                             <ProjectVisual
                               project={project}
                               frame={CARD}
-                              sizes="(max-width: 768px) 100vw, 42vw"
+                              sizes="(max-width: 1023px) 100vw, 42vw"
                               footnote={project.stack.slice(0, 4).join(" · ")}
                             />
                           </div>

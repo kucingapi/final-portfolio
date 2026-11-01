@@ -1,7 +1,7 @@
 import { Chip } from "@/components/ui";
 import { TransitionLink } from "@/components/transition/PageTransition";
 import type { CareerRole } from "@/content/site";
-import { CareerPreview } from "./CareerPreview";
+import { CareerCursor } from "./CareerCursor";
 
 function Arrow({ className = "" }: { className?: string }) {
   return (
@@ -20,7 +20,7 @@ function Arrow({ className = "" }: { className?: string }) {
 /**
  * Career timeline rows: when, where and as what, then what I did there. Shared by the home Career
  * section and the Career page so both read the same. Rows carry `data-row` (scroll reveal),
- * `data-swap` (the home mode swap) and `data-preview` (the hover card that follows the pointer).
+ * `data-swap` (the home mode swap) and, when they open a case study, `data-preview` (the cursor label).
  */
 export function CareerList({
   roles,
@@ -29,23 +29,16 @@ export function CareerList({
   roles: CareerRole[];
   className?: string;
 }) {
-  // Only rows that open a case study get the hover preview, so it always means "you can click".
-  const linked = roles.filter((r) => r.href);
-  const previews = linked.map(({ image, org, role, period }) => ({
-    image,
-    org,
-    role,
-    period,
-  }));
   return (
-    <CareerPreview items={previews}>
+    // Only rows that open a case study get the cursor label, so it always means "you can click".
+    <CareerCursor>
       <ol className={`flex flex-col ${className}`}>
         {roles.map((r) => (
           <li
             key={r.org + r.role + r.period}
             data-swap
             data-row
-            data-preview={r.href ? linked.indexOf(r) : undefined}
+            data-preview={r.href ? "" : undefined}
             className="relative grid grid-cols-[calc(var(--s)*250)_calc(var(--s)*430)_1fr] items-baseline gap-x-40 border-t-2 border-midnight-50/25 py-40 last:border-b-2 max-md:grid-cols-1 max-md:gap-y-10 max-md:py-24"
           >
             <p className="font-display text-lead font-semibold text-midnight-200 tabular-nums">
@@ -62,7 +55,7 @@ export function CareerList({
                 )}
               </p>
               {r.kind && (
-                <Chip className="mt-6 h-32 px-12 text-[calc(var(--s)*13)]">
+                <Chip className="mt-6 h-32 px-12 text-[max(11px,calc(var(--s)*13))]">
                   {r.kind}
                 </Chip>
               )}
@@ -90,6 +83,6 @@ export function CareerList({
           </li>
         ))}
       </ol>
-    </CareerPreview>
+    </CareerCursor>
   );
 }
