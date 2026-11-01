@@ -8,6 +8,8 @@ const nextConfig: NextConfig = {
     return [{ source: "/experiences", destination: "/career", permanent: true }];
   },
   partialPrefetching: true,
+  // The PDF renderer loads fonts and layout code at runtime; keep it out of the server bundle.
+  serverExternalPackages: ["@react-pdf/renderer"],
   turbopack: {
     rules: {
       "*.css": {

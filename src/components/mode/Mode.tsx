@@ -30,7 +30,9 @@ function writeParam(mode: Mode) {
   window.history.replaceState(window.history.state, "", url);
 }
 
-const ModeContext = createContext<{ mode: Mode; setMode: (m: Mode) => void } | null>(null);
+/** `quiet` switches without writing `?mode=`, for switches the visitor did not make (a tailored link). */
+type SetMode = (m: Mode, opts?: { quiet?: boolean }) => void;
+const ModeContext = createContext<{ mode: Mode; setMode: SetMode } | null>(null);
 
 export function useMode() {
   const ctx = useContext(ModeContext);
@@ -55,7 +57,7 @@ export function ModeProvider({ children }: { children: ReactNode }) {
   const mode = pending ?? applied;
   const busy = useRef(false);
 
-  const setMode = async (next: Mode) => {
+  const setMode = async (next: Mode, opts?: { quiet?: boolean }) => {
     if (busy.current || next === readMode()) return;
     busy.current = true;
     const html = document.documentElement;
@@ -72,7 +74,7 @@ export function ModeProvider({ children }: { children: ReactNode }) {
     try {
       localStorage.setItem(KEY, next);
     } catch {}
-    writeParam(next);
+    if (!opts?.quiet) writeParam(next);
     html.classList.remove("mode-leaving");
     if (!reduced) html.classList.add("mode-entering");
     window.dispatchEvent(new CustomEvent(MODE_ENTER, { detail: next }));

@@ -4,6 +4,7 @@ import { SmoothScroll } from "@/components/providers/SmoothScroll";
 import { PageTransitionProvider } from "@/components/transition/PageTransition";
 import { Navbar } from "@/components/Navbar";
 import { ModeProvider, MODE_SCRIPT } from "@/components/mode/Mode";
+import { VariantLoader } from "@/components/cv/Variant";
 import { site } from "@/content/site";
 import "./globals.css";
 
@@ -49,6 +50,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           ignores <body>'s own attributes; mismatches inside the page are still reported. */}
       <body suppressHydrationWarning>
         <ModeProvider>
+          <VariantLoader />
           <SmoothScroll>
             <PageTransitionProvider>
               <Navbar />

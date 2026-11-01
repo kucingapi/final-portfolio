@@ -14,7 +14,8 @@ export const site = {
   email: "novelbafagih09@gmail.com",
   phone: "+62 8953 2807 9912",
   /** TODO: drop your CV at public/resume.pdf */
-  resumeUrl: "/resume.pdf",
+  /** The CV page; it tailors itself when the visitor came through a `?v=` link. */
+  resumeUrl: "/cv",
   /** TODO: fill in profile URLs. Empty strings render as plain (non-link) icons. */
   social: {
     github: "",

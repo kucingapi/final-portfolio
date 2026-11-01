@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ComponentProps, type ReactNode } from "react";
 import { ScrollTrigger } from "@/lib/gsap";
 import { CONTEXTS, PLATFORMS, type Context, type Platform } from "@/content/projects";
+import { useVariantOrder } from "@/components/cv/Variant";
 
 /**
  * Search and filters for the projects index. The page stays a server component: it passes each
@@ -177,9 +178,13 @@ export function ProjectFilterBar() {
   );
 }
 
-/** A list whose rows show or hide with the filter. Rows alternate by their visible position. */
-export function FilterList({ items, className }: { items: { slug: string; node: ReactNode }[]; className?: string }) {
+/**
+ * A list whose rows show or hide with the filter. Rows alternate by their visible position, and a
+ * tailored link's variant can move its projects to the top.
+ */
+export function FilterList({ items: given, className }: { items: { slug: string; node: ReactNode }[]; className?: string }) {
   const { visible } = useFilter();
+  const items = useVariantOrder(given);
   let shown = 0;
   return (
     <ul className={className} hidden={!items.some((i) => visible.has(i.slug))}>
