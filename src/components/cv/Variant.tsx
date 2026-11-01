@@ -2,6 +2,7 @@
 
 import { useEffect, useSyncExternalStore } from "react";
 import { useMode } from "@/components/mode/Mode";
+import { track } from "@/lib/analytics";
 import type { PublicVariant } from "@/lib/cv/variant";
 
 /**
@@ -72,6 +73,7 @@ export function VariantLoader() {
     fetch(`/api/v/${encodeURIComponent(code)}`)
       .then((r) => (r.ok ? (r.json() as Promise<PublicVariant>) : null))
       .then((found) => {
+        track("tailored_link_opened", { v_code: code, found: Boolean(found) });
         write({ current: found ?? before, loading: false });
         if (found?.variant.mode) setMode(found.variant.mode, { quiet: true });
       })

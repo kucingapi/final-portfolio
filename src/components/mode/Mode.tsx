@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { ScrollTrigger, prefersReducedMotion } from "@/lib/gsap";
+import { track } from "@/lib/analytics";
 import { modes, type Mode } from "@/content/site";
 
 /**
@@ -75,6 +76,7 @@ export function ModeProvider({ children }: { children: ReactNode }) {
       localStorage.setItem(KEY, next);
     } catch {}
     if (!opts?.quiet) writeParam(next);
+    track("mode_switched", { to: next, by: opts?.quiet ? "tailored link" : "visitor" });
     html.classList.remove("mode-leaving");
     if (!reduced) html.classList.add("mode-entering");
     window.dispatchEvent(new CustomEvent(MODE_ENTER, { detail: next }));

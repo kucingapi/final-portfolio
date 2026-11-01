@@ -1,6 +1,7 @@
 "use client";
 
 import { useVariant } from "./Variant";
+import { track } from "@/lib/analytics";
 import { resolveCv, type ResolvedEntry } from "@/lib/cv/variant";
 
 /**
@@ -45,6 +46,7 @@ export function CvSheet() {
         <p className="text-lead text-midnight-100">Two pages as a PDF, with every word readable by applicant tracking systems.</p>
         <a
           href={pdf}
+          onClick={() => track("cv_downloaded", { tailored: Boolean(current) })}
           className="inline-flex shrink-0 items-center gap-12 rounded-full bg-midnight-50 px-28 py-12 text-lead font-semibold text-midnight-950 transition-colors hover:bg-white"
         >
           Download PDF

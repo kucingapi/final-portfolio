@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useRef, useState, type FormEvent } from "react";
 import { gsap, useGSAP, prefersReducedMotion } from "@/lib/gsap";
 import { assembleHeadline, designUnit, magnetic } from "@/lib/motion";
+import { track } from "@/lib/analytics";
 import { onPageReveal, TransitionLink } from "@/components/transition/PageTransition";
 import { ArrowIcon } from "@/components/ui";
 import { ServiceArt } from "./ServiceArt";
@@ -101,6 +102,7 @@ export function ContactFlow() {
       });
       const body = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) throw new Error(body.error ?? "Something went wrong.");
+      track("contact_submitted", { service });
       setSentName(data.name.split(" ")[0]);
       setStatus({ state: "idle" });
       go("sent");
