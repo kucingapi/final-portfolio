@@ -202,6 +202,12 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
                   <dd className="font-semibold text-midnight-50">{project.role}</dd>
                   <dt className="text-midnight-200">When</dt>
                   <dd className="font-semibold text-midnight-50">{project.period}</dd>
+                  {project.status && (
+                    <>
+                      <dt className="text-midnight-200">Status</dt>
+                      <dd className="font-semibold text-midnight-50">{project.status.note}</dd>
+                    </>
+                  )}
                 </dl>
               </div>
 

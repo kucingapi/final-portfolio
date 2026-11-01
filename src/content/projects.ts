@@ -78,6 +78,8 @@ export type Project = {
   cover?: Shot;
   chapters: Chapter[];
   parts?: Part[];
+  /** Work that is still being built, said plainly on the card and the case page. */
+  status?: { label: string; note: string };
   /** How the work was done, where it is worth saying. */
   method?: string;
 };
@@ -867,6 +869,136 @@ export const projects: Project[] = [
         ],
         result: "We shipped a working app on time, and I graduated from Bangkit with distinction, in the top 10% of the cohort.",
         shot: gallery("/projects/breel/wireframes.webp", "Breel's wireframes for each flow", "The wireframes the build started from.", 2000, 1279),
+      },
+    ],
+  },
+  {
+    slug: "seru-room",
+    platform: "Web",
+    context: "Side project",
+    title: "Seru Room",
+    client: "My own product",
+    period: "Sep 2026 – now",
+    role: "Designer and developer, on my own",
+    tag: "Side project · Web app",
+    year: "2026",
+    kind: "Web app",
+    status: { label: "In progress", note: "In progress, no users yet" },
+    stat: { value: "6 digits", label: "is all the audience needs to join" },
+    summary:
+      "A live presentation app: the presenter runs a deck, and the room answers polls, word clouds, rankings and questions from their phones while the results move on the big screen. Still being built, with no users yet.",
+    stack: ["Next.js", "React", "TypeScript", "Tailwind", "Cloudflare Durable Objects", "Turso", "Drizzle", "Better Auth", "Playwright"],
+    intro: [
+      "Seru means fun, lively, in Indonesian. Seru Room is for teachers, facilitators and speakers who want the room to answer, not just listen.",
+      "A presenter builds a deck in the editor and presents it as a live session. The audience joins with a six-digit code or a QR from whatever phone they have, and the presenter's screen reacts to every answer.",
+    ],
+    part: [
+      "I am building it on my own: the product, the design and the code. It runs end to end, but it has not had a real audience yet.",
+    ],
+    method:
+      "Built as AI coding sessions that I plan and review. Each starts from a written ticket and a glossary of the product's words, and end-to-end tests drive the real server, a real database and the real live worker.",
+    cover: gallery("/projects/seru-room/live-poll.webp", "The presenter's live view: a multiple-choice question with its results as columns, and the join code and QR beside it", "The presenter's view mid-session, running locally. Sample deck; the eight people answering are test accounts."),
+    chapters: [
+      {
+        id: "live",
+        title: "A room that reacts",
+        problem:
+          "Answers have to reach the big screen as people tap, over venue Wi-Fi that drops, and the presenter can never lose the session halfway through.",
+        did: [
+          "One Cloudflare Durable Object per session code holds the live state and talks WebSocket to the presenter and every phone.",
+          "Results live only as long as the session; nothing about who answered what is kept after it ends.",
+          "A reload on either side picks the session back up instead of stranding it.",
+        ],
+        result: "Answers land on the presenter's screen as they come in, and a dropped phone or a reloaded laptop rejoins the same session.",
+        shot: gallery("/projects/seru-room/live-cloud.webp", "A word cloud on the presenter's screen, built from eight answers", "A word cloud slide after eight answers. Sample content."),
+      },
+      {
+        id: "join",
+        title: "Joining in one step",
+        problem: "Nobody in an audience will install an app or make an account to answer one question.",
+        did: [
+          "Join with the six-digit code or by scanning the QR on the lobby screen.",
+          "Ask for a display name only when the presenter wants names.",
+          "Four kinds of slide, multiple choice, word cloud, ranking and Q&A, each laid out for a small phone first.",
+        ],
+        result: "Joining takes a code and a tap, on any phone with a browser.",
+        shot: gallery("/projects/seru-room/audience.webp", "A participant's phone after voting on a multiple-choice question", "What a participant sees after voting. Sample content."),
+      },
+      {
+        id: "editor",
+        title: "An editor that saves itself",
+        problem: "Presenters build decks in spare minutes between other work, and one lost edit is enough to stop trusting a tool.",
+        did: [
+          "Edits save as you make them, so there is no save button to forget.",
+          "Sign-in by email magic link, so there is no password either.",
+          "English and Bahasa Indonesia, light and dark, all treated as first-class.",
+        ],
+        result: "A deck goes from empty to ready to present without a single save.",
+        shot: gallery("/projects/seru-room/editor.webp", "The deck editor: the slide list, the slide canvas and its settings", "The deck editor with a sample deck."),
+      },
+    ],
+  },
+  {
+    slug: "jagaday",
+    platform: "Desktop",
+    context: "Side project",
+    title: "JagaDay",
+    client: "My own product",
+    period: "Oct 2026 – now",
+    role: "Designer and developer, on my own",
+    tag: "Side project · Windows and Android",
+    year: "2026",
+    kind: "Desktop and phone app",
+    status: { label: "In progress", note: "In progress, not yet run on real devices" },
+    stat: { value: "2 devices", label: "guarded at once when a planned block starts" },
+    summary:
+      "A focus app that turns a calendar plan into enforcement: when a planned block starts, the apps and websites you chose are blocked on the laptop and the phone at once. Still being built, with no users yet.",
+    stack: ["Rust", "Tauri", "React", "TypeScript", "Kotlin", "Jetpack Compose", "Supabase", "Browser extension"],
+    intro: [
+      "Jaga means to guard, in Indonesian. I plan my day in Google Calendar, then lose the focus blocks to YouTube and Discord on whichever device is closest. The blockers I tried either guard one device or put scheduling behind a paywall.",
+      "JagaDay reads the calendar instead. Tag an event #focus and, when it starts, the apps and websites in its profile are blocked on Windows and Android together, then released when it ends.",
+    ],
+    part: [
+      "I wrote the spec, designed it and am building it on my own, for myself first. Every component builds and passes its automated tests; none of it has run on a real phone, a real Windows laptop or a real Google account yet.",
+    ],
+    cover: gallery("/projects/jagaday/today.webp", "JagaDay's Today screen: the current block with its tick timer, and the day's plan against what was clocked", "The Today screen of the real build, on sample data.", 1280, 900),
+    chapters: [
+      {
+        id: "sync",
+        title: "One plan, two devices",
+        problem: "A block that only guards the laptop just moves the distraction to the phone.",
+        did: [
+          "Calendar import runs on the server every five minutes, so the laptop and the phone see the same blocks without either one holding Google tokens.",
+          "Each device keeps its own local database and syncs through Supabase, so blocking keeps working offline.",
+          "A Windows service enforces the next eight days of blocks even when the app or the network is gone, and a browser extension blocks the websites.",
+        ],
+        result:
+          "One acceptance test plays a whole day across the real code of every part, on a simulated clock: plan, import, block on both devices, release.",
+        shot: gallery("/projects/jagaday/calendar.webp", "The week calendar with focus blocks, one imported from Google Calendar", "The week view. Sample data.", 1280, 998),
+      },
+      {
+        id: "rules",
+        title: "Hard to bypass, easy to understand",
+        problem: "A blocker you can switch off in two clicks is not a blocker, but one that never says why feels broken.",
+        did: [
+          "A running block can be extended from the calendar, but never shortened or cancelled.",
+          "A locked block ends only through a slow emergency exit: wait out a delay, then type a phrase. It is logged as an early end.",
+          "Every refusal says which block it is, what the task is, and until when.",
+        ],
+        result: "Getting out of a block takes a deliberate choice, and the app always tells you where you stand.",
+        shot: gallery("/projects/jagaday/emergency-exit.webp", "The emergency exit dialog counting down before a locked block can end", "The emergency exit, waiting out its delay. Sample data.", 1280, 900),
+      },
+      {
+        id: "cores",
+        title: "One set of rules, three languages",
+        problem:
+          "The rules run in Rust on Windows, in TypeScript in the app and the extension, and in Kotlin on Android. If they disagree, a site is blocked on one device and open on the other.",
+        did: [
+          "190 shared test cases that the Rust, TypeScript and Kotlin cores must all pass.",
+          "An independent Python version of the rules, and a random cross-check between them.",
+        ],
+        result: "All three cores pass the same 190 cases, so one plan is enforced the same way everywhere.",
+        shot: gallery("/projects/jagaday/stats.webp", "The weekly stats: planned against clocked minutes, early ends and turn-aways per day", "Weekly stats. Sample data.", 1280, 1131),
       },
     ],
   },

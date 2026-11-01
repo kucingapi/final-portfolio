@@ -67,8 +67,15 @@ function Arrow({ className = "" }: { className?: string }) {
 
 function Meta({ project }: { project: Project }) {
   return (
-    <p className="text-lead text-midnight-200">
-      {project.year} · {project.kind}
+    <p className="flex flex-wrap items-center gap-x-12 gap-y-6 text-lead text-midnight-200">
+      <span>
+        {project.year} · {project.kind}
+      </span>
+      {project.status && (
+        <span className="rounded-full border-2 border-midnight-200/60 px-12 py-2 text-chip font-semibold text-midnight-100">
+          {project.status.label}
+        </span>
+      )}
     </p>
   );
 }
@@ -187,8 +194,8 @@ export default function ProjectsPage() {
                   className="mt-24 w-760 text-h4 font-semibold text-midnight-100 max-md:w-full"
                 >
                   An app a neighbourhood waste bank runs on, a payroll tool for
-                  a client, a review tool for a mortgage lender, my thesis, and
-                  my Bangkit capstone.
+                  a client, a review tool for a mortgage lender, my thesis, my
+                  Bangkit capstone, and two apps I am building now.
                 </p>
 
                 <FilterList
