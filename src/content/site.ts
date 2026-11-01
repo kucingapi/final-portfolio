@@ -55,8 +55,8 @@ export const philosophy = {
     },
   ],
   /** Read as one sentence; `mark` gets the highlight bar. */
-  pledge: { lead: "What the AI builds is", mark: "what I build." },
-  pledgeNote: "I read every line, I test it, and I answer for what ships.",
+  pledge: { lead: "What the AI builds is", mark: "my responsibility." },
+  pledgeNote: "I test it, and I answer for what ships, not just a human proxy.",
 };
 
 export type Testimonial = { quote: string; name: string; relation: string; role: string; avatar?: string };
@@ -91,37 +91,6 @@ export const testimonials: Testimonial[] = [
     name: "Teammate Name",
     relation: "Teammate",
     role: "Designer, Company",
-  },
-];
-
-export type ExperienceItem = { title: string; org: string; detail?: string; period: string };
-
-/** The Career page's three columns. From the LinkedIn profile and CV. */
-export const experiences: { heading: string; items: ExperienceItem[] }[] = [
-  {
-    heading: "Professional",
-    items: [
-      { title: "Software Engineer", org: "Multimodal", detail: "New York, remote", period: "Apr 2024 – Present" },
-      { title: "Frontend Web Developer", org: "OrthoCoPilot", detail: "Munich, remote", period: "Mar 2023 – Jun 2024" },
-      { title: "Front-end Freelancer", org: "Upwork", period: "Jan 2023 – Mar 2024" },
-      { title: "Frontend Developer", org: "Udana.id", detail: "Jakarta", period: "Nov 2021 – Mar 2022" },
-    ],
-  },
-  {
-    heading: "Education",
-    items: [
-      { title: "Bachelor's degree", org: "Universitas Brawijaya", detail: "Information Technology", period: "2020 – 2024" },
-      { title: "Mobile Development (Android)", org: "Bangkit Academy by Google, Tokopedia, Gojek & Traveloka", detail: "Graduated with distinction, top 10%", period: "Feb – Jul 2023" },
-      { title: "Software Engineer Academy", org: "COMPFEST", detail: "Best Participant, Favorite Team", period: "Aug 2021" },
-    ],
-  },
-  {
-    heading: "Leadership",
-    items: [
-      { title: "Team lead, capstone", org: "Bangkit Academy", detail: "A team of six to a working app in a month", period: "May – Jun 2023" },
-      { title: "Chairman", org: "FEEL-IT, KBMTI", detail: "60 people across 8 divisions", period: "Apr – Nov 2022" },
-      { title: "Head of Talent Development", org: "BCC, Universitas Brawijaya", period: "Apr 2021 – Aug 2023" },
-    ],
   },
 ];
 
@@ -172,6 +141,8 @@ export type CareerRole = {
   points: string[];
   /** A case study this role is told through. */
   href?: string;
+  /** Shown in the hover preview that follows the cursor; roles without one get a type card. */
+  image?: string;
 };
 
 /** The home page's Career section, shown in Full-time mode. Newest first. */
@@ -183,10 +154,11 @@ export const career: CareerRole[] = [
     place: "New York, remote",
     kind: "Full-time",
     points: [
-      "The first full-time frontend engineer: wrote the first commit of AgentFlow's frontend and merged 450+ pull requests.",
+      "The first full-time frontend engineer: wrote the first commit of AgentFlow's frontend when it had no users. Two years on, about 140 client people use it every week.",
       "Moved multimodal.dev off Webflow; its median phone Lighthouse score went from 73 to 85.",
     ],
     href: "/projects/agentflow",
+    image: "/projects/agentflow-real.webp",
   },
   {
     period: "Mar 2023 – Jun 2024",
@@ -195,6 +167,7 @@ export const career: CareerRole[] = [
     place: "Munich, remote",
     points: ["Built TIA, a pilot with TUM for 500+ patients and their doctors, with 100+ branching medical questions."],
     href: "/projects/tia",
+    image: "/projects/tia-real.webp",
   },
   {
     period: "Jan 2023 – Mar 2024",
@@ -210,6 +183,7 @@ export const career: CareerRole[] = [
     kind: "Program",
     points: ["Graduated with distinction, in the top 10%, and led a team of six to a working app in a month."],
     href: "/projects/breel",
+    image: "/projects/breel/screens.webp",
   },
   {
     period: "Nov 2021 – Mar 2022",
@@ -225,6 +199,136 @@ export const career: CareerRole[] = [
     kind: "Degree",
     points: ["Thesis: SIDAKU, an Android app and API for Kota Batu's small businesses."],
     href: "/projects/sidaku",
+    image: "/projects/sidaku/cover.webp",
+  },
+];
+
+/**
+ * The Career page, in full: every role with what I did there. From the LinkedIn profile, the CV and
+ * the case studies; numbers are as those sources give them.
+ */
+export const careerDetail: { id: string; heading: string; roles: CareerRole[] }[] = [
+  {
+    id: "work",
+    heading: "Work",
+    roles: [
+      {
+        period: "Apr 2024 – Present",
+        role: "Software Engineer",
+        org: "Multimodal",
+        place: "New York, remote",
+        kind: "Full-time",
+        points: [
+          "The first full-time frontend engineer. Wrote the first commit of AgentFlow's frontend in August 2024, when it had no users; by October 2026 about 140 client people used it every week, and its largest client, a bank, had more than 400 people on it.",
+          "Built the document review tool for a US mortgage lender: annotation got 50% faster and the client's loan processing costs fell by 80%.",
+          "Made the PDF viewer keep up with fast scrolling: CPU use went from 100% to 10%.",
+          "Led the design system consolidation: 33 status-to-colour maps down to one, with a lint rule that keeps it that way.",
+          "Moved multimodal.dev off Webflow to Next.js and Sanity; its median phone Lighthouse score went from 73 to 85.",
+        ],
+        href: "/projects/agentflow",
+        image: "/projects/agentflow-real.webp",
+      },
+      {
+        period: "Mar 2023 – Jun 2024",
+        role: "Frontend Web Developer",
+        org: "OrthoCoPilot",
+        place: "Munich, remote",
+        points: [
+          "Led the pilot website for TIA with TUM Venture Labs and TUM Sports Orthopedics, connecting 500+ patients and 5+ doctors.",
+          "Put the medical logic into code: 100+ questions and answers that branch on what the patient says.",
+          "Built the backend on Supabase and PostgreSQL, working with the Master's and PhD students behind the research.",
+        ],
+        href: "/projects/tia",
+        image: "/projects/tia-real.webp",
+      },
+      {
+        period: "Jan 2023 – Mar 2024",
+        role: "Front-end Freelancer",
+        org: "Upwork",
+        kind: "Freelance",
+        points: [
+          "Worked with 5+ clients around the world, fitting in with each one's project and way of working.",
+          "Half of them came back for more work.",
+        ],
+      },
+      {
+        period: "Nov 2021 – Mar 2022",
+        role: "Frontend Developer",
+        org: "Udana.id",
+        place: "Jakarta",
+        points: [
+          "Part of a small team that took the product through verification by OJK, Indonesia's Financial Services Authority.",
+          "Built the 5+ page website that presents the main product.",
+        ],
+      },
+    ],
+  },
+  {
+    id: "education",
+    heading: "Education",
+    roles: [
+      {
+        period: "2020 – 2024",
+        role: "Bachelor's, Information Technology",
+        org: "Universitas Brawijaya",
+        place: "Malang",
+        kind: "Degree",
+        points: ["Thesis: SIDAKU, an Android app and REST API that let Kota Batu's cooperatives and small businesses keep their own records."],
+        href: "/projects/sidaku",
+        image: "/projects/sidaku/cover.webp",
+      },
+      {
+        period: "Feb – Jul 2023",
+        role: "Mobile Development (Android)",
+        org: "Bangkit Academy",
+        place: "Led by Google, Gojek, Tokopedia & Traveloka",
+        kind: "Program",
+        points: [
+          "Graduated with distinction, in the top 10% of the cohort.",
+          "Finished 7 Android courses on time, from the fundamentals to advanced techniques.",
+        ],
+        image: "/projects/breel/screens.webp",
+      },
+      {
+        period: "Aug 2021",
+        role: "Software Engineer Academy",
+        org: "COMPFEST",
+        place: "Jakarta",
+        kind: "Program",
+        points: ["Won Best Participant and the Favorite Team award."],
+      },
+    ],
+  },
+  {
+    id: "leadership",
+    heading: "Leadership",
+    roles: [
+      {
+        period: "May – Jun 2023",
+        role: "Capstone team lead",
+        org: "Bangkit Academy",
+        points: ["Led a team of six across mobile, machine learning and cloud to a working app in a month: 100+ tasks closed in 30 days."],
+        href: "/projects/breel",
+        image: "/projects/breel/screens.webp",
+      },
+      {
+        period: "Apr – Nov 2022",
+        role: "Chairman",
+        org: "FEEL-IT, KBMTI",
+        place: "Malang",
+        points: ["Steered a team of 60 across 8 divisions.", "Ran the organisation's first offline event in two years."],
+      },
+      {
+        period: "Apr 2021 – Aug 2023",
+        role: "Head of Talent Development",
+        org: "BCC",
+        place: "Malang",
+        points: [
+          "Organised BCC's first offline townhall; attendance rose by 50%.",
+          "Created a learning event that drew 100+ attendees, 50% more than the year before.",
+        ],
+      },
+    ],
   },
 ];
 

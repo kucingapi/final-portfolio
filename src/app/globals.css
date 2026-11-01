@@ -215,6 +215,19 @@ html.lenis body {
     animation: mode-in 560ms var(--ease-out) both;
   }
 
+  /*
+   * Career rows: while a clickable row is hovered, every other row steps back. `filter` rather than `opacity`,
+   * because the scroll reveal leaves an inline opacity on every row.
+   */
+  @media (hover: hover) and (pointer: fine) {
+    [data-preview-list] li {
+      transition: filter 300ms var(--ease-out);
+    }
+    [data-preview-list]:has([data-preview]:hover) li:not(:hover) {
+      filter: opacity(0.35);
+    }
+  }
+
   /* Split-line masks for heading reveals */
   .line-mask {
     overflow: clip;

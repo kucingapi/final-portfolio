@@ -1,4 +1,5 @@
-import { Chip, Heading } from "@/components/ui";
+import { Heading } from "@/components/ui";
+import { CareerList } from "@/components/career/CareerList";
 import { SectionMotion } from "@/components/motion/SectionMotion";
 import { TransitionLink } from "@/components/transition/PageTransition";
 import { SeamDecor } from "@/components/sections/Projects";
@@ -33,39 +34,7 @@ export function Career() {
             Two years at Multimodal, and the roles, programs and degree that led there.
           </p>
 
-          <ol className="mx-100 flex flex-col max-md:mx-0 max-md:mt-32">
-            {career.map((r) => (
-              <li
-                key={r.org + r.period}
-                data-swap
-                data-row
-                className="grid grid-cols-[calc(var(--s)*250)_calc(var(--s)*430)_1fr] items-baseline gap-x-40 border-t-2 border-midnight-50/25 py-40 last:border-b-2 max-md:grid-cols-1 max-md:gap-y-10 max-md:py-24"
-              >
-                <p className="font-display text-lead font-semibold text-midnight-200 tabular-nums">{r.period}</p>
-                <div className="flex flex-col items-start gap-8">
-                  <h3 className="text-h4 font-semibold text-midnight-50">{r.org}</h3>
-                  <p className="text-lead text-midnight-100">
-                    {r.role}
-                    {r.place && <span className="text-midnight-200"> · {r.place}</span>}
-                  </p>
-                  {r.kind && <Chip className="mt-6 h-32 px-12 text-[calc(var(--s)*13)]">{r.kind}</Chip>}
-                </div>
-                <div className="flex flex-col items-start gap-14 max-md:mt-6">
-                  {r.points.map((point) => (
-                    <p key={point} className="text-lead leading-[1.45] text-midnight-50">
-                      {point}
-                    </p>
-                  ))}
-                  {r.href && (
-                    <TransitionLink href={r.href} className="group inline-flex items-center gap-10 text-lead font-semibold text-midnight-50">
-                      Read the case study
-                      <Arrow className="size-20 transition-transform duration-300 group-hover:translate-x-6" />
-                    </TransitionLink>
-                  )}
-                </div>
-              </li>
-            ))}
-          </ol>
+          <CareerList roles={career} className="mx-100 max-md:mx-0 max-md:mt-32" />
 
           <div data-swap className="mx-100 mt-56 flex justify-end max-md:mx-0 max-md:mt-40 max-md:justify-center">
             <TransitionLink

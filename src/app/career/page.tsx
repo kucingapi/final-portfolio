@@ -3,7 +3,8 @@ import Image from "next/image";
 import { Deco, Heading } from "@/components/ui";
 import { SectionMotion } from "@/components/motion/SectionMotion";
 import { Footer } from "@/components/sections/Footer";
-import { about, experiences, mailHref, site, telHref } from "@/content/site";
+import { CareerList } from "@/components/career/CareerList";
+import { about, careerDetail, mailHref, site, telHref } from "@/content/site";
 
 export const metadata: Metadata = {
   title: "Career",
@@ -103,44 +104,22 @@ export default function CareerPage() {
             </div>
           </section>
 
-          <section aria-labelledby="about-title" className="relative">
+          <section aria-label="Career history" className="relative">
             <div data-curve aria-hidden className="absolute inset-x-0 top-0 h-201 rounded-tr-[calc(var(--s)*1000)] bg-midnight-900 max-md:h-120" />
             <div aria-hidden className="absolute inset-x-0 top-200 -bottom-1 bg-midnight-900 max-md:top-119" />
-            <div className="relative mx-auto flex w-1240 flex-col items-center pt-64 pb-220 max-md:w-full max-md:px-20 max-md:pt-48 max-md:pb-96">
-              <Heading className="relative" barLeft="-0.16em" barRight="-0.16em">
-                <span id="about-title">About</span>
-              </Heading>
-              <p data-lines className="relative mt-41 text-h4 font-semibold text-justify text-midnight-100 max-md:mt-24 max-md:text-left">
+            <div className="relative mx-auto w-1240 pt-170 pb-200 max-md:w-full max-md:px-20 max-md:pt-110 max-md:pb-96">
+              <p data-lines className="w-980 text-h4 font-semibold text-midnight-50 max-md:w-full">
                 {about}
               </p>
-
-              <div className="relative mt-16 max-md:mt-56">
-                <Heading barLeft="-0.03em" barRight="-0.03em">
-                  Career
-                </Heading>
-              </div>
-
-              <div className="relative mt-53 grid w-full grid-cols-3 gap-40 max-md:mt-32 max-md:grid-cols-1 max-md:gap-48">
-                {experiences.map((column) => (
-                  <div key={column.heading} data-column className="flex flex-col">
-                    <div className="flex justify-center">
-                      <Heading as="h3" size="text-h3" barTop="0.64em" barHeight="0.69em" barLeft="-0.1em" barRight="-0.1em">
-                        {column.heading}
-                      </Heading>
-                    </div>
-                    <ul className="mt-30 flex flex-col gap-10 text-midnight-50 max-md:mt-20">
-                      {column.items.map((item, i) => (
-                        <li key={i} data-entry className="flex flex-col">
-                          <span className="text-h4 font-semibold">{item.title}</span>
-                          <span className="text-lead font-semibold">{item.org}</span>
-                          {item.detail && <span className="text-lead font-semibold">{item.detail}</span>}
-                          <span className="text-body">{item.period}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </div>
+              {/* The same timeline as the home page's Career section, in full. */}
+              {careerDetail.map((group, i) => (
+                <div key={group.id} aria-labelledby={`${group.id}-title`} role="group" className={i ? "mt-140 max-md:mt-80" : "mt-100 max-md:mt-64"}>
+                  <Heading barTop="0.875em">
+                    <span id={`${group.id}-title`}>{group.heading}</span>
+                  </Heading>
+                  <CareerList roles={group.roles} className="mt-48 max-md:mt-28" />
+                </div>
+              ))}
             </div>
           </section>
         </main>

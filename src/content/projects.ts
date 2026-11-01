@@ -35,6 +35,14 @@ export type Chapter = {
   figure?: { from?: string; to: string; label: string };
   /** A small data graphic instead of a screenshot. */
   bars?: { label: string; value: number; note: string }[];
+  /** Weekly stacked columns (e.g. people using a product), with an optional level line from week `from`. */
+  chart?: {
+    title: string;
+    note?: string;
+    weeks: string[];
+    series: { label: string; values: number[] }[];
+    level?: { value: number; from: number; label: string };
+  };
   shot?: Shot;
 };
 
@@ -102,17 +110,17 @@ export const projects: Project[] = [
     tag: "Multimodal · AI platform",
     year: "2024 – 2026",
     kind: "AI platform",
-    stat: { value: "450+", label: "pull requests merged" },
+    stat: { value: "0 → 140", label: "client people using it every week" },
     summary:
-      "The AI platform banks and credit unions use to take a document from upload to decision. I wrote its frontend's first commit and built it for two years.",
+      "The AI platform banks and credit unions use to take a document from upload to decision. I wrote its frontend's first commit when it had no users; two years on, about 140 client people use it every week.",
     stack: ["Next.js", "React", "TypeScript", "Tailwind", "Storybook", "Python / FastAPI", "PostHog", "Playwright"],
     intro: [
-      "AgentFlow takes a business document, a loan application, a balance sheet, an invoice, through AI extraction, human review and a decision. Banks, credit unions and other financial firms run their daily work on it; it grew to more than 400 users.",
+      "AgentFlow takes a business document, a loan application, a balance sheet, an invoice, through AI extraction, human review and a decision. Banks, credit unions and other financial firms run their daily work on it. The largest client, a bank, has more than 400 people on it.",
       "Reviewers live in two screens: the Runs table, where they find the document they need, and the review page, where they check what the AI read. Admins watch usage and manage their team.",
     ],
     part: [
       "I wrote the first commit of AgentFlow's frontend in August 2024: the Next.js app, sign-in, the component kit and the data layer. Then I built its screens one by one as the product found its shape: review, configure, monitor, ingest, and a view for each kind of AI agent.",
-      "Over two years I merged more than 450 pull requests: workflows, runs, document review, usage, team management, and the design system that ties them together. When a feature needed backend work I wrote that too, and I was one of the team's main frontend reviewers.",
+      "Over two years I built the screens those people work in every day: workflows, runs, document review, usage, team management, and the design system that ties them together. When a feature needed backend work I wrote that too, and I was one of the team's main frontend reviewers.",
     ],
     art: {
       real: "/projects/agentflow-real.webp",
@@ -142,6 +150,30 @@ export const projects: Project[] = [
     ],
     chapters: [
       {
+        id: "growth",
+        title: "From zero to 140 people a week",
+        problem:
+          "In August 2024 AgentFlow had no frontend and no users. Whoever came would judge it by the screens they worked in all day.",
+        did: [
+          "Built those screens: the Runs table people find their documents in, the review page where they check the AI, Home, Usage and team settings.",
+          "Kept them quick and clear as use grew: one filter bar, search that answers as you type, one design system on every page.",
+          "Set up the product analytics, then used what people actually did to decide what to build next.",
+        ],
+        result:
+          "In the summer of 2026 a bank rolled AgentFlow out to its business lending teams: 202 client people used it in the week of 27 July, and about 140 every week since. The bank has more than 400 people on it; 315 were active in the last 90 days.",
+        chart: {
+          title: "Client people using AgentFlow each week, 2026",
+          note: "PostHog, people outside Multimodal only. Client names left out.",
+          weeks: ["Apr 20", "Apr 27", "May 4", "May 11", "May 18", "May 25", "Jun 1", "Jun 8", "Jun 15", "Jun 22", "Jun 29", "Jul 6", "Jul 13", "Jul 20", "Jul 27", "Aug 3", "Aug 10", "Aug 17", "Aug 24", "Aug 31", "Sep 7", "Sep 14", "Sep 21", "Sep 28", "Oct 5", "Oct 12"],
+          series: [
+            { label: "The largest client, a bank", values: [1, 0, 0, 0, 2, 2, 9, 8, 7, 26, 43, 82, 67, 106, 180, 145, 121, 127, 119, 117, 147, 126, 129, 127, 129, 146] },
+            { label: "Other clients", values: [6, 5, 6, 5, 5, 5, 5, 7, 6, 12, 8, 8, 8, 14, 16, 12, 11, 9, 16, 14, 11, 9, 9, 9, 9, 9] },
+            { label: "Credit unions on trial", values: [0, 0, 0, 0, 6, 11, 16, 17, 5, 2, 0, 3, 6, 6, 6, 4, 4, 2, 2, 1, 0, 0, 0, 0, 0, 0] },
+          ],
+          level: { value: 140, from: 15, label: "about 140 a week" },
+        },
+      },
+      {
         id: "first-commit",
         title: "Day one",
         problem:
@@ -152,7 +184,7 @@ export const projects: Project[] = [
           "Built the date-range picker the tables filter by, with typed dates, in that first commit.",
         ],
         result:
-          "The repository opens with my upload on 16 August 2024. The team built on that base through every redesign since; by November 2025 it had passed pull request #700.",
+          "The repository opens with my upload on 16 August 2024, and the team built on that base through every redesign since.",
         figure: { to: "16 Aug 2024", label: "my first commit, and the frontend's" },
       },
       {
@@ -650,6 +682,71 @@ export const projects: Project[] = [
     ],
   },
   {
+    slug: "mortgage-review",
+    platform: "Web",
+    context: "Multimodal",
+    title: "Mortgage document review",
+    client: "A US mortgage lender, through Multimodal",
+    period: "May – Aug 2024",
+    role: "Frontend engineer, on my own",
+    tag: "Multimodal · Review tool",
+    year: "2024",
+    kind: "Review tool",
+    stat: { value: "−80%", label: "loan processing cost for the client" },
+    summary:
+      "The screen where a mortgage lender's team checks what Multimodal's AI read from each loan document, fixes it, and sends it on. I built it on my own in my first months at Multimodal.",
+    stack: ["React", "TypeScript", "Vite", "TanStack Query", "TanStack Table", "react-pdf", "shadcn/ui", "Tailwind"],
+    intro: [
+      "A US mortgage lender sends the documents in each loan file, pay stubs, bank statements, employment verifications, through Multimodal's AI, which works out what each document is and reads the fields the loan needs.",
+      "A person still checks that work before it reaches the loan system. Every correction they make is also worth something to the model that made the mistake.",
+    ],
+    part: [
+      "I built the review app on my own, from the first commit in May 2024 to the hand-over in August, when it moved into the lender's own repository and I helped fit it into their setup.",
+    ],
+    cover: gallery("/projects/mortgage-review/detail.webp", "A loan document beside the fields the AI read from it", "The review page, running the real app on made-up data.", 2000, 1250),
+    chapters: [
+      {
+        id: "queue",
+        title: "A queue to work through",
+        problem: "Reviewers face a steady stream of documents across many loans, and need the next one that is waiting, fast.",
+        did: [
+          "Pending and Completed queues with a search that forgives typos, date filters, sorting and CSV export.",
+          "Moved paging to the server in July, so the queue loads one page at a time.",
+          "Next and Previous on the review page follow the table's own order and filters, so a reviewer never has to go back to the list.",
+        ],
+        result: "A reviewer works straight down the queue, one document after another.",
+        shot: gallery("/projects/mortgage-review/queue.webp", "The review queue: documents waiting, with their loan, type and dates", "The pending queue. Made-up data.", 2000, 1250),
+      },
+      {
+        id: "side-by-side",
+        title: "The page beside its data",
+        problem: "Checking means comparing every value the AI pulled out with the spot on the page it came from.",
+        did: [
+          "The document in a viewer with zoom and rotate, next to the fields read from it.",
+          "Focusing a field outlines where the AI found it on the page, from the coordinates it returns.",
+          "The document type with the AI's confidence, which the reviewer can change from a list.",
+          "Forms for the harder documents: employment verifications with several employers, bank statements with several accounts.",
+        ],
+        result: "Each value is checked against its source at a glance, not hunted for.",
+        shot: gallery("/projects/mortgage-review/detail.webp", "A loan document beside its extracted fields, one field highlighted on the page", "A field and the spot on the page it came from. Made-up data.", 2000, 1250),
+      },
+      {
+        id: "feedback",
+        title: "Corrections that count twice",
+        problem: "A fixed value has to land in the loan system, and the model should learn from it too.",
+        did: [
+          "Save writes the checked fields to the client's loan system and records the review.",
+          "Every correction also goes back to Multimodal as feedback for the model.",
+          "A history of what the AI returned and of every edit since, plus similar documents from the same loan.",
+          "Resend a document to OCR, take it off the queue, or add a borrower, bank or employer to a pick list when the loan system doesn't have it yet.",
+        ],
+        result: "With the tool in use, annotation was 50% faster, and the client's loan processing costs fell by 80%.",
+        figure: { to: "50%", label: "faster annotation" },
+        shot: gallery("/projects/mortgage-review/completed.webp", "Reviewed documents with the AI's classifier and extraction accuracy and the time each review took", "Completed reviews, scored for the model. Made-up data.", 2000, 1250),
+      },
+    ],
+  },
+  {
     slug: "sidaku",
     platform: "Mobile",
     context: "Study",
@@ -672,6 +769,7 @@ export const projects: Project[] = [
     part: [
       "The web dashboard already existed. For my thesis at Universitas Brawijaya I added a REST API to it and built the Android app from scratch, from October 2023 to June 2024. A teammate joined for a refactor pass in July 2024.",
     ],
+    cover: gallery("/projects/sidaku/cover.webp", "SIDAKU on Android: the business directory with its map, regulations, and adding a product", "Screens of the real app from my thesis, with test data."),
     chapters: [
       {
         id: "api",
@@ -697,6 +795,7 @@ export const projects: Project[] = [
           "Events owners can join or leave from the app.",
         ],
         result: "The data comes from the people who run the businesses, and the centre still decides who gets in.",
+        shot: gallery("/projects/sidaku/sign-up.webp", "Sign-up, sign-in and the account page of the SIDAKU app", "Sign-up, sign-in and the account page. Test data."),
       },
       {
         id: "android",
@@ -708,6 +807,7 @@ export const projects: Project[] = [
           "Sign-in kept with DataStore, and requests through Retrofit; later moved to Kotlin Flow in the refactor pass.",
         ],
         result: "Version 3.1 covers the whole loop: sign up, get approved, keep records, and follow the centre's news and events.",
+        shot: gallery("/projects/sidaku/products.webp", "Adding a product with a photo, and the business's product list", "Adding a product, then the product list. Test data."),
       },
     ],
   },

@@ -159,6 +159,17 @@ const presets: Record<string, Preset> = {
         scrollTrigger: { trigger: bar, start: "top 85%", ...PLAY_ONCE },
       }),
     );
+    // Weekly charts: columns rise from the baseline, left to right.
+    const cols = q("[data-col]");
+    if (cols.length)
+      gsap.from(cols, {
+        scaleY: 0,
+        transformOrigin: "50% 100%",
+        duration: reduced ? 0.2 : 0.7,
+        ease: "power3.out",
+        stagger: reduced ? 0 : 0.03,
+        scrollTrigger: { trigger: cols[0], start: "top 85%", ...PLAY_ONCE },
+      });
     openArtOnScroll(q("[data-next]"));
     const offMagnets = magnets(q);
     const offReveal = playOnReveal(tl);
@@ -276,7 +287,7 @@ const presets: Record<string, Preset> = {
     }
     headings(q);
     q("[data-lines]").forEach((el) => revealLines(el, { delay: 0.1 }));
-    q("[data-column]").forEach((col) => revealUp(col.querySelectorAll("[data-entry]"), { trigger: col, stagger: 0.1 }));
+    q("[data-row]").forEach((row) => revealUp(row, { trigger: row, y: 40, start: "top 88%" }));
     const offMagnets = magnets(q);
     const offReveal = playOnReveal(tl);
     return () => {

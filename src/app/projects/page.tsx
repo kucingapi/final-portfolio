@@ -186,9 +186,9 @@ export default function ProjectsPage() {
                   data-lines
                   className="mt-24 w-760 text-h4 font-semibold text-midnight-100 max-md:w-full"
                 >
-                  An app a neighbourhood waste bank runs on, a tool for a
-                  client&apos;s payroll team, my thesis, and my Bangkit
-                  capstone.
+                  An app a neighbourhood waste bank runs on, a payroll tool for
+                  a client, a review tool for a mortgage lender, my thesis, and
+                  my Bangkit capstone.
                 </p>
 
                 <FilterList
