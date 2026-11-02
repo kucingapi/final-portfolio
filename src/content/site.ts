@@ -61,17 +61,17 @@ export const philosophy = {
 export type Testimonial = { quote: string; name: string; relation: string; role: string; avatar?: string };
 
 /**
- * TODO: placeholders. The first is the Figma sample, the rest are dummy copy to show the deck;
- * replace them all with real testimonials before publishing. Cards without `avatar` show initials.
+ * The first is real: quoted word for word from Dr. Ehmann's letter of recommendation (July 2023).
+ * TODO: the rest are placeholders; replace them with real testimonials before publishing. Cards
+ * without `avatar` show initials.
  */
 export const testimonials: Testimonial[] = [
   {
     quote:
-      "When Working with novel it is very nice and I learn a lot about the things that I don’t know, I highly recommended working with novel",
-    name: "Novel B.",
-    relation: "Client",
-    role: "Front End Developer at Google",
-    avatar: "/figma/testimonials/avatar.png",
+      "Mr. Bafagih played a pivotal role in developing a functioning prototype of a digital anamnesis solution, demonstrating great technical skills…",
+    name: "Yannick Ehmann",
+    relation: "Supervisor",
+    role: "Physician, TUM Sports Orthopaedics",
   },
   {
     quote: "Placeholder: Novel turned our rough idea into a working web app in a few weeks and kept us in the loop the whole way.",
