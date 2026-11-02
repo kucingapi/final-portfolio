@@ -19,10 +19,10 @@ export type Variant = z.infer<typeof variantSchema>;
 /** What a visitor's browser gets: the variant only, never the private label. */
 export type PublicVariant = { code: string; variant: Variant };
 
-export const DEFAULT_SECTIONS: CvSectionId[] = ["experience", "projects", "leadership", "education", "skills"];
+export const DEFAULT_SECTIONS: CvSectionId[] = ["experience", "projects", "leadership", "education", "awards", "skills"];
 
 /** Without a variant: the heavier entries, and their strongest lines up to a cap per section. */
-const DEFAULT_BULLET_CAP: Record<CvEntry["section"], number> = { experience: 6, projects: 2, leadership: 2, education: 1 };
+const DEFAULT_BULLET_CAP: Record<CvEntry["section"], number> = { experience: 6, projects: 2, leadership: 2, education: 1, awards: 1 };
 
 function defaultBullets(entry: CvEntry): CvBullet[] {
   const strong = entry.bullets.filter((b) => b.weight >= 2);
@@ -102,6 +102,22 @@ export function resolveCv(v: Variant = {}): ResolvedCv {
     sections,
     skills,
   };
+}
+
+/**
+ * The whole master CV, for proofreading: every entry and every line, with the alternative headlines,
+ * summaries and titles side by side. It runs long; it is not a CV to send.
+ */
+export function masterCv(): ResolvedCv {
+  const cv = resolveCv({ entries: cvEntries.map((e) => e.id) });
+  const sections = cv.sections.map((s) => ({
+    ...s,
+    entries: s.entries.map((e) => {
+      const full = getCvEntry(e.id)!;
+      return { ...e, title: full.titles.join(" / "), bullets: full.bullets };
+    }),
+  }));
+  return { ...cv, headline: cvHeader.headlines.join(" / "), summary: cvSummaries.map((s) => s.text).join("\n\n"), sections };
 }
 
 /** Plain-text rendering, for agents to read what a variant produces. */

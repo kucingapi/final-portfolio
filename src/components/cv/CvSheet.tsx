@@ -16,6 +16,14 @@ function Entry({ e }: { e: ResolvedEntry }) {
       <p className="font-bold">
         {e.org}
         {e.place ? ` – ${e.place}` : ""}
+        {e.proof && (
+          <>
+            {" | "}
+            <a href={e.proof} target="_blank" rel="noreferrer" className="font-normal text-[#444] underline underline-offset-2 hover:text-[#111]">
+              Certificate
+            </a>
+          </>
+        )}
       </p>
       <p className="flex justify-between gap-16 italic max-md:flex-col max-md:gap-0">
         <span>

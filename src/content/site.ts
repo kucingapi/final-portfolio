@@ -6,7 +6,7 @@
 export const site = {
   name: "Novel Bafagih",
   role: "Software Engineer",
-  title: "Novel Bafagih — Software Engineer",
+  title: "Novel Bafagih | Software Engineer",
   description:
     "Software engineer building web and Android products with React, Next.js and Kotlin Jetpack Compose. AI speeds up the work; every line is still reviewed, clean and maintainable.",
   location: "Based in Indonesia, Jakarta",

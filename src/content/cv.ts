@@ -27,7 +27,7 @@ export type CvTag = (typeof CV_TAGS)[number];
 
 export type CvBullet = { id: string; text: string; tags: CvTag[]; weight: 1 | 2 | 3 };
 
-export const CV_SECTIONS = ["experience", "projects", "leadership", "education", "skills"] as const;
+export const CV_SECTIONS = ["experience", "projects", "leadership", "education", "awards", "skills"] as const;
 export type CvSectionId = (typeof CV_SECTIONS)[number];
 export type CvEntrySection = Exclude<CvSectionId, "skills">;
 
@@ -36,6 +36,7 @@ export const SECTION_TITLES: Record<CvSectionId, string> = {
   projects: "Projects",
   leadership: "Leadership",
   education: "Education",
+  awards: "Awards and Certifications",
   skills: "Skills",
 };
 
@@ -51,6 +52,8 @@ export type CvEntry = {
   note?: string;
   /** Case study on the site. */
   link?: string;
+  /** The certificate behind it, as an image on the site (public/certificates). */
+  proof?: string;
   tags: CvTag[];
   /** How strong the entry is overall; the default CV leaves out the lightest. */
   weight: 1 | 2 | 3;
@@ -474,6 +477,24 @@ export const cvEntries: CvEntry[] = [
     ],
   },
   {
+    id: "tvi-mentor",
+    section: "leadership",
+    org: "Tech Voice Indonesia",
+    titles: ["Mentor"],
+    period: "Jun 2025",
+    proof: "/certificates/tech-voice-indonesia-mentor.jpg",
+    tags: ["leadership"],
+    weight: 1,
+    bullets: [
+      {
+        id: "tvi-course",
+        text: "Mentored students through the Software Engineering Introduction course at Tech Week 2025.",
+        tags: ["leadership"],
+        weight: 1,
+      },
+    ],
+  },
+  {
     id: "brawijaya",
     section: "education",
     org: "Universitas Brawijaya",
@@ -490,6 +511,7 @@ export const cvEntries: CvEntry[] = [
     org: "Bangkit Academy, led by Google, Gojek, Tokopedia and Traveloka",
     titles: ["Mobile Development (Android) cohort"],
     period: "Feb – Jul 2023",
+    proof: "/certificates/bangkit-2023-distinction.jpg",
     tags: ["mobile"],
     weight: 2,
     bullets: [
@@ -498,6 +520,12 @@ export const cvEntries: CvEntry[] = [
         text: "Graduated with distinction, in the top 10% of the cohort.",
         tags: ["mobile"],
         weight: 2,
+      },
+      {
+        id: "bangkit-scores",
+        text: "Averaged 91.5 out of 100 across 914 hours of Kotlin, Android, Jetpack Compose and UX courses, after being one of 5,013 students picked from more than 67,000 applicants.",
+        tags: ["mobile"],
+        weight: 1,
       },
     ],
   },
@@ -508,6 +536,7 @@ export const cvEntries: CvEntry[] = [
     place: "Jakarta, Indonesia",
     titles: ["Participant"],
     period: "Aug 2021",
+    proof: "/certificates/compfest-13-best-participant.jpg",
     tags: [],
     weight: 1,
     bullets: [
@@ -518,6 +547,39 @@ export const cvEntries: CvEntry[] = [
         weight: 1,
       },
     ],
+  },
+  {
+    id: "infest",
+    section: "awards",
+    org: "Informatics Festival 2022, Universitas Padjadjaran",
+    titles: ["3rd place, Innovative Technology Competition"],
+    period: "Sep 2022",
+    proof: "/certificates/infest-2022-third-place.jpg",
+    tags: ["product"],
+    weight: 2,
+    bullets: [],
+  },
+  {
+    id: "fcc-js",
+    section: "awards",
+    org: "freeCodeCamp",
+    titles: ["JavaScript Algorithms and Data Structures certification"],
+    period: "May 2021",
+    proof: "/certificates/freecodecamp-javascript.jpg",
+    tags: ["frontend"],
+    weight: 1,
+    bullets: [],
+  },
+  {
+    id: "fcc-web",
+    section: "awards",
+    org: "freeCodeCamp",
+    titles: ["Responsive Web Design certification"],
+    period: "Apr 2021",
+    proof: "/certificates/freecodecamp-responsive-web.jpg",
+    tags: ["frontend"],
+    weight: 1,
+    bullets: [],
   },
 ];
 

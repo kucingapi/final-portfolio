@@ -35,10 +35,10 @@ function links(origin: string, code: string) {
   };
 }
 
-async function preview(variant: Variant) {
+async function preview(variant: Variant, origin: string) {
   const errors = checkVariant(variant, slugs);
   const cv = resolveCv(variant);
-  const { pages } = await renderCvPdf(cv);
+  const { pages } = await renderCvPdf(cv, origin);
   return { errors, pages, fitsTwoPages: pages === 2, text: cvToText(cv) };
 }
 
@@ -85,7 +85,7 @@ function buildServer(origin: string) {
       inputSchema: { variant: variantSchema },
       annotations: { readOnlyHint: true },
     },
-    async ({ variant }) => json(await preview(variant)),
+    async ({ variant }) => json(await preview(variant, origin)),
   );
 
   server.registerTool(
@@ -101,7 +101,7 @@ function buildServer(origin: string) {
       },
     },
     async ({ label, variant, code }) => {
-      const result = await preview(variant);
+      const result = await preview(variant, origin);
       if (result.errors.length) return fail(`Not saved. Fix these first:\n${result.errors.join("\n")}`);
       try {
         const row = await saveVariant({ code, label, variant });

@@ -16,6 +16,7 @@ const s = StyleSheet.create({
   headline: { fontSize: 11, textAlign: "center", marginTop: 4 },
   contact: { fontSize: 9.4, textAlign: "center", marginTop: 4, color: MUTED },
   link: { color: INK, textDecoration: "none" },
+  proof: { fontFamily: "Helvetica", color: MUTED, textDecoration: "underline" },
   summary: { marginTop: 10 },
   section: { marginTop: 10 },
   sectionTitle: {
@@ -66,7 +67,7 @@ function Mark({ probe, id }: { probe?: Probe; id: string }) {
   );
 }
 
-function Entry({ e, mark }: { e: ResolvedEntry; mark?: ReactNode }) {
+function Entry({ e, mark, origin }: { e: ResolvedEntry; mark?: ReactNode; origin?: string }) {
   const [first, ...rest] = e.bullets;
   return (
     <View style={s.entry}>
@@ -76,6 +77,14 @@ function Entry({ e, mark }: { e: ResolvedEntry; mark?: ReactNode }) {
         <Text style={s.org}>
           {e.org}
           {e.place ? ` – ${e.place}` : ""}
+          {e.proof && origin && (
+            <Text>
+              {" | "}
+              <Link src={`${origin}${e.proof}`} style={s.proof}>
+                Certificate
+              </Link>
+            </Text>
+          )}
         </Text>
         <View style={s.row}>
           <Text style={s.title}>
@@ -97,7 +106,7 @@ function Entry({ e, mark }: { e: ResolvedEntry; mark?: ReactNode }) {
  * `breaks` lists sections that start a new page; `probe` records where titles and first entries land,
  * so renderCvPdf can find a title left alone at the foot of a page and render again with a break.
  */
-export function CvDocument({ cv, breaks, probe }: { cv: ResolvedCv; breaks?: Set<string>; probe?: Probe }) {
+export function CvDocument({ cv, breaks, probe, origin }: { cv: ResolvedCv; breaks?: Set<string>; probe?: Probe; origin?: string }) {
   return (
     <Document title={`${cv.name} – CV`} author={cv.name} subject={cv.headline} creator={cv.name} producer={cv.name}>
       <Page size="A4" style={s.page}>
@@ -134,7 +143,7 @@ export function CvDocument({ cv, breaks, probe }: { cv: ResolvedCv; breaks?: Set
                   <Text style={s.sectionTitle}>{section.title}</Text>
                 </View>
                 {section.entries.map((e, i) => (
-                  <Entry key={e.id} e={e} mark={i === 0 ? <Mark probe={probe} id={`entry:${section.id}`} /> : undefined} />
+                  <Entry key={e.id} e={e} origin={origin} mark={i === 0 ? <Mark probe={probe} id={`entry:${section.id}`} /> : undefined} />
                 ))}
               </>
             )}
@@ -148,17 +157,18 @@ export function CvDocument({ cv, breaks, probe }: { cv: ResolvedCv; breaks?: Set
 /**
  * Render the PDF and count its pages, so a variant can be checked against the two-page limit. A first
  * pass finds section titles stranded at the foot of a page; if there are any, a second pass moves
- * them to the top of the next one.
+ * them to the top of the next one. `origin` turns the certificate links into full URLs; without it they
+ * are left out.
  */
-export async function renderCvPdf(cv: ResolvedCv): Promise<{ pdf: Uint8Array<ArrayBuffer>; pages: number }> {
+export async function renderCvPdf(cv: ResolvedCv, origin?: string): Promise<{ pdf: Uint8Array<ArrayBuffer>; pages: number }> {
   const probe: Probe = new Map();
-  let buffer = await renderToBuffer(<CvDocument cv={cv} probe={probe} />);
+  let buffer = await renderToBuffer(<CvDocument cv={cv} probe={probe} origin={origin} />);
   const breaks = new Set(
     cv.sections
       .map((sec) => sec.id)
       .filter((id) => (probe.get(`title:${id}`) ?? 0) < (probe.get(`entry:${id}`) ?? 0)),
   );
-  if (breaks.size) buffer = await renderToBuffer(<CvDocument cv={cv} breaks={breaks} />);
+  if (breaks.size) buffer = await renderToBuffer(<CvDocument cv={cv} breaks={breaks} origin={origin} />);
   const pages = (buffer.toString("latin1").match(/\/Type\s*\/Page(?![s\w])/g) ?? []).length;
   return { pdf: Uint8Array.from(buffer), pages };
 }

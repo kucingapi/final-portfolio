@@ -12,7 +12,7 @@ const cabin = Cabin({ variable: "--font-cabin", subsets: ["latin"] });
 const inter = Inter({ variable: "--font-inter-face", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: { default: site.title, template: `%s — ${site.name}` },
+  title: { default: site.title, template: `%s | ${site.name}` },
   description: site.description,
 };
 

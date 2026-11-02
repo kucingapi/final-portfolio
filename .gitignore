@@ -43,3 +43,6 @@ next-env.d.ts
 
 # local CV variants (dev only; production uses Upstash Redis)
 /.data/
+
+# Local proofreading copies of the CV
+cv-review/
