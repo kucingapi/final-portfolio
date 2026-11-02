@@ -24,8 +24,12 @@ export const variantSchema = z.object({
   bullets: z.record(z.string(), z.array(z.string())).optional(),
   /** Per entry, which of its allowed titles to use. */
   titles: z.record(z.string(), z.string()).optional(),
+  /** Per entry, the "Tech:" line: items from its stack, in order, the job's tools first. Empty hides it. */
+  stacks: z.record(z.string(), z.array(z.string())).optional(),
   /** Skill group ids in order; groups left out are hidden. */
   skills: z.array(z.string()).optional(),
+  /** Per skill group, which of its items to show, in order, the job's requirements first. */
+  skillItems: z.record(z.string(), z.array(z.string())).optional(),
   /** Site project slugs to lead with, in order; the rest follow in their usual order. */
   projects: z.array(z.string()).optional(),
 });

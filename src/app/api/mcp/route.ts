@@ -16,9 +16,13 @@ import { checkVariant, cvToText, resolveCv, type Variant } from "@/lib/cv/varian
  */
 
 const GUIDE = `How to tailor:
-- Read the job description, then pick what proves fit. Lead with impact: results and numbers first.
+- Read the job description and list its requirements, then pick what proves fit. Lead with impact: results and numbers first.
+- Order matters. Within each section, put the entry closest to the job first (date order comes second), and within each entry, the bullet that answers its top requirement first. Pick the allowed title closest to the job's.
+- Skills sit at the top: order the groups ("skills") and the items in each ("skillItems") so the job's tools come first, and order each entry's "Tech:" line ("stacks") the same way.
+- Write a "summary" for the job that covers every requirement the CV can back up, in the job's own words where true.
+- Four bullets per entry at most; five only for the lead role when every line is strong.
 - The CV must be exactly 2 pages: preview_cv reports the page count; trim bullets or entries until it is 2.
-- Only pick, order and choose between existing lines (entry ids, bullet ids, allowed titles, skill group ids). Never invent facts; free text is limited to "headline" and "summary", and those must stay true to the master CV.
+- Only pick, order and choose between existing lines (entry ids, bullet ids, allowed titles, skill group ids and items, stack items). Never invent facts; free text is limited to "headline" and "summary", and those must stay true to the master CV.
 - "projects" orders the site's projects page for this visitor (lead with the most relevant), and its first three are the three projects in the portfolio PDF deck. "mode" sets which way the site opens (fulltime for employers, freelance for clients).
 - The label is private (e.g. "Acme, Senior Frontend, 2026-11"); the visitor never sees it.`;
 
@@ -73,7 +77,7 @@ function buildServer(origin: string) {
           stat: `${p.stat.value} ${p.stat.label}`,
           summary: p.summary,
         })),
-        defaultVariant: "Leave any field out to use the default: entries with weight >= 2, their strongest bullets, all sections and skills.",
+        defaultVariant: "Leave any field out to use the default: entries with weight >= 2, their strongest bullets (4 per role, 5 for the lead one), skills first, then every section.",
       }),
   );
 

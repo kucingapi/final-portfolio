@@ -32,12 +32,18 @@ function Entry({ e }: { e: ResolvedEntry }) {
         </span>
         <span className="shrink-0 tabular-nums">{e.period}</span>
       </p>
+      {e.about && <p>{e.about}</p>}
       {e.bullets.length > 0 && (
         <ul className="mt-2 flex list-disc flex-col gap-4 pl-20">
           {e.bullets.map((b) => (
             <li key={b.id}>{b.text}</li>
           ))}
         </ul>
+      )}
+      {e.stack && e.stack.length > 0 && (
+        <p className="pl-20">
+          <strong>Tech:</strong> {e.stack.join(", ")}
+        </p>
       )}
     </div>
   );

@@ -37,6 +37,8 @@ const s = StyleSheet.create({
   bullet: { flexDirection: "row", marginTop: 1.5 },
   dot: { width: 10 },
   bulletText: { flex: 1 },
+  about: { marginTop: 1 },
+  stack: { marginTop: 1.5, paddingLeft: 10 },
   skill: { marginTop: 1.5 },
   bold: { fontFamily: "Helvetica-Bold" },
 });
@@ -93,11 +95,18 @@ function Entry({ e, mark, origin }: { e: ResolvedEntry; mark?: ReactNode; origin
           </Text>
           <Text style={s.period}>{e.period}</Text>
         </View>
+        {e.about && <Text style={s.about}>{e.about}</Text>}
         {first && <Bullet text={first.text} />}
       </View>
       {rest.map((b) => (
         <Bullet key={b.id} text={b.text} />
       ))}
+      {e.stack && e.stack.length > 0 && (
+        <Text style={s.stack} wrap={false}>
+          <Text style={s.bold}>Tech: </Text>
+          {e.stack.join(", ")}
+        </Text>
+      )}
     </View>
   );
 }

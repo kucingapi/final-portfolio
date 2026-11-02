@@ -27,14 +27,14 @@ export type CvTag = (typeof CV_TAGS)[number];
 
 export type CvBullet = { id: string; text: string; tags: CvTag[]; weight: 1 | 2 | 3 };
 
-export const CV_SECTIONS = ["experience", "projects", "leadership", "education", "awards", "skills"] as const;
+/** Leadership lives inside Education (the student organisations) and Awards, which keeps the CV compact. */
+export const CV_SECTIONS = ["skills", "experience", "projects", "education", "awards"] as const;
 export type CvSectionId = (typeof CV_SECTIONS)[number];
 export type CvEntrySection = Exclude<CvSectionId, "skills">;
 
 export const SECTION_TITLES: Record<CvSectionId, string> = {
   experience: "Experience",
   projects: "Projects",
-  leadership: "Leadership",
   education: "Education",
   awards: "Awards and Certifications",
   skills: "Skills",
@@ -54,11 +54,20 @@ export type CvEntry = {
   link?: string;
   /** The certificate behind it, as an image on the site (public/certificates). */
   proof?: string;
+  /** One line on what the organisation is, for a name the reader won't know. */
+  about?: string;
+  /** What it was built with, most telling first; shown as a "Tech:" line under the bullets. */
+  stack?: string[];
   tags: CvTag[];
   /** How strong the entry is overall; the default CV leaves out the lightest. */
   weight: 1 | 2 | 3;
+  /** Most bullets the default CV shows, when this entry needs other than its section's cap. */
+  bulletCap?: number;
   bullets: CvBullet[];
 };
+
+/** Four bullets is the most an entry should carry; five only for a lead role where every line is strong. */
+export const MAX_BULLETS = 5;
 
 export type CvSkillGroup = { id: string; label: string; items: string[] };
 
@@ -102,8 +111,10 @@ export const cvEntries: CvEntry[] = [
     titles: ["Software Engineer", "Frontend Engineer", "Founding Frontend Engineer"],
     period: "Apr 2024 – Present",
     link: "/projects/agentflow",
+    stack: ["React", "Next.js", "TypeScript", "Tailwind CSS", "Storybook", "TanStack Query", "Python", "FastAPI", "Sanity", "PostHog", "Playwright"],
     tags: ["frontend", "ai", "fintech", "product"],
     weight: 3,
+    bulletCap: 5,
     bullets: [
       {
         id: "af-founding",
@@ -194,11 +205,13 @@ export const cvEntries: CvEntry[] = [
   {
     id: "orthocopilot",
     section: "experience",
-    org: "OrthoCoPilot",
+    org: "OrthoCoPilot, by TUM Venture Labs",
     place: "Munich, Germany (remote)",
     titles: ["Web Developer", "Frontend Engineer", "Full-stack Developer"],
     period: "Mar 2023 – Jun 2024",
     link: "/projects/tia",
+    about: "A digital-health startup from the Technical University of Munich (TUM), building tools for orthopaedic patients and doctors.",
+    stack: ["React", "JavaScript", "Material UI", "Supabase", "PostgreSQL", "Figma"],
     tags: ["frontend", "backend", "health"],
     weight: 3,
     bullets: [
@@ -233,10 +246,11 @@ export const cvEntries: CvEntry[] = [
     section: "experience",
     org: "Upwork",
     place: "Remote",
-    titles: ["Frontend Engineer", "Software Engineer"],
+    titles: ["Frontend Engineer", "Software Engineer", "Full-stack Developer"],
     note: "Freelance",
     period: "Jan 2023 – Mar 2024",
-    tags: ["frontend", "client"],
+    stack: ["React", "Next.js", "JavaScript", "OpenAI API", "Google Cloud Run"],
+    tags: ["frontend", "client", "ai"],
     weight: 2,
     bullets: [
       {
@@ -244,6 +258,12 @@ export const cvEntries: CvEntry[] = [
         text: "Delivered web projects for 5+ clients in several countries; half of them came back for repeat work.",
         tags: ["client", "frontend"],
         weight: 3,
+      },
+      {
+        id: "upwork-ignite",
+        text: "Built a Next.js web app on the OpenAI API for Ignite Compliance, a US client, deployed it to Google Cloud Run from GitHub, and fixed the payment issues that blocked its users.",
+        tags: ["frontend", "ai", "client"],
+        weight: 2,
       },
       {
         id: "upwork-remote",
@@ -260,6 +280,7 @@ export const cvEntries: CvEntry[] = [
     place: "Jakarta, Indonesia",
     titles: ["Frontend Developer"],
     period: "Nov 2021 – Mar 2022",
+    stack: ["AngularJS", "JavaScript", "HTML", "CSS"],
     tags: ["frontend", "fintech"],
     weight: 2,
     bullets: [
@@ -271,9 +292,9 @@ export const cvEntries: CvEntry[] = [
       },
       {
         id: "udana-site",
-        text: "Built the 5+ page website that presents the product.",
+        text: "Built the 5+ page responsive website that presents the product in AngularJS, from its main pages to the interface components they share.",
         tags: ["frontend"],
-        weight: 1,
+        weight: 2,
       },
     ],
   },
@@ -285,6 +306,7 @@ export const cvEntries: CvEntry[] = [
     note: "Client project",
     period: "Mar 2025",
     link: "/projects/payroll-formatter",
+    stack: ["Python", "Tkinter", "MS Access", "pyodbc", "openpyxl", "PyInstaller"],
     tags: ["desktop", "client", "backend"],
     weight: 3,
     bullets: [
@@ -311,6 +333,7 @@ export const cvEntries: CvEntry[] = [
     note: "Contract",
     period: "Apr – May 2025",
     link: "/projects/raya-airways",
+    stack: ["Next.js", "TypeScript", "shadcn/ui", "TanStack Table", "React Hook Form", "Clerk"],
     tags: ["frontend", "client"],
     weight: 2,
     bullets: [
@@ -336,6 +359,7 @@ export const cvEntries: CvEntry[] = [
     note: "Side project",
     period: "Mar – Sep 2026",
     link: "/projects/bank-sampah",
+    stack: ["Tauri", "Rust", "React", "TypeScript", "SQLite", "Tailwind CSS"],
     tags: ["desktop", "product", "design"],
     weight: 3,
     bullets: [
@@ -353,9 +377,28 @@ export const cvEntries: CvEntry[] = [
       },
       {
         id: "bs-stack",
-        text: "Tauri, Rust and SQLite with signed self-updates, built to keep pace with a queue of residents at the scale.",
+        text: "Fast enough to keep pace with a queue of residents at the scale, and updates itself with signed releases.",
         tags: ["desktop"],
         weight: 1,
+      },
+    ],
+  },
+  {
+    id: "pethub",
+    section: "projects",
+    org: "Pethub",
+    titles: ["Android developer"],
+    note: "Freelance",
+    period: "Nov 2023",
+    stack: ["Kotlin", "Android", "MVVM", "Hilt", "Retrofit"],
+    tags: ["mobile", "client"],
+    weight: 2,
+    bullets: [
+      {
+        id: "pethub-play",
+        text: "Shipped Pethub's Android app, 10+ screens, to Google Play, after restructuring its code to MVVM with Hilt and Retrofit.",
+        tags: ["mobile", "client"],
+        weight: 2,
       },
     ],
   },
@@ -367,12 +410,13 @@ export const cvEntries: CvEntry[] = [
     note: "In progress",
     period: "Sep 2026 – Present",
     link: "/projects/seru-room",
+    stack: ["Next.js", "TypeScript", "Cloudflare Durable Objects", "WebSocket", "Turso", "Drizzle", "Playwright"],
     tags: ["frontend", "backend", "product"],
     weight: 1,
     bullets: [
       {
         id: "seru-what",
-        text: "A live presentation app where an audience joins with a six-digit code and answers polls, word clouds, rankings and Q&A in real time: Next.js, Cloudflare Durable Objects over WebSocket, Turso and Playwright end-to-end tests.",
+        text: "A live presentation app where an audience joins with a six-digit code and answers polls, word clouds, rankings and Q&A in real time, covered by end-to-end tests.",
         tags: ["frontend", "backend"],
         weight: 2,
       },
@@ -386,12 +430,13 @@ export const cvEntries: CvEntry[] = [
     note: "In progress",
     period: "Oct 2026 – Present",
     link: "/projects/jagaday",
+    stack: ["Rust", "Tauri", "React", "Kotlin", "Jetpack Compose", "Supabase"],
     tags: ["desktop", "mobile", "backend"],
     weight: 1,
     bullets: [
       {
         id: "jaga-what",
-        text: "A calendar-driven focus blocker that guards Windows and Android at once: Rust, Tauri, Kotlin and Supabase, with 190 shared test cases the three rule engines must all pass.",
+        text: "A calendar-driven focus blocker that guards Windows and Android at once, with 190 shared test cases its three rule engines must all pass.",
         tags: ["desktop", "mobile", "testing"],
         weight: 2,
       },
@@ -405,92 +450,15 @@ export const cvEntries: CvEntry[] = [
     note: "Thesis",
     period: "Sep 2023 – Jul 2024",
     link: "/projects/sidaku",
+    stack: ["Kotlin", "Jetpack Compose", "Retrofit", "Django REST Framework", "PostgreSQL", "Docker", "Cloud Run"],
     tags: ["mobile", "backend"],
     weight: 2,
     bullets: [
       {
         id: "sidaku-what",
-        text: "Built an Android app (Kotlin, Jetpack Compose) and REST API (Django) that let Kota Batu's small businesses register with the city's business-service centre and keep 12 kinds of their own records.",
+        text: "Built an Android app and REST API that let Kota Batu's small businesses register with the city's business-service centre and keep 12 kinds of their own records.",
         tags: ["mobile", "backend"],
         weight: 2,
-      },
-    ],
-  },
-  {
-    id: "bcc",
-    section: "leadership",
-    org: "BCC",
-    place: "Malang, Indonesia",
-    titles: ["Head of Talent Development"],
-    period: "Apr 2021 – Aug 2023",
-    tags: ["leadership"],
-    weight: 2,
-    bullets: [
-      {
-        id: "bcc-townhall",
-        text: "Organised BCC's first offline townhall; attendance rose by 50%.",
-        tags: ["leadership"],
-        weight: 2,
-      },
-      {
-        id: "bcc-event",
-        text: "Created a learning event that drew 100+ attendees, 50% more than the year before.",
-        tags: ["leadership"],
-        weight: 2,
-      },
-    ],
-  },
-  {
-    id: "feelit",
-    section: "leadership",
-    org: "FEEL-IT, KBMTI",
-    place: "Malang, Indonesia",
-    titles: ["Chairman"],
-    period: "Apr – Nov 2022",
-    tags: ["leadership"],
-    weight: 2,
-    bullets: [
-      {
-        id: "feelit-team",
-        text: "Led a team of 60 across 8 divisions and ran the organisation's first offline event in two years.",
-        tags: ["leadership"],
-        weight: 2,
-      },
-    ],
-  },
-  {
-    id: "bangkit-lead",
-    section: "leadership",
-    org: "Bangkit Academy capstone",
-    titles: ["Team lead"],
-    period: "May – Jun 2023",
-    link: "/projects/breel",
-    tags: ["leadership", "mobile"],
-    weight: 2,
-    bullets: [
-      {
-        id: "breel-lead",
-        text: "Led a team of six across mobile, machine learning and cloud to a working Android app in a month, closing 100+ tasks in 30 days.",
-        tags: ["leadership", "mobile"],
-        weight: 2,
-      },
-    ],
-  },
-  {
-    id: "tvi-mentor",
-    section: "leadership",
-    org: "Tech Voice Indonesia",
-    titles: ["Mentor"],
-    period: "Jun 2025",
-    proof: "/certificates/tech-voice-indonesia-mentor.webp",
-    tags: ["leadership"],
-    weight: 1,
-    bullets: [
-      {
-        id: "tvi-course",
-        text: "Mentored students through the Software Engineering Introduction course at Tech Week 2025.",
-        tags: ["leadership"],
-        weight: 1,
       },
     ],
   },
@@ -503,7 +471,26 @@ export const cvEntries: CvEntry[] = [
     period: "2020 – 2024",
     tags: [],
     weight: 3,
-    bullets: [],
+    bullets: [
+      {
+        id: "ub-feelit",
+        text: "Chairman of FEEL-IT (2022), the orientation that KBMTI, the IT students' association, runs for 150+ new students: led a team of 60 across 8 divisions and brought it back offline for the first time in two years.",
+        tags: ["leadership"],
+        weight: 2,
+      },
+      {
+        id: "ub-bcc",
+        text: "Head of Talent Development at BCC, the faculty's student tech community (2021 – 2023): set up its software house, which won the community's first paid project, and ran its first offline townhall, with attendance up 50%.",
+        tags: ["leadership", "client"],
+        weight: 2,
+      },
+      {
+        id: "ub-bcc-event",
+        text: "Created a BCC learning event that drew 100+ attendees, 50% more than the year before.",
+        tags: ["leadership"],
+        weight: 1,
+      },
+    ],
   },
   {
     id: "bangkit",
@@ -512,6 +499,7 @@ export const cvEntries: CvEntry[] = [
     titles: ["Mobile Development (Android) cohort"],
     period: "Feb – Jul 2023",
     proof: "/certificates/bangkit-2023-distinction.webp",
+    link: "/projects/breel",
     tags: ["mobile"],
     weight: 2,
     bullets: [
@@ -519,6 +507,12 @@ export const cvEntries: CvEntry[] = [
         id: "bangkit-distinction",
         text: "Graduated with distinction, in the top 10% of the cohort.",
         tags: ["mobile"],
+        weight: 2,
+      },
+      {
+        id: "bangkit-lead",
+        text: "Led the capstone team of six across mobile, machine learning and cloud to a working Android app in a month, closing 100+ tasks in 30 days.",
+        tags: ["leadership", "mobile"],
         weight: 2,
       },
       {
@@ -557,6 +551,17 @@ export const cvEntries: CvEntry[] = [
     proof: "/certificates/infest-2022-third-place.webp",
     tags: ["product"],
     weight: 2,
+    bullets: [],
+  },
+  {
+    id: "tvi-mentor",
+    section: "awards",
+    org: "Tech Voice Indonesia, Tech Week 2025",
+    titles: ["Mentor, Software Engineering Introduction course"],
+    period: "Jun 2025",
+    proof: "/certificates/tech-voice-indonesia-mentor.webp",
+    tags: ["leadership"],
+    weight: 1,
     bullets: [],
   },
   {
