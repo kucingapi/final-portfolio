@@ -12,16 +12,14 @@ export const site = {
   location: "Based in Indonesia, Jakarta",
   timeZone: "Asia/Jakarta",
   email: "novelbafagih09@gmail.com",
-  phone: "+62 8953 2807 9912",
-  /** TODO: drop your CV at public/resume.pdf */
   /** The CV page; it tailors itself when the visitor came through a `?v=` link. */
   resumeUrl: "/cv",
-  /** TODO: fill in profile URLs. Empty strings render as plain (non-link) icons. */
+  /** Profile URLs. Empty strings render as plain (non-link) icons. */
   social: {
-    github: "",
-    linkedin: "",
-    instagram: "",
-    upwork: "",
+    github: "https://github.com/kucingapi",
+    linkedin: "https://www.linkedin.com/in/novel-bafagih",
+    instagram: "https://www.instagram.com/novelbafagih9/",
+    upwork: "https://www.upwork.com/freelancers/~01d6f59045f1cbf573",
   },
 };
 
@@ -325,5 +323,4 @@ export const careerDetail: { id: string; heading: string; roles: CareerRole[] }[
 export const services = ["Design", "Web", "Mobile", "Others"] as const;
 export type Service = (typeof services)[number];
 
-export const telHref = `tel:${site.phone.replace(/\s/g, "")}`;
 export const mailHref = `mailto:${site.email}`;

@@ -55,6 +55,5 @@ variant is kept in the visitor's localStorage, the projects page leads with its 
 
 ## Still placeholder (TODO in `src/content/site.ts`)
 
-- Social profile URLs (GitHub, LinkedIn, Instagram, Upwork). Icons without a URL render dimmed and aren't links.
 - Project titles and links (cards without `href` aren't clickable).
 - The testimonial and the three experience columns are the Figma placeholders.

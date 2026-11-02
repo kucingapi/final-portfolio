@@ -4,7 +4,7 @@ import { Deco, Heading } from "@/components/ui";
 import { SectionMotion } from "@/components/motion/SectionMotion";
 import { Footer } from "@/components/sections/Footer";
 import { CareerList } from "@/components/career/CareerList";
-import { about, careerDetail, mailHref, site, telHref } from "@/content/site";
+import { about, careerDetail, mailHref, site } from "@/content/site";
 
 export const metadata: Metadata = {
   title: "Career",
@@ -15,7 +15,7 @@ const LINKS = [
   { label: "GitHub", href: site.social.github, icon: "/figma/icons/github-large.svg", box: "size-63" },
   { label: "Upwork", href: site.social.upwork, icon: "/figma/icons/upwork.svg", box: "h-44 w-63" },
   { label: "Email", href: mailHref, icon: "/figma/icons/mail-large.svg", box: "size-63" },
-  { label: "Phone", href: telHref, icon: "/figma/icons/phone-large.svg", box: "size-63" },
+  { label: "LinkedIn", href: site.social.linkedin, icon: "/figma/icons/linkedin.svg", box: "size-63" },
 ];
 
 const round = "relative block size-100 shrink-0 rounded-full bg-midnight-500 transition-colors max-md:size-64";

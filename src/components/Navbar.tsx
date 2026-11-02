@@ -8,7 +8,7 @@ import {
   TransitionLink,
   onPageReveal,
 } from "@/components/transition/PageTransition";
-import { site, mailHref, telHref } from "@/content/site";
+import { site, mailHref } from "@/content/site";
 import { ModeToggle } from "@/components/mode/Mode";
 
 const MENU = [
@@ -338,9 +338,6 @@ export function Navbar() {
             <div className="mt-21 flex flex-col gap-11 text-lead font-semibold max-md:mt-12">
               <a href={mailHref} className="hover:underline">
                 {site.email}
-              </a>
-              <a href={telHref} className="hover:underline">
-                {site.phone}
               </a>
             </div>
           </div>

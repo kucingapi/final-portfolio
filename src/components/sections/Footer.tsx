@@ -1,14 +1,13 @@
 import Image from "next/image";
 import { SectionMotion } from "@/components/motion/SectionMotion";
 import { Logo } from "@/components/Navbar";
-import { site, mailHref, telHref } from "@/content/site";
+import { site, mailHref } from "@/content/site";
 
 const ICONS = [
   { key: "github", label: "GitHub", src: "/figma/icons/github.svg", href: site.social.github },
   { key: "linkedin", label: "LinkedIn", src: "/figma/icons/linkedin.svg", href: site.social.linkedin },
   { key: "instagram", label: "Instagram", src: "/figma/icons/instagram.svg", href: site.social.instagram },
   { key: "mail", label: "Email", src: "/figma/icons/mail.svg", href: mailHref },
-  { key: "phone", label: "Phone", src: "/figma/icons/phone.svg", href: telHref },
 ];
 
 /** Footer (Figma 270:3045). */
@@ -24,13 +23,10 @@ export function Footer() {
             <div className="mt-13 ml-3 flex flex-col gap-11 text-body text-white max-md:mt-20">
               <p data-footer-item>Handcrafted by {site.name}</p>
               <p data-footer-item>{site.location}</p>
-              <a data-footer-item href={telHref} className="hover:underline">
-                {site.phone}
-              </a>
               <a data-footer-item href={mailHref} className="hover:underline">
                 {site.email}
               </a>
-              <ul data-footer-item className="flex w-202 items-start justify-between">
+              <ul data-footer-item className="flex w-157 items-start justify-between">
                 {ICONS.map((icon) => {
                   const img = <Image src={icon.src} alt="" width={22} height={22} unoptimized className="size-22" />;
                   return (

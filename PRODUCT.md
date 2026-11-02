@@ -30,7 +30,7 @@ The positioning is not "junior" and not "low cost". Neither framing appears in t
 - Visitors land on the home page (hero, projects or career, "How I work", more detail, testimonials, contact prompt), with separate Projects, Career (`/career`, formerly `/experiences`, which redirects) and Contact pages.
 - Two modes, switched from a tab in the navbar and remembered in localStorage: **Freelance** (default, for clients) leads the home page with Projects; **Full-time** (for employers) leads with Career. The hero headline and chip, the More Detail band (each mode points at the other page) and the Let's Talk copy change with it; the menu always lists both Projects and Career. Copy lives in `modes` in `site.ts`.
 - The contact flow sends enquiries by email through Resend (`POST /api/contact`); without a key it falls back to "email me directly".
-- Direct channels: email `novelbafagih09@gmail.com`, phone `+62 8953 2807 9912`, Asia/Jakarta time zone.
+- Direct channels: email `novelbafagih09@gmail.com` (no phone number on the site: it invites phishing), Asia/Jakarta time zone.
 - Employers will also want the resume PDF (`/resume.pdf`) and social profiles (GitHub, LinkedIn, Upwork, Instagram).
 
 ## Capabilities and Constraints
