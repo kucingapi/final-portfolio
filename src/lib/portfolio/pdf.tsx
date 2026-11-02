@@ -246,14 +246,13 @@ function Cover({ cv, photo, picks, links }: { cv: ResolvedCv; photo: PdfImage | 
           backgroundColor: C.brand,
         }}
       >
+        {/* Fill the disc like CSS `object-fit: cover`. A taller-than-the-disc image with a negative
+            margin gets squashed by flex shrink, so the crop goes through objectPosition instead;
+            36% down keeps the face in the upper middle of the circle. */}
         {photo && (
           <PdfImg
             src={photo}
-            style={{
-              width: D,
-              height: (D * photo.height) / photo.width,
-              marginTop: -D * 0.12,
-            }}
+            style={{ width: D, height: D, objectFit: "cover", objectPosition: "50% 36%" }}
           />
         )}
       </View>
