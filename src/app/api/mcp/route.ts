@@ -4,7 +4,7 @@ import { z } from "zod";
 import { CV_SECTIONS, CV_TAGS, cvEntries, cvHeader, cvSkills, cvSummaries } from "@/content/cv";
 import { projects } from "@/content/projects";
 import { renderCvPdf } from "@/lib/cv/pdf";
-import { deleteVariant, getVariant, listVariants, saveVariant, type StoredVariant } from "@/lib/cv/store";
+import { deleteVariant, getActivity, getVariant, listVariants, saveVariant, type StoredVariant } from "@/lib/cv/store";
 import { variantSchema } from "@/lib/cv/schema";
 import { checkVariant, cvToText, resolveCv, type Variant } from "@/lib/cv/variant";
 
@@ -122,17 +122,21 @@ function buildServer(origin: string) {
     "list_cv_variants",
     {
       title: "List CV variants",
-      description: "Every saved variant, newest first, with its private label and links.",
+      description:
+        "Every saved variant, newest first, with its private label, links and activity: how often the link was opened (first and last time) and its CV and portfolio PDFs fetched. Novel's own visits are not counted.",
       annotations: { readOnlyHint: true },
     },
     async () =>
       json(
-        (await listVariants()).map((r: StoredVariant) => ({
-          code: r.code,
-          label: r.label,
-          updatedAt: r.updatedAt,
-          links: links(origin, r.code),
-        })),
+        await Promise.all(
+          (await listVariants()).map(async (r: StoredVariant) => ({
+            code: r.code,
+            label: r.label,
+            updatedAt: r.updatedAt,
+            activity: await getActivity(r.code),
+            links: links(origin, r.code),
+          })),
+        ),
       ),
   );
 
@@ -140,13 +144,13 @@ function buildServer(origin: string) {
     "get_cv_variant",
     {
       title: "Get a CV variant",
-      description: "One saved variant by code, with its label and fields.",
+      description: "One saved variant by code, with its label, fields and activity.",
       inputSchema: { code: z.string() },
       annotations: { readOnlyHint: true },
     },
     async ({ code }) => {
       const row = await getVariant(code);
-      return row ? json({ ...row, links: links(origin, row.code) }) : fail(`No variant with code "${code}".`);
+      return row ? json({ ...row, activity: await getActivity(row.code), links: links(origin, row.code) }) : fail(`No variant with code "${code}".`);
     },
   );
 

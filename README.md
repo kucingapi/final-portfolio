@@ -55,6 +55,12 @@ the server.
   claude mcp add --transport http novel-cv https://<your-domain>/api/mcp --header "Authorization: Bearer <CV_MCP_TOKEN>"
   ```
 
+- Each link's activity is counted in the same store: opens (with first and last time) and CV and portfolio PDF fetches.
+  `list_cv_variants` and `get_cv_variant` return it. With `NEXT_PUBLIC_POSTHOG_KEY` set, PostHog also gets a
+  `tailored_link_opened` event, and every later event of that visit carries `v_code`.
+- Your own visits: open any page with `?test=1` once in each browser you use. That browser is then left out of the
+  counts and PostHog for a year; `?test=0` undoes it.
+
 ## Still placeholder (TODO in `src/content/site.ts`)
 
 - Project titles and links (cards without `href` aren't clickable).

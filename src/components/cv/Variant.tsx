@@ -2,7 +2,7 @@
 
 import { useEffect, useSyncExternalStore } from "react";
 import { useMode } from "@/components/mode/Mode";
-import { track } from "@/lib/analytics";
+import { isTester, track } from "@/lib/analytics";
 import type { PublicVariant } from "@/lib/cv/variant";
 
 /**
@@ -65,6 +65,12 @@ export function VariantLoader() {
 
   useEffect(() => {
     const url = new URL(window.location.href);
+    // `?test=1` / `?test=0` marks or clears Novel's own browser; it leaves the address bar too.
+    if (url.searchParams.has("test")) {
+      isTester();
+      url.searchParams.delete("test");
+      window.history.replaceState(window.history.state, "", url);
+    }
     const code = url.searchParams.get(PARAM);
     if (!code) return;
     url.searchParams.delete(PARAM);

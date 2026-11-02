@@ -10,6 +10,20 @@ import type { PostHog } from "posthog-js";
  */
 
 const KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
+const TEST_COOKIE = "nb_test";
+
+/**
+ * Novel's own browser. Visiting any page with `?test=1` marks it for a year, and `?test=0` clears the
+ * mark. A marked browser sends nothing to PostHog, and the server doesn't count its link opens or PDF
+ * downloads (it reads the same cookie; see `fromTester` in src/lib/cv/store.ts).
+ */
+export function isTester(): boolean {
+  if (typeof window === "undefined") return false;
+  const param = new URLSearchParams(window.location.search).get("test");
+  if (param === "1") document.cookie = `${TEST_COOKIE}=1; path=/; max-age=31536000; samesite=lax`;
+  if (param === "0") document.cookie = `${TEST_COOKIE}=; path=/; max-age=0; samesite=lax`;
+  return param === "1" || (param !== "0" && document.cookie.split("; ").includes(`${TEST_COOKIE}=1`));
+}
 
 declare global {
   interface Window {
@@ -23,7 +37,7 @@ const idle = (fn: () => void) =>
 /** Start PostHog (once). `tags` are added to every event from the first pageview on. */
 export function loadAnalytics(tags?: Record<string, string>): Promise<PostHog | null> {
   if (typeof window === "undefined") return Promise.resolve(null);
-  window.__nbAnalytics ??= !KEY
+  window.__nbAnalytics ??= !KEY || isTester()
     ? Promise.resolve(null)
     : new Promise<PostHog | null>((resolve) =>
         idle(() =>

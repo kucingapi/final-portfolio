@@ -1,5 +1,6 @@
 import { renderPortfolioPdf } from "@/lib/portfolio/pdf";
-import { getVariant } from "@/lib/cv/store";
+import { after } from "next/server";
+import { fromTester, getVariant, recordActivity } from "@/lib/cv/store";
 import { resolveCv } from "@/lib/cv/variant";
 
 /**
@@ -10,6 +11,7 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const code = url.searchParams.get("v");
   const row = code ? await getVariant(code) : null;
+  if (row && !fromTester(request)) after(() => recordActivity(row.code, "portfolio"));
   const origin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || url.origin;
   const { pdf, pages, expected } = await renderPortfolioPdf({
     cv: resolveCv(row?.variant),
