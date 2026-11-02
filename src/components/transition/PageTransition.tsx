@@ -69,6 +69,12 @@ export function PageTransitionProvider({ children }: { children: ReactNode }) {
     lenis.current?.scrollTo(0, { immediate: true, force: true });
     window.scrollTo(0, 0);
     ScrollTrigger.refresh();
+    // A link like /#testimonials lands on its section, once pins and spacers are measured.
+    const anchor = location.hash.length > 1 ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
+    if (anchor) {
+      if (lenis.current) lenis.current.scrollTo(anchor, { immediate: true, force: true });
+      else anchor.scrollIntoView();
+    }
     document.documentElement.dataset.covered = "false";
     window.dispatchEvent(new Event(REVEAL_EVENT));
     const tl = gsap.timeline({
