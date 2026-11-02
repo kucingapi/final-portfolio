@@ -83,7 +83,7 @@ export default function CareerPage() {
                   className="absolute top-24 left-31 h-486 w-387 overflow-hidden rounded-[calc(var(--s)*43.7)] border-[calc(var(--s)*2.2)] border-base-200 bg-midnight-950 max-md:inset-x-0 max-md:top-24 max-md:bottom-0 max-md:h-auto max-md:w-auto"
                 >
                   <Image
-                    src="/figma/about/portrait.png"
+                    src="/figma/about/portrait.webp"
                     alt="Portrait of Novel Bafagih"
                     width={520}
                     height={520}

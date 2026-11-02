@@ -18,11 +18,17 @@ const nextConfig: NextConfig = {
   // PostHog's API paths end in a slash; redirecting them would break the proxy.
   skipTrailingSlashRedirect: true,
   partialPrefetching: true,
+  // AVIF first, about a fifth smaller than WebP for photos. Resized copies keep for 30 days, so a
+  // replaced photo should take a new file name.
+  images: {
+    formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 2592000,
+  },
   // The PDF renderer loads fonts and layout code at runtime; keep it out of the server bundle.
   serverExternalPackages: ["@react-pdf/renderer"],
   // The portfolio PDF reads its font and the site's images from disk.
   outputFileTracingIncludes: {
-    "/api/portfolio": ["./src/lib/portfolio/fonts/*", "./public/projects/**/*", "./public/figma/hero/photo-main.jpg"],
+    "/api/portfolio": ["./src/lib/portfolio/fonts/*", "./public/projects/**/*", "./public/figma/hero/photo-main.webp"],
   },
   turbopack: {
     rules: {

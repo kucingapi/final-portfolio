@@ -66,7 +66,7 @@ export function Hero() {
             <div data-speed="0.9" className="absolute top-43 left-182 h-444 w-354">
               <div data-photo data-node-id="186:1926" className="relative size-full overflow-hidden rounded-lg border-2 border-base-200 bg-midnight-950">
                 <Image
-                  src="/figma/hero/photo-main.jpg"
+                  src="/figma/hero/photo-main.webp"
                   alt="Novel speaking with a microphone"
                   fill
                   priority
@@ -82,7 +82,7 @@ export function Hero() {
             <div data-speed="1.08" className="absolute top-276 left-25 flex h-404 w-359 items-center justify-center">
               <div data-photo data-node-id="186:1915" className="relative h-333 w-251 flex-none -rotate-[22.5deg] overflow-hidden rounded-lg border-2 border-base-200 bg-base-800">
                 <Image
-                  src="/figma/hero/photo-left.jpg"
+                  src="/figma/hero/photo-left.webp"
                   alt="Novel Bafagih at an event"
                   fill
                   sizes="(max-width: 1023px) 40vw, 20vw"
@@ -97,8 +97,8 @@ export function Hero() {
             <div data-speed="1.15" className="absolute top-294 left-325 flex h-404 w-359 items-center justify-center">
               <div data-photo data-node-id="186:1921" className="relative h-333 w-251 flex-none rotate-[22.5deg] overflow-hidden rounded-lg border-2 border-base-200 bg-base-800">
                 <Image
-                  src="/figma/hero/photo-right.jpg"
-                  alt="Novel smiling"
+                  src="/figma/hero/photo-right.webp"
+                  alt="Novel at Hase-dera temple in Kamakura"
                   fill
                   sizes="(max-width: 1023px) 40vw, 20vw"
                   className="object-cover object-[48%_50%] opacity-60"

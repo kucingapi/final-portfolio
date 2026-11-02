@@ -578,14 +578,16 @@ export const projects: Project[] = [
         id: "money",
         title: "Prices, payouts and sales",
         problem:
-          "Prices change from one collection to the next, collectors pay more for bigger loads, and residents are paid out from their savings twice a year. All of it has to add up afterwards.",
+          "Prices change from one collection to the next, collectors pay more for bigger loads, and residents are paid out from their savings twice a year. On the spreadsheets, working out what each resident was owed meant going page by page through every collection at its own prices, and took weeks.",
         did: [
           "Each session keeps its own copy of the price list, so changing a price never rewrites an old session.",
           "Collector prices in weight tiers, worked out like tax brackets, and a sales manifest for each collector.",
           "Semester savings payouts and collector reports that print straight from the app.",
           "An import for the old Excel logbooks, so past sessions came along.",
         ],
-        result: "A session closes with every resident's payout and every collector's manifest agreeing with the scale.",
+        result:
+          "A session closes with every resident's payout and every collector's manifest agreeing with the scale, and the semester payout, worked out from every recorded deposit, is ready in seconds.",
+        figure: { to: "Seconds", label: "instead of weeks, to work out every resident's semester payout" },
         shot: gallery("/projects/bank-sampah/session.webp", "A collection session: every deposit with its weights and payout", "One collection session. Sample data; the names are made up."),
       },
       {
@@ -676,8 +678,8 @@ export const projects: Project[] = [
           "Left out the heavy libraries the tool never uses, then wrote a version without pandas.",
           "Tried a Rust port with iced for a smaller native binary; the trimmed Python build was the one that shipped.",
         ],
-        result: "The download went from a 210 MB zipped build to a single 39 MB .exe.",
-        figure: { from: "210 MB", to: "39 MB", label: "to download and run" },
+        result: "My first build was 210 MB; trimmed, the app shipped as a single 39 MB .exe.",
+        figure: { from: "210 MB", to: "39 MB", label: "the app, from my first build to the one that shipped" },
       },
     ],
   },

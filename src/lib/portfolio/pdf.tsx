@@ -828,7 +828,7 @@ export async function renderPortfolioPdf({
   };
   const projects = pickProjects(variant, count);
   const [photo, ...picks] = await Promise.all([
-    pdfImage("/figma/hero/photo-main.jpg", 800),
+    pdfImage("/figma/hero/photo-main.webp", 800),
     ...projects.map(async (p) => {
       const cover = p.art?.real ?? p.cover?.src ?? p.chapters.find((c) => c.shot)?.shot?.src;
       const chapters = pickChapters(p);
