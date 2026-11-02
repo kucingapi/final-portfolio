@@ -1,6 +1,7 @@
 import { ArrowIcon, Heading } from "@/components/ui";
 import { SectionMotion } from "@/components/motion/SectionMotion";
 import { TransitionLink } from "@/components/transition/PageTransition";
+import { Downloads } from "@/components/cv/Downloads";
 import { modes } from "@/content/site";
 
 /** "More Detail" CTA band (Figma 245:2581). */
@@ -13,7 +14,7 @@ export function MoreDetail() {
           <div data-curve className="h-900 w-1465 flex-none -rotate-2 rounded-3xl border-2 border-midnight-50 bg-midnight-950 max-md:w-540" />
         </div>
 
-        <div className="relative mx-auto h-339 w-1440 max-md:h-auto max-md:w-full max-md:px-20 max-md:pt-64 max-md:pb-48">
+        <div className="relative mx-auto h-440 w-1440 max-md:h-auto max-md:w-full max-md:px-20 max-md:pt-64 max-md:pb-48">
           <div className="absolute top-83 left-100 flex w-1240 items-center justify-between max-md:static max-md:w-full max-md:flex-col max-md:items-start max-md:gap-24">
             <div className="flex flex-col">
               <Heading size="text-h3" barTop="0.69em" barHeight="0.53em" barLeft="0" barRight="-0.1em">
@@ -24,6 +25,7 @@ export function MoreDetail() {
                   {modes[m].detail.body}
                 </p>
               ))}
+              <Downloads className="mt-32 max-md:mt-24" />
             </div>
             {/* Each mode points at the other side of the site: Freelance at the career, Full-time at the projects. */}
             {(["freelance", "fulltime"] as const).map((m) => (

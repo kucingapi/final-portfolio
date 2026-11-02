@@ -20,6 +20,10 @@ const nextConfig: NextConfig = {
   partialPrefetching: true,
   // The PDF renderer loads fonts and layout code at runtime; keep it out of the server bundle.
   serverExternalPackages: ["@react-pdf/renderer"],
+  // The portfolio PDF reads its font and the site's images from disk.
+  outputFileTracingIncludes: {
+    "/api/portfolio": ["./src/lib/portfolio/fonts/*", "./public/projects/**/*", "./public/figma/hero/photo-main.jpg"],
+  },
   turbopack: {
     rules: {
       "*.css": {

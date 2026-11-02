@@ -19,7 +19,7 @@ const GUIDE = `How to tailor:
 - Read the job description, then pick what proves fit. Lead with impact: results and numbers first.
 - The CV must be exactly 2 pages: preview_cv reports the page count; trim bullets or entries until it is 2.
 - Only pick, order and choose between existing lines (entry ids, bullet ids, allowed titles, skill group ids). Never invent facts; free text is limited to "headline" and "summary", and those must stay true to the master CV.
-- "projects" orders the site's projects page for this visitor (lead with the most relevant); "mode" sets which way the site opens (fulltime for employers, freelance for clients).
+- "projects" orders the site's projects page for this visitor (lead with the most relevant), and its first three are the three projects in the portfolio PDF deck. "mode" sets which way the site opens (fulltime for employers, freelance for clients).
 - The label is private (e.g. "Acme, Senior Frontend, 2026-11"); the visitor never sees it.`;
 
 const slugs = projects.map((p) => p.slug);
@@ -31,6 +31,7 @@ function links(origin: string, code: string) {
     site: `${origin}/?v=${code}`,
     cv: `${origin}/cv?v=${code}`,
     pdf: `${origin}/api/cv?v=${code}&download=1`,
+    portfolio: `${origin}/api/portfolio?v=${code}&download=1`,
   };
 }
 
@@ -92,7 +93,7 @@ function buildServer(origin: string) {
     {
       title: "Save a CV variant",
       description:
-        "Create a variant (omit code) or replace one (pass its code). Refuses invalid ids. Returns the code, the links to send (site, CV page, PDF) and the page count.",
+        "Create a variant (omit code) or replace one (pass its code). Refuses invalid ids. Returns the code, the links to send (site, CV page, CV PDF, portfolio PDF) and the page count.",
       inputSchema: {
         label: z.string().trim().min(1).max(120).describe("Private note: who this is for."),
         variant: variantSchema,

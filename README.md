@@ -41,7 +41,9 @@ The master CV is `src/content/cv.ts`: every role, project and bullet, longer tha
 tags and a weight. A **variant** picks, orders and titles lines from it for one application (`src/lib/cv/schema.ts`), and
 is stored under a random code. A link like `/?v=k7qx2pmd` applies it: the code leaves the address bar at once, the
 variant is kept in the visitor's localStorage, the projects page leads with its projects, the mode can switch, and
-`/cv` plus its PDF (`/api/cv`) show the tailored two-page CV. The private label (who it was for) never leaves the server.
+`/cv` plus its PDF (`/api/cv`) show the tailored two-page CV. The portfolio deck (`/api/portfolio`, a 16:9 PDF
+built in `src/lib/portfolio/`) shows the variant's first three projects. The private label (who it was for) never leaves
+the server.
 
 - Storage: Upstash Redis (`KV_REST_API_URL`, `KV_REST_API_TOKEN`, as Vercel's Upstash integration sets them). Without
   them, development keeps variants in `.data/cv-variants.json`.

@@ -1,7 +1,7 @@
 "use client";
 
 import { useVariant } from "./Variant";
-import { track } from "@/lib/analytics";
+import { Downloads } from "./Downloads";
 import { resolveCv, type ResolvedEntry } from "@/lib/cv/variant";
 
 /**
@@ -38,22 +38,12 @@ function Entry({ e }: { e: ResolvedEntry }) {
 export function CvSheet() {
   const { current, loading } = useVariant();
   const cv = resolveCv(current?.variant);
-  const pdf = `/api/cv?download=1${current ? `&v=${current.code}` : ""}`;
 
   return (
     <div className="flex flex-col gap-32 max-md:gap-20">
       <div className="flex items-center justify-between gap-24 max-md:flex-col max-md:items-start">
-        <p className="text-lead text-midnight-100">Two pages as a PDF, with every word readable by applicant tracking systems.</p>
-        <a
-          href={pdf}
-          onClick={() => track("cv_downloaded", { tailored: Boolean(current) })}
-          className="inline-flex shrink-0 items-center gap-12 rounded-full bg-midnight-50 px-28 py-12 text-lead font-semibold text-midnight-950 transition-colors hover:bg-white"
-        >
-          Download PDF
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden className="size-20">
-            <path d="M12 4v12m0 0-5-5m5 5 5-5M5 20h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </a>
+        <p className="text-lead text-midnight-100">Two pages as a PDF, with every word readable by applicant tracking systems, and a portfolio deck of three projects.</p>
+        <Downloads className="shrink-0" />
       </div>
 
       <article
