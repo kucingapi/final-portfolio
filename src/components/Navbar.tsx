@@ -284,19 +284,21 @@ export function Navbar() {
           The panel spans the full viewport on any screen width (the SVG stretches freely). On desktop it
           also runs 200px higher than the Figma one so the tilt never shows its top corners on wide screens,
           and 80px lower so the links clear the navbar sitting on top. Its bottom edge sits 80px below
-          Figma's (100px on phones) so a fourth link, Projects, fits.
+          Figma's (100px on phones) so a fourth link, Projects, fits. On phones only the panel's low left end
+          shows, so it starts higher there and runs taller, keeping the tilted top edge above the navbar.
+          GSAP slides an inner layer, never this one: it folds any CSS translate it finds into its own
+          transform, and if the stylesheet is late it reads none and the panel stays off-centre.
         */}
-        <div
-          data-menu-panel
-          className="absolute -top-341 left-1/2 h-1088 w-[max(calc(var(--s)*1569),calc(100vw+var(--s)*160))] -translate-x-1/2 drop-shadow-[0_calc(var(--s)*24)_calc(var(--s)*48)_rgb(1_3_38/0.5)] max-md:-top-60 max-md:-left-83 max-md:h-700 max-md:w-1569 max-md:translate-x-0"
-        >
-          <Image
-            src="/figma/nav/panel.svg"
-            alt=""
-            width={1523}
-            height={597}
-            className="absolute top-1/2 left-1/2 h-957 w-[calc(100%-var(--s)*46)] max-w-none -translate-x-1/2 -translate-y-1/2 -rotate-5 max-md:h-600"
-          />
+        <div className="absolute -top-341 left-1/2 h-1088 w-[max(calc(var(--s)*1569),calc(100vw+var(--s)*160))] -translate-x-1/2 drop-shadow-[0_calc(var(--s)*24)_calc(var(--s)*48)_rgb(1_3_38/0.5)] max-md:-top-130 max-md:-left-83 max-md:h-770 max-md:w-1569 max-md:translate-x-0">
+          <div data-menu-panel className="absolute inset-0">
+            <Image
+              src="/figma/nav/panel.svg"
+              alt=""
+              width={1523}
+              height={597}
+              className="absolute top-1/2 left-1/2 h-957 w-[calc(100%-var(--s)*46)] max-w-none -translate-x-1/2 -translate-y-1/2 -rotate-5 max-md:h-700"
+            />
+          </div>
         </div>
 
         {/* Links and contact keep their Figma spots inside a centred 1440 frame, in line with the navbar. */}
@@ -330,15 +332,15 @@ export function Navbar() {
             </ul>
           </nav>
 
-          <div
-            data-menu-contact
-            className="absolute top-322 left-1046 origin-top-left -rotate-5 text-white max-md:top-462 max-md:left-34 max-md:rotate-0"
-          >
-            <p className="text-h4 font-semibold">Get in touch</p>
-            <div className="mt-21 flex flex-col gap-11 text-lead font-semibold max-md:mt-12">
-              <a href={mailHref} className="hover:underline">
-                {site.email}
-              </a>
+          <div className="absolute top-322 left-1046 origin-top-left -rotate-5 text-white max-md:top-462 max-md:left-34 max-md:rotate-0">
+            {/* Animated on its own layer, so GSAP never takes over the tilt above. */}
+            <div data-menu-contact>
+              <p className="text-h4 font-semibold">Get in touch</p>
+              <div className="mt-21 flex flex-col gap-11 text-lead font-semibold max-md:mt-12">
+                <a href={mailHref} className="hover:underline">
+                  {site.email}
+                </a>
+              </div>
             </div>
           </div>
         </div>
