@@ -296,15 +296,9 @@ export const cvEntries: CvEntry[] = [
       },
       {
         id: "payroll-cost",
-        text: "Cost the client 99% less than a year on the vendor's replacement platform (Rp 40 million a month), and the client owns the code.",
+        text: "Cost the client 99% less than a year on the vendor's replacement platform, and the client owns the code.",
         tags: ["client"],
         weight: 3,
-      },
-      {
-        id: "payroll-size",
-        text: "Shrank the app from my first 210 MB build to a single 39 MB .exe the payroll staff double-click, by cutting libraries it never used.",
-        tags: ["desktop", "performance"],
-        weight: 1,
       },
     ],
   },
@@ -346,14 +340,14 @@ export const cvEntries: CvEntry[] = [
     weight: 3,
     bullets: [
       {
-        id: "bs-impact",
-        text: "Designed and built the offline desktop app a neighbourhood waste bank runs on: 7.4+ tonnes of waste weighed in and Rp 11.9 million paid out to 152 residents so far.",
+        id: "bs-payout",
+        text: "Designed and built the offline desktop app a neighbourhood waste bank runs on, cutting its twice-yearly payout from weeks of going page by page through spreadsheets, with prices changing every collection, to seconds.",
         tags: ["desktop", "product"],
         weight: 3,
       },
       {
-        id: "bs-payout",
-        text: "Cut the twice-yearly payout from weeks of going page by page through spreadsheets, with prices changing every collection, to seconds: what each resident is owed is worked out from every recorded deposit.",
+        id: "bs-impact",
+        text: "7.4+ tonnes of waste weighed in through it from 152 residents so far.",
         tags: ["desktop", "product"],
         weight: 2,
       },

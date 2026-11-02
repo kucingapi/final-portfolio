@@ -548,9 +548,9 @@ export const projects: Project[] = [
     tag: "Side project · Desktop app",
     year: "2026",
     kind: "Desktop app",
-    stat: { value: "7.4+ t", label: "of residents' waste weighed through it" },
+    stat: { value: "Seconds", label: "instead of weeks to work out each payout" },
     summary:
-      "An offline desktop app that runs a neighbourhood waste bank: weigh in residents' recyclables, pay them for it, and sell the sorted material on. More than 7.4 tonnes of waste have gone through it so far.",
+      "An offline desktop app that runs a neighbourhood waste bank and works out every resident's payout in seconds, where the volunteers used to spend weeks going page by page through spreadsheets. More than 7.4 tonnes of waste have gone through it so far.",
     stack: ["Tauri", "Rust", "React", "TypeScript", "SQLite", "Tailwind", "shadcn/ui", "Cloudflare Pages"],
     intro: [
       "A bank sampah, a waste bank, is how many Indonesian neighbourhoods recycle. On collection days residents bring sorted waste, volunteers weigh it by category and credit each person at that day's price, and the material is later sold on to collectors at a higher one.",
@@ -601,7 +601,7 @@ export const projects: Project[] = [
           "Backups to a cloud database (Turso) and CSV exports, both from the settings page.",
         ],
         result:
-          "It has been in use since March 2026, and more than 7.4 tonnes of residents' waste have been weighed through it. Its September backup held 10 collection sessions, 407 deposits with 3,449 weighed items, and Rp 11.9 million paid out to 152 residents.",
+          "It has been in use since March 2026, and more than 7.4 tonnes of residents' waste have been weighed through it. Its September backup held 10 collection sessions and 407 deposits from 152 residents, with 3,449 weighed items.",
         figure: { to: "7.4+ tonnes", label: "of residents' recyclables weighed in since March 2026" },
       },
     ],
@@ -624,7 +624,7 @@ export const projects: Project[] = [
     intro: [
       "In 2025 Indonesia moved withholding-tax reporting to e-Bupot, with its own spreadsheet formats for the upload: BPMP for each month's PPh 21 slip and BPA1 for the yearly 1721-A1.",
       "The client is a group of companies whose payroll lives in an old Microsoft Access program. Its exports did not match the new formats, so each period someone went through the database sub-company by sub-company, found every employee's figures by hand and retyped them: 2 to 3 days of work.",
-      "The program's vendor offered a way out: move to its new platform, at Rp 5,000 per user each month. For about 8,000 people, that was Rp 40 million every month.",
+      "The program's vendor offered a way out: move to its new platform, with a fee for every user, every month.",
     ],
     part: [
       "I built it in March 2025: the first working version, both forms, in a day, then refinements over the next three weeks. It ships as a single .exe the payroll staff run on their own machine.",
@@ -648,14 +648,14 @@ export const projects: Project[] = [
         id: "cost",
         title: "99% cheaper than renting it",
         problem:
-          "The vendor's new platform would have charged Rp 5,000 per user per month. With about 8,000 people on payroll, that was Rp 40 million every month, Rp 480 million a year, for a job that comes down to reshaping one export into two upload files.",
+          "The vendor's new platform charged a monthly fee for every person on payroll, which across the whole group added up to a large bill every month, for a job that comes down to reshaping one export into two upload files.",
         did: [
           "Scoped the tool to exactly that job: read the payroll the client already has, write the two e-Bupot forms.",
           "Built it to run on the payroll staff's own machine, with no server, subscription or per-user fee.",
           "Handed over the code with the tool, so the client owns both.",
         ],
-        result: "The client paid about Rp 3 million once: 99% less than a year on the vendor's platform, and nothing to pay after.",
-        figure: { to: "99%", label: "less than a year on the vendor's platform: Rp 3 million once, against Rp 40 million a month." },
+        result: "The client paid once: 99% less than a year on the vendor's platform, and nothing to pay after.",
+        figure: { to: "99%", label: "less than a year on the vendor's platform, paid once instead of every month" },
       },
       {
         id: "write",
@@ -678,8 +678,7 @@ export const projects: Project[] = [
           "Left out the heavy libraries the tool never uses, then wrote a version without pandas.",
           "Tried a Rust port with iced for a smaller native binary; the trimmed Python build was the one that shipped.",
         ],
-        result: "My first build was 210 MB; trimmed, the app shipped as a single 39 MB .exe.",
-        figure: { from: "210 MB", to: "39 MB", label: "the app, from my first build to the one that shipped" },
+        result: "The payroll staff got a single .exe they double-click, with nothing else to install.",
       },
     ],
   },
