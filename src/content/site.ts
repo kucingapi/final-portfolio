@@ -145,7 +145,7 @@ export type CareerRole = {
 /** The home page's Career section, shown in Full-time mode. Newest first. */
 export const career: CareerRole[] = [
   {
-    period: "Apr 2024 – Present",
+    period: "Apr 2024 – Oct 2026",
     role: "Software Engineer",
     org: "Multimodal",
     place: "New York, remote",
@@ -206,7 +206,7 @@ export const careerDetail: { id: string; heading: string; roles: CareerRole[] }[
     heading: "Work",
     roles: [
       {
-        period: "Apr 2024 – Present",
+        period: "Apr 2024 – Oct 2026",
         role: "Software Engineer",
         org: "Multimodal",
         place: "New York, remote",

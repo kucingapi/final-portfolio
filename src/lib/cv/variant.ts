@@ -74,15 +74,20 @@ export type ResolvedCv = {
   name: string;
   headline: string;
   location: string;
-  email: string;
+  /** False when the variant hides contact details: no email, and the site is the only link. */
+  contact: boolean;
+  email?: string;
   links: { label: string; href: string }[];
   summary?: string;
   sections: ResolvedSection[];
   skills: CvSkillGroup[];
 };
 
-/** Turn a variant into the CV it describes. Unknown ids are skipped, not fatal. */
-export function resolveCv(v: Variant = {}): ResolvedCv {
+/**
+ * Turn a variant into the CV it describes. Unknown ids are skipped, not fatal. With the variant's `code`,
+ * the site link carries it, so a reader who clicks it lands on the site tailored for them.
+ */
+export function resolveCv(v: Variant = {}, code?: string): ResolvedCv {
   const chosen = v.entries
     ? v.entries.map(getCvEntry).filter((e): e is CvEntry => Boolean(e))
     : cvEntries.filter((e) => e.weight >= 2);
@@ -109,12 +114,15 @@ export function resolveCv(v: Variant = {}): ResolvedCv {
     return items ? { ...g, items } : g;
   });
   const summary = v.summary ?? cvSummaries.find((s) => s.id === v.summaryId)?.text ?? cvSummaries[0].text;
+  const contact = v.contact ?? true;
+  const site = code ? { ...cvHeader.site, href: `${cvHeader.site.href}/?v=${code}` } : cvHeader.site;
   return {
     name: cvHeader.name,
     headline: v.headline ?? cvHeader.headlines[0],
     location: cvHeader.location,
-    email: cvHeader.email,
-    links: cvHeader.links,
+    contact,
+    email: contact ? cvHeader.email : undefined,
+    links: contact ? [site, ...cvHeader.links] : [site],
     summary,
     sections,
     skills,
@@ -139,7 +147,7 @@ export function masterCv(): ResolvedCv {
 
 /** Plain-text rendering, for agents to read what a variant produces. */
 export function cvToText(cv: ResolvedCv): string {
-  const lines = [cv.name, cv.headline, [cv.location, cv.email, ...cv.links.map((l) => l.label)].join(" | "), ""];
+  const lines = [cv.name, cv.headline, [cv.location, cv.email, ...cv.links.map((l) => l.label)].filter(Boolean).join(" | "), ""];
   if (cv.summary) lines.push(cv.summary, "");
   for (const s of cv.sections) {
     lines.push(s.title.toUpperCase());

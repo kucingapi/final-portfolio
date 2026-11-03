@@ -51,7 +51,7 @@ function Entry({ e }: { e: ResolvedEntry }) {
 
 export function CvSheet() {
   const { current, loading } = useVariant();
-  const cv = resolveCv(current?.variant);
+  const cv = resolveCv(current?.variant, current?.code);
 
   return (
     <div className="flex flex-col gap-32 max-md:gap-20">
@@ -71,7 +71,8 @@ export function CvSheet() {
           <h2 className="text-[max(22px,calc(var(--s)*28))] leading-[1.15] font-bold">{cv.name}</h2>
           <p className="text-[max(15px,calc(var(--s)*17))]">{cv.headline}</p>
           <p className="text-[#444]">
-            {cv.location} | {cv.email}
+            {cv.location}
+            {cv.email && ` | ${cv.email}`}
             {cv.links.map((l) => (
               <span key={l.href}>
                 {" | "}
