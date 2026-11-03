@@ -51,7 +51,7 @@ function Entry({ e }: { e: ResolvedEntry }) {
 
 export function CvSheet() {
   const { current, loading } = useVariant();
-  const cv = resolveCv(current?.variant);
+  const cv = resolveCv(current?.variant, current?.code);
 
   return (
     <div className="flex flex-col gap-32 max-md:gap-20">

@@ -83,8 +83,11 @@ export type ResolvedCv = {
   skills: CvSkillGroup[];
 };
 
-/** Turn a variant into the CV it describes. Unknown ids are skipped, not fatal. */
-export function resolveCv(v: Variant = {}): ResolvedCv {
+/**
+ * Turn a variant into the CV it describes. Unknown ids are skipped, not fatal. With the variant's `code`,
+ * the site link carries it, so a reader who clicks it lands on the site tailored for them.
+ */
+export function resolveCv(v: Variant = {}, code?: string): ResolvedCv {
   const chosen = v.entries
     ? v.entries.map(getCvEntry).filter((e): e is CvEntry => Boolean(e))
     : cvEntries.filter((e) => e.weight >= 2);
@@ -112,13 +115,14 @@ export function resolveCv(v: Variant = {}): ResolvedCv {
   });
   const summary = v.summary ?? cvSummaries.find((s) => s.id === v.summaryId)?.text ?? cvSummaries[0].text;
   const contact = v.contact ?? true;
+  const site = code ? { ...cvHeader.site, href: `${cvHeader.site.href}/?v=${code}` } : cvHeader.site;
   return {
     name: cvHeader.name,
     headline: v.headline ?? cvHeader.headlines[0],
     location: cvHeader.location,
     contact,
     email: contact ? cvHeader.email : undefined,
-    links: contact ? [cvHeader.site, ...cvHeader.links] : [cvHeader.site],
+    links: contact ? [site, ...cvHeader.links] : [site],
     summary,
     sections,
     skills,
