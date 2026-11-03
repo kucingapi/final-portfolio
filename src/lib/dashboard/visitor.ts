@@ -1,4 +1,5 @@
 import { userAgent } from "next/server";
+import { report } from "./activity";
 import type { Click, Device } from "./links";
 
 /**
@@ -78,4 +79,11 @@ function referrerHost(request: Request) {
 export function describeClick(request: Request): Click {
   const country = request.headers.get("x-vercel-ip-country") ?? undefined;
   return { at: new Date().toISOString(), country, referrer: referrerHost(request), device: device(request) };
+}
+
+/** A tailored link's CV or portfolio PDF was fetched: on to the feed and the phone, unless a bot fetched it. */
+export async function reportDownload(request: Request, row: { code: string; label: string }, kind: "cv" | "portfolio") {
+  if (isPreview(request)) return;
+  const { at, country, device } = describeClick(request);
+  await report({ kind, ref: `cv:${row.code}`, name: row.label, at, country, device });
 }

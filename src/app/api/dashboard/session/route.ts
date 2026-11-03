@@ -1,10 +1,15 @@
-import { sessionCookie, signedIn, signIn } from "@/lib/dashboard/auth";
+import { renewSession, sessionCookie, signIn } from "@/lib/dashboard/auth";
 
 const noStore = { "Cache-Control": "no-store" };
 
-/** Whether this browser is signed in (the sign-in form asks, in case a cross-site visit hid the cookie). */
+/**
+ * Whether this browser is signed in (the sign-in form asks, in case a cross-site visit hid the cookie).
+ * The dashboard asks on every open, and a signed-in browser gets a fresh week each time.
+ */
 export async function GET(request: Request) {
-  return Response.json({ signedIn: signedIn(request) }, { headers: noStore });
+  const token = await renewSession(request);
+  if (!token) return Response.json({ signedIn: false }, { headers: noStore });
+  return Response.json({ signedIn: true }, { headers: { ...noStore, "Set-Cookie": sessionCookie(request, token) } });
 }
 
 /** Sign in with an authenticator code: `{ "code": "123456" }`. */

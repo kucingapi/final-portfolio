@@ -1,19 +1,54 @@
 # Freelance dashboard: decisions
 
 A private page on the portfolio for Novel only: short links with click analytics, every tailored CV link in the
-same list, and each project exported in the shape Upwork and Contra ask for. Decided 2026-11-03.
+same list, and each project exported in the shape Upwork and Contra ask for. Decided 2026-11-03; on the same day,
+setup moved to the live site, and the dashboard became an app for his phone with notifications and a new UI.
 
 ## Access
 
-- **Authenticator code only** (TOTP, RFC 6238: 6 digits, 30 s step, SHA-1, so Google Authenticator, 1Password and
-  Authy all work). The secret lives in an env var (`DASHBOARD_TOTP_SECRET`); there are no users or passwords.
-- A one-time setup page shows the QR code while no secret is set, and only on localhost.
-- **Rate limiting** in Upstash, because a 6-digit code alone can be brute-forced: 5 wrong codes lock sign-in for
-  15 minutes, and a code that worked once is refused if it is used again in the same window.
-- **Session: 7 days on that device.** An httpOnly, Secure, SameSite=Strict cookie, signed with a key derived from the
-  TOTP secret, so replacing the secret signs every device out. There is also a sign-out button.
-- **Lost phone:** generate a new secret, put it in Vercel's env, and redeploy. No recovery codes.
-- The dashboard is `noindex` and is left out of the sitemap. Its API routes check the session cookie on every call.
+- **Authenticator code only** (TOTP, RFC 6238: 6 digits, 30 s step, SHA-1, so Google Authenticator, 1Password,
+  Apple Passwords and Authy all work). There are no users or passwords. The secret is made by the setup page and kept
+  in Upstash; `DASHBOARD_TOTP_SECRET`, when set, fixes it instead and the setup page refuses to replace it.
+- **Setup happens on the live site, through an emailed link.** While no secret exists, `/dashboard` offers to email a
+  one-time link (15 minutes, works once) to the contact form's inbox (`CONTACT_TO_EMAIL`, else `site.email`) through
+  Resend, with the same key as the contact form. Anyone can ask; only the inbox gets the link. At most 5 links an hour.
+- **The link's page shows nothing secret until "Continue" is tapped**, because mail scanners open links to check them.
+  Then it shows an "Add to authenticator app" button on a phone (`otpauth://`), the QR code on a computer, and the key
+  to type. The first 6-digit code from the app confirms it; only then does the new secret replace the old one.
+- **The emailed address never comes from the request.** A forged Host or X-Forwarded-Host could aim the link at
+  another site and hand it the token, so production uses `NEXT_PUBLIC_SITE_URL` (else `VERCEL_PROJECT_PRODUCTION_URL`),
+  a preview its own `VERCEL_BRANCH_URL`, and only local development the request's origin. Tokens are stored hashed.
+- **Rate limiting** in Upstash, because a 6-digit code alone can be brute-forced: 5 wrong codes lock sign-in (and
+  setup) for 15 minutes, and a code that worked once is refused if it is used again in the same window.
+- **Session: a week after the last visit.** An httpOnly, Secure, SameSite=Strict cookie, signed with a key derived
+  from the TOTP secret, so replacing the secret signs every device out. Opening the dashboard renews it.
+- **Lost phone:** "Lost your phone?" on the sign-in screen, or Settings → "Email a reset link", sends the same kind of
+  link. Finishing it replaces the secret and signs out every device. No recovery codes.
+- The dashboard is `noindex`, left out of the sitemap and out of PostHog (its links carry a token). Its API routes
+  check the session cookie on every call.
+
+## On the phone: an app with notifications
+
+- **Installable.** `/dashboard` links its own manifest (opens at `/dashboard`, full screen, the N and full stop on
+  midnight as its icon). The site's pages have none, so only the dashboard installs. On iPhone: Safari → Share → Add to
+  Home Screen. The installed app keeps its own cookies, so it signs in once on its own.
+- **Notifications** (Web Push): a short-link click, a tailored CV link opened, a CV or portfolio PDF downloaded. Each
+  kind can be switched off in Settings, each device turned off, and a test sent. One ping per link a minute at most;
+  the feed still gets every event. Link previews, bots and the `nb_test` browser never ping. iPhone needs iOS 16.4 or
+  later and the Home Screen app; Chrome, Edge, Firefox and Safari on a computer work in the browser.
+- **Nothing to configure:** the VAPID keys are made on first use and kept in Upstash, beside the devices and switches.
+- **Activity feed:** the 300 most recent events across all links, grouped by day, newest first. A notification opens
+  the link it is about (`/dashboard?link=go:<name>`).
+
+## The interface
+
+- Its own app shell, without the portfolio's navbar, page transition, smooth scroll or analytics: the site's chrome
+  lives in `src/app/(site)/layout.tsx` (a route group, so no URL changed) and the dashboard sits outside it.
+- A tab bar on a phone (Activity, Links, Projects, Settings), a sidebar from 1024 px. A link opens in a panel that
+  rises from the bottom on a phone (drag it down to close) and slides in from the right on a computer.
+- The site's world (midnight palette, Cabin), on shadcn-style components (Radix, `cva`, lucide icons, sonner) in
+  `src/components/dashboard/ui`. Their colour names and a plain rem scale apply only on dashboard pages, through
+  `html:has(.dash)` in `globals.css`, so the site's design-pixel canvas is untouched.
 
 ## Short links
 
@@ -59,10 +94,14 @@ Neither platform can import a file, so the export is copy-ready fields plus the 
 
 | What | Where |
 |---|---|
-| Page and sign-in gate | `src/app/dashboard/page.tsx`, `src/components/dashboard/*` |
-| One-time setup (QR code) | `src/app/dashboard/setup/page.tsx` |
+| Page and sign-in gate | `src/app/dashboard/page.tsx`; the app shell is `src/components/dashboard/App.tsx` |
+| Setup and reset links (email, reveal, confirm) | `src/lib/dashboard/setup.ts`, `/api/dashboard/setup-link`, `/api/dashboard/setup`, page `src/app/dashboard/setup/page.tsx` |
 | TOTP, session cookie, rate limit and replay | `src/lib/dashboard/totp.ts`, `src/lib/dashboard/auth.ts` |
-| Sign in and out | `POST` / `DELETE /api/dashboard/session` |
+| Sign in, renew and out | `POST` / `GET` / `DELETE /api/dashboard/session` |
+| The dashboard's own records in Upstash (`.data/dashboard.json` in development) | `src/lib/dashboard/state.ts` |
+| Activity feed and what pings | `src/lib/dashboard/activity.ts`, `/api/dashboard/activity` |
+| Push: keys, devices, switches, sending | `src/lib/dashboard/push.ts`, `/api/dashboard/push`, `/api/dashboard/push/test`; worker `public/dashboard-sw.js` |
+| Install: manifest and icons | `src/app/dashboard/manifest.webmanifest/route.ts`, `public/dashboard/` |
 | Short links and their clicks | `src/lib/dashboard/links.ts`, `/api/dashboard/links`, `/api/dashboard/links/<name>` |
 | The redirect | `src/app/go/[name]/route.ts`; previews are told apart in `src/lib/dashboard/visitor.ts` |
 | Project export | `src/lib/dashboard/export.ts`; images zip at `/api/dashboard/projects/<slug>` |

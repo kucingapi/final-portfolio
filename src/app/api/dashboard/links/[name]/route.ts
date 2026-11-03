@@ -6,7 +6,7 @@ const notFound = () => Response.json({ error: "No such link." }, { status: 404, 
 
 /** One link with its stats and its most recent clicks. */
 export async function GET(request: Request, ctx: RouteContext<"/api/dashboard/links/[name]">) {
-  if (!signedIn(request)) return unauthorized();
+  if (!(await signedIn(request))) return unauthorized();
   const { name } = await ctx.params;
   const link = await getLink(name);
   if (!link) return notFound();
@@ -16,7 +16,7 @@ export async function GET(request: Request, ctx: RouteContext<"/api/dashboard/li
 
 /** Change the destination or the note: `{ url?, note? }`. */
 export async function PATCH(request: Request, ctx: RouteContext<"/api/dashboard/links/[name]">) {
-  if (!signedIn(request)) return unauthorized();
+  if (!(await signedIn(request))) return unauthorized();
   const { name } = await ctx.params;
   if (!(await getLink(name))) return notFound();
   const body = await request.json().catch(() => null);
@@ -32,7 +32,7 @@ export async function PATCH(request: Request, ctx: RouteContext<"/api/dashboard/
 }
 
 export async function DELETE(request: Request, ctx: RouteContext<"/api/dashboard/links/[name]">) {
-  if (!signedIn(request)) return unauthorized();
+  if (!(await signedIn(request))) return unauthorized();
   const { name } = await ctx.params;
   return (await deleteLink(name)) ? Response.json({ ok: true }, { headers: noStore }) : notFound();
 }

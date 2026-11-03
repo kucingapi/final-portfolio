@@ -2,6 +2,7 @@ import { renderPortfolioPdf } from "@/lib/portfolio/pdf";
 import { after } from "next/server";
 import { fromTester, getVariant, recordActivity } from "@/lib/cv/store";
 import { resolveCv } from "@/lib/cv/variant";
+import { reportDownload } from "@/lib/dashboard/visitor";
 
 /**
  * The portfolio as a PDF deck: three projects, the first three in the variant's order. `?v=<code>`
@@ -11,7 +12,7 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const code = url.searchParams.get("v");
   const row = code ? await getVariant(code) : null;
-  if (row && !fromTester(request)) after(() => recordActivity(row.code, "portfolio"));
+  if (row && !fromTester(request)) after(() => Promise.all([recordActivity(row.code, "portfolio"), reportDownload(request, row, "portfolio")]));
   const origin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || url.origin;
   const { pdf, pages, expected } = await renderPortfolioPdf({
     cv: resolveCv(row?.variant),

@@ -67,9 +67,12 @@ the server.
 and each project as Upwork's and Contra's portfolio forms ask for it. Decisions and the reasons behind them are in
 [DASHBOARD.md](DASHBOARD.md).
 
-- Sign-in is an authenticator code (TOTP). With `DASHBOARD_TOTP_SECRET` unset, open
-  `http://localhost:3000/dashboard/setup`, scan the QR code, and put the secret in `.env.local` and in Vercel's
-  environment variables. Five wrong codes lock sign-in for 15 minutes; a session lasts 7 days on that device.
+- Sign-in is an authenticator code (TOTP), set up on the live site: open `/dashboard`, have a one-time link emailed
+  to the contact form's inbox (Resend), and add the key it shows to your authenticator app. Locally, without
+  `RESEND_API_KEY`, the link is printed in the dev server's log instead. Five wrong codes lock sign-in for 15 minutes;
+  a session lasts a week after the last visit.
+- On a phone it installs as an app (iPhone: Share → Add to Home Screen) and can send a notification for each click,
+  CV link open and PDF download. Turn them on in Settings; there is nothing to configure on the server.
 - Short links are `/go/<name>` (a 302). Clicks from link previews, bots and your own browser (`?test=1`) aren't
   counted.
 - Project text comes from `src/content/projects.ts`; the export rules and the per-project overrides are in

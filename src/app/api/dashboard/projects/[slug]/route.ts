@@ -15,7 +15,7 @@ const MATTE = "#010326";
  * a high-quality JPEG at up to 2400 px on its long side.
  */
 export async function GET(request: Request, ctx: RouteContext<"/api/dashboard/projects/[slug]">) {
-  if (!signedIn(request)) return unauthorized();
+  if (!(await signedIn(request))) return unauthorized();
   const { slug } = await ctx.params;
   const project = getProject(slug);
   if (!project) return Response.json({ error: "No such project." }, { status: 404 });

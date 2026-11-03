@@ -1,23 +1,31 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { redis } from "@/lib/kv";
+import { getValue, setValue } from "./state";
 import { base32Decode, matchStep } from "./totp";
 
 /**
- * Sign-in for the dashboard: an authenticator code, no users or passwords. The TOTP secret is the
- * `DASHBOARD_TOTP_SECRET` env var; the session cookie is signed with a key derived from it, so a new
- * secret signs every device out. Server only.
+ * Sign-in for the dashboard: an authenticator code, no users or passwords. The TOTP secret is made by
+ * the setup page and kept in the store (or fixed by the `DASHBOARD_TOTP_SECRET` env var, which wins);
+ * the session cookie is signed with a key derived from it, so a new secret signs every device out.
+ * Server only.
  */
 
 export const SESSION_COOKIE = "nb_dash";
 export const SESSION_DAYS = 7;
 const MAX_FAILS = 5;
 const LOCK_SECONDS = 15 * 60;
+const SECRET_KEY = "dash:totp:secret";
 
-export function totpSecret(): Buffer | null {
-  const raw = process.env.DASHBOARD_TOTP_SECRET?.trim();
+const envSecret = () => process.env.DASHBOARD_TOTP_SECRET?.trim() || null;
+
+/** True when the env var fixes the secret, so the setup page can't replace it. */
+export const secretInEnv = () => Boolean(envSecret());
+
+export async function totpSecret(): Promise<Buffer | null> {
+  const raw = envSecret() ?? (await getValue<string>(SECRET_KEY));
   if (!raw) return null;
   const secret = base32Decode(raw);
-  if (secret.length < 10) throw new Error("DASHBOARD_TOTP_SECRET is too short: use at least 16 base32 characters.");
+  if (secret.length < 10) throw new Error("The dashboard's TOTP secret is too short: use at least 16 base32 characters.");
   return secret;
 }
 
@@ -32,9 +40,10 @@ export function newSessionToken(secret: Buffer, now = Date.now()) {
   return `${payload}.${sign(secret, payload)}`;
 }
 
-export function validSession(token: string | undefined, now = Date.now()) {
-  const secret = totpSecret();
-  if (!secret || !token) return false;
+export async function validSession(token: string | undefined, now = Date.now()) {
+  if (!token) return false;
+  const secret = await totpSecret();
+  if (!secret) return false;
   const match = /^(v1\.(\d+))\.([\w-]+)$/.exec(token);
   if (!match || Number(match[2]) < now) return false;
   const expected = Buffer.from(sign(secret, match[1]));
@@ -51,6 +60,13 @@ const readCookie = (request: Request, name: string) =>
 
 /** For route handlers: is this request from a signed-in browser? */
 export const signedIn = (request: Request) => validSession(readCookie(request, SESSION_COOKIE));
+
+/** A fresh session token for a browser that is signed in, so a week counts from its last visit. */
+export async function renewSession(request: Request) {
+  if (!(await signedIn(request))) return null;
+  const secret = await totpSecret();
+  return secret ? newSessionToken(secret) : null;
+}
 
 export const unauthorized = () =>
   Response.json({ error: "Sign in first." }, { status: 401, headers: { "Cache-Control": "no-store" } });
@@ -81,6 +97,8 @@ type Limits = {
   /** Claims the step; false if it, or a later one, was already used. */
   claim(step: number): Promise<boolean>;
   reset(): Promise<void>;
+  /** A new secret: forget the old one's used steps and claim this first code's. */
+  restart(step: number): Promise<void>;
 };
 
 const K = { fails: "dash:signin:fails", lock: "dash:signin:lock", last: "dash:signin:last", step: (s: number) => `dash:signin:step:${s}` };
@@ -109,6 +127,11 @@ const redisLimits = (r: NonNullable<typeof redis>): Limits => ({
   async reset() {
     await r.del(K.fails);
   },
+  async restart(step) {
+    await r.set(K.step(step), 1, { ex: 120 });
+    await r.set(K.last, step, { ex: 86_400 });
+    await r.del(K.fails);
+  },
 });
 
 /** Development without Redis: the same rules, kept in memory for as long as the dev server runs. */
@@ -135,6 +158,10 @@ const memoryLimits: Limits = {
   async reset() {
     memory.fails = 0;
   },
+  async restart(step) {
+    memory.last = step;
+    memory.fails = 0;
+  },
 };
 
 function limits(): Limits {
@@ -147,19 +174,42 @@ function limits(): Limits {
 
 export type SignInResult = { ok: true; token: string } | { ok: false; error: string; status: number };
 
+const lockedOut = (seconds: number): SignInResult => ({
+  ok: false,
+  error: `Too many wrong codes. Try again in ${Math.ceil(seconds / 60)} min.`,
+  status: 429,
+});
+
 export async function signIn(code: string): Promise<SignInResult> {
-  const secret = totpSecret();
-  if (!secret) return { ok: false, error: "The dashboard has no TOTP secret yet.", status: 503 };
+  const secret = await totpSecret();
+  if (!secret) return { ok: false, error: "The dashboard has no sign-in set up yet.", status: 503 };
   const store = limits();
   const locked = await store.lockedFor();
-  if (locked) {
-    return { ok: false, error: `Too many wrong codes. Try again in ${Math.ceil(locked / 60)} min.`, status: 429 };
-  }
+  if (locked) return lockedOut(locked);
   const step = matchStep(secret, code.replace(/\s/g, ""));
   if (step === null || !(await store.claim(step))) {
     await store.fail();
     return { ok: false, error: step === null ? "That code is wrong." : "That code was already used. Wait for the next one.", status: 401 };
   }
   await store.reset();
+  return { ok: true, token: newSessionToken(secret) };
+}
+
+/**
+ * Setup: the first code from a new secret proves the app holds it, and only then does the secret
+ * replace the old one (signing every device out). Wrong codes count toward the same lock as sign-in.
+ */
+export async function adoptSecret(base32: string, code: string): Promise<SignInResult> {
+  const store = limits();
+  const locked = await store.lockedFor();
+  if (locked) return lockedOut(locked);
+  const secret = base32Decode(base32);
+  const step = matchStep(secret, code.replace(/\s/g, ""));
+  if (step === null) {
+    await store.fail();
+    return { ok: false, error: "That code is wrong. Use the new entry in your authenticator app.", status: 401 };
+  }
+  await setValue(SECRET_KEY, base32);
+  await store.restart(step);
   return { ok: true, token: newSessionToken(secret) };
 }

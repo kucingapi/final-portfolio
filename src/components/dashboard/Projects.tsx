@@ -1,9 +1,11 @@
 "use client";
 
+import { Download } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import { CONTRA, UPWORK, type ProjectExport } from "@/lib/dashboard/export";
 import { CopyField, CopyList } from "./Copy";
+import { Button } from "./ui/button";
 
 /**
  * Each project as Upwork's and Contra's forms ask for it: copy-ready fields, read-only (they come from
@@ -14,74 +16,79 @@ export function Projects({ projects }: { projects: ProjectExport[] }) {
   const p = projects.find((x) => x.slug === slug);
 
   return (
-    <div className="flex flex-col gap-24">
-      <div className="flex flex-wrap gap-8">
+    <div className="flex flex-col gap-6">
+      <div role="group" aria-label="Project" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:px-0">
         {projects.map((x) => (
           <button
             key={x.slug}
+            type="button"
             onClick={() => setSlug(x.slug)}
             aria-pressed={x.slug === slug}
-            className={`rounded-xs px-12 py-4 text-chip ${x.slug === slug ? "bg-midnight-50 text-midnight-950" : "border border-midnight-900 hover:bg-midnight-900"}`}
+            className="h-9 shrink-0 rounded-full border border-border px-4 text-sm font-medium text-muted-foreground transition-colors duration-150 hover:bg-accent hover:text-foreground aria-pressed:border-transparent aria-pressed:bg-foreground aria-pressed:text-background"
           >
             {x.title}
           </button>
         ))}
       </div>
-      {p && <ProjectCard key={p.slug} p={p} />}
+      {p && <ProjectExportView key={p.slug} p={p} />}
     </div>
   );
 }
 
-function ProjectCard({ p }: { p: ProjectExport }) {
+function Part({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <article className="flex flex-col gap-32">
-      <header className="flex flex-wrap items-baseline justify-between gap-12">
-        <h2 className="text-lead font-semibold text-midnight-50">{p.title}</h2>
-        <span className="text-chip text-midnight-200">
-          Generated from src/content/projects.ts. To change a line, edit the project or src/lib/dashboard/export.ts.
-        </span>
-      </header>
+    <section className="flex flex-col gap-5">
+      <h2 className="text-base font-semibold text-foreground">{title}</h2>
+      {children}
+    </section>
+  );
+}
 
-      <section className="flex flex-col gap-12">
-        <div className="flex flex-wrap items-center justify-between gap-12">
-          <h3 className="font-semibold text-midnight-50">Images ({p.images.length})</h3>
-          {p.images.length > 0 && (
-            <a href={`/api/dashboard/projects/${p.slug}`} download className="rounded-xs bg-midnight-400 px-16 py-8 font-semibold text-midnight-950">
-              Download zip
-            </a>
-          )}
-        </div>
+function ProjectExportView({ p }: { p: ProjectExport }) {
+  return (
+    <article className="flex flex-col gap-10">
+      <p className="text-[0.8125rem] leading-relaxed text-muted-foreground">
+        Made from src/content/projects.ts. To change a line, edit the project or the rules in src/lib/dashboard/export.ts.
+      </p>
+
+      <Part title={`Images (${p.images.length})`}>
         {p.images.length ? (
-          <ol className="grid grid-cols-4 gap-12 max-md:grid-cols-2">
-            {p.images.map((img) => (
-              <li key={img.src} className="flex flex-col gap-4">
-                <div className="relative aspect-[4/3] overflow-hidden rounded-xs bg-base-900">
-                  <Image src={img.src} alt="" fill sizes="(max-width: 1023px) 45vw, 300px" className="object-contain" />
-                </div>
-                <span className="truncate text-chip text-midnight-200">
-                  {img.name} · {img.label}
-                </span>
-              </li>
-            ))}
-          </ol>
+          <>
+            <ol className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+              {p.images.map((img) => (
+                <li key={img.src} className="flex flex-col gap-1.5">
+                  <div className="relative aspect-[4/3] overflow-hidden rounded-lg border border-border bg-card">
+                    <Image src={img.src} alt="" fill sizes="(max-width: 1023px) 45vw, 180px" className="object-contain" />
+                  </div>
+                  <span className="truncate text-xs text-muted-foreground">
+                    {img.name} · {img.label}
+                  </span>
+                </li>
+              ))}
+            </ol>
+            <Button asChild variant="secondary" className="self-start">
+              <a href={`/api/dashboard/projects/${p.slug}`} download>
+                <Download />
+                Download all as a zip
+              </a>
+            </Button>
+          </>
         ) : (
-          <p className="text-chip text-midnight-200">No images: this project has no render, cover or chapter shots yet.</p>
+          <p className="text-sm text-muted-foreground">No images yet: this project has no render, cover or chapter shots.</p>
         )}
-      </section>
+      </Part>
 
-      <section className="flex flex-col gap-16">
-        <h3 className="font-semibold text-midnight-50">Upwork</h3>
+      <Part title="Upwork">
         <CopyField {...p.upwork.title} />
         <CopyField {...p.upwork.role} />
         <CopyField {...p.upwork.description} />
         <CopyList label="Skills (from the stack)" items={p.upwork.skills} limit={UPWORK.skills} />
-        <p className="text-chip text-midnight-200">Media: the zip above, in its order. The first image is the thumbnail.</p>
-      </section>
+        <p className="text-[0.8125rem] text-muted-foreground">Media: the zip above, in its order. The first image is the thumbnail.</p>
+      </Part>
 
-      <section className="flex flex-col gap-16">
-        <h3 className="font-semibold text-midnight-50">Contra</h3>
+      <Part title="Contra">
         <CopyField {...p.contra.link} />
-        <p className="-mt-8 text-chip text-midnight-200">
+        <p className="-mt-2 text-[0.8125rem] leading-relaxed text-muted-foreground">
           Contra&apos;s Portfolio Magic can build the project from this link. Or fill it in by hand:
         </p>
         <CopyField {...p.contra.title} />
@@ -89,8 +96,8 @@ function ProjectCard({ p }: { p: ProjectExport }) {
         <CopyList label="Roles" items={p.contra.roles} limit={CONTRA.roles} />
         <CopyList label="Tools" items={p.contra.tools} />
         <CopyField {...p.contra.duration} />
-        <p className="text-chip text-midnight-200">Cover image: 01 in the zip. Images: the rest, in order.</p>
-      </section>
+        <p className="text-[0.8125rem] text-muted-foreground">Cover image: 01 in the zip. Images: the rest, in order.</p>
+      </Part>
     </article>
   );
 }

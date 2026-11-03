@@ -9,7 +9,7 @@ const noStore = { "Cache-Control": "no-store" };
  * links with their opens and downloads. The CV links are read-only here; the `novel-cv` MCP edits them.
  */
 export async function GET(request: Request) {
-  if (!signedIn(request)) return unauthorized();
+  if (!(await signedIn(request))) return unauthorized();
   const [links, variants] = await Promise.all([listLinks(), listVariants()]);
   const [stats, activity] = await Promise.all([
     getStats(links.map((l) => l.name)),
@@ -32,7 +32,7 @@ export async function GET(request: Request) {
 
 /** A new short link: `{ name?, url, note? }`. A blank name gets a random code. */
 export async function POST(request: Request) {
-  if (!signedIn(request)) return unauthorized();
+  if (!(await signedIn(request))) return unauthorized();
   const body = await request.json().catch(() => null);
   if (typeof body?.url !== "string") return Response.json({ error: "A destination is required." }, { status: 400 });
   try {

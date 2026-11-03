@@ -9,8 +9,3 @@ export async function siteOrigin() {
   const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
   return `${proto}://${host}`;
 }
-
-export async function onLocalhost() {
-  const host = (await headers()).get("host") ?? "";
-  return /^(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/.test(host);
-}
