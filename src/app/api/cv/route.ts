@@ -16,7 +16,7 @@ export async function GET(request: Request) {
   if (row && !fromTester(request)) after(() => recordActivity(row.code, "cv"));
   const all = process.env.NODE_ENV === "development" && params.get("all");
   const origin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || url.origin;
-  const { pdf, pages } = await renderCvPdf(all ? masterCv() : resolveCv(row?.variant), origin);
+  const { pdf, pages } = await renderCvPdf(all ? masterCv() : resolveCv(row?.variant, row?.code), origin);
   const disposition = params.get("download") ? "attachment" : "inline";
   return new Response(pdf, {
     headers: {

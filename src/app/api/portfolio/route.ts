@@ -18,7 +18,7 @@ export async function GET(request: Request) {
   const project = slug && projects.some((p) => p.slug === slug) ? slug : undefined;
   const origin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || url.origin;
   const { pdf, pages, expected } = await renderPortfolioPdf({
-    cv: resolveCv(row?.variant),
+    cv: resolveCv(row?.variant, row?.code),
     variant: row?.variant,
     origin,
     code: row?.code,
