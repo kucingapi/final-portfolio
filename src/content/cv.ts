@@ -77,6 +77,8 @@ export const cvHeader = {
   headlines: ["Software Engineer", "Frontend Engineer", "Full-stack Engineer", "Frontend Engineer, AI products"],
   location: "Jakarta, Indonesia",
   email: "novelbafagih09@gmail.com",
+  /** The portfolio site, shown beside the email; it stays when a variant hides the contact details. */
+  site: { label: "novelbafagih.com", href: "https://www.novelbafagih.com" },
   links: [
     { label: "linkedin.com/in/novel-bafagih", href: "https://www.linkedin.com/in/novel-bafagih" },
     { label: "github.com/kucingapi", href: "https://github.com/kucingapi" },
@@ -109,7 +111,7 @@ export const cvEntries: CvEntry[] = [
     org: "Multimodal",
     place: "New York, United States (remote)",
     titles: ["Software Engineer", "Frontend Engineer", "Founding Frontend Engineer"],
-    period: "Apr 2024 – Present",
+    period: "Apr 2024 – Oct 2026",
     link: "/projects/agentflow",
     stack: ["React", "Next.js", "TypeScript", "Tailwind CSS", "Storybook", "TanStack Query", "Python", "FastAPI", "Sanity", "PostHog", "Playwright"],
     tags: ["frontend", "ai", "fintech", "product"],

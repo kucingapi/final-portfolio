@@ -24,6 +24,7 @@ const GUIDE = `How to tailor:
 - The CV must be exactly 2 pages: preview_cv reports the page count; trim bullets or entries until it is 2.
 - Only pick, order and choose between existing lines (entry ids, bullet ids, allowed titles, skill group ids and items, stack items). Never invent facts; free text is limited to "headline" and "summary", and those must stay true to the master CV.
 - "projects" orders the site's projects page for this visitor (lead with the most relevant), and its first three are the three projects in the portfolio PDF deck. "mode" sets which way the site opens (fulltime for employers, freelance for clients).
+- For Upwork and other platforms that bar sharing contact details, set "contact": false. It hides the email, GitHub and LinkedIn on the CV and both PDFs.
 - The label is private (e.g. "Acme, Senior Frontend, 2026-11"); the visitor never sees it.`;
 
 const slugs = projects.map((p) => p.slug);
