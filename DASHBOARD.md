@@ -2,7 +2,7 @@
 
 A private page on the portfolio for Novel only: short links with click analytics, every tailored CV link in the
 same list, and each project exported in the shape Upwork and Contra ask for. Decided 2026-11-03; on the same day,
-setup moved to the live site, and the dashboard became an app for his phone with notifications and a new UI.
+setup moved to the live site, and the dashboard became a phone app with notifications and a new UI.
 
 ## Access
 
