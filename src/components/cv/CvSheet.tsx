@@ -71,7 +71,8 @@ export function CvSheet() {
           <h2 className="text-[max(22px,calc(var(--s)*28))] leading-[1.15] font-bold">{cv.name}</h2>
           <p className="text-[max(15px,calc(var(--s)*17))]">{cv.headline}</p>
           <p className="text-[#444]">
-            {cv.location} | {cv.email}
+            {cv.location}
+            {cv.email && ` | ${cv.email}`}
             {cv.links.map((l) => (
               <span key={l.href}>
                 {" | "}

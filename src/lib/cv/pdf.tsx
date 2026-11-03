@@ -122,7 +122,8 @@ export function CvDocument({ cv, breaks, probe, origin }: { cv: ResolvedCv; brea
         <Text style={s.name}>{cv.name}</Text>
         <Text style={s.headline}>{cv.headline}</Text>
         <Text style={s.contact}>
-          {cv.location} | {cv.email}
+          {cv.location}
+          {cv.email && ` | ${cv.email}`}
           {cv.links.map((l) => (
             <Text key={l.href}>
               {" | "}

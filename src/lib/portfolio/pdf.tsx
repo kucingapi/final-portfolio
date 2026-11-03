@@ -163,7 +163,7 @@ function Footer({ project, host }: { project?: string; host: string }) {
   return (
     <View style={s.footer}>
       <T style={s.footerText}>{`${site.name} · Portfolio${project ? ` · ${project}` : ""}`}</T>
-      <T style={s.footerText}>{host}</T>
+      {host && <T style={s.footerText}>{host}</T>}
     </View>
   );
 }
@@ -215,7 +215,8 @@ export function pickChapters(p: Project, count = 3): Chapter[] {
 
 /* ---------- Slides ---------- */
 
-type Links = { site: string; project: (slug: string) => string; host: string };
+/** `standalone`: a one-project file for a platform such as Upwork, with no site address and no links out. */
+type Links = { site: string; project: (slug: string) => string; host: string; standalone?: boolean };
 
 function Cover({ cv, photo, picks, links }: { cv: ResolvedCv; photo: PdfImage | null; picks: Project[]; links: Links }) {
   const D = 380;
@@ -283,10 +284,14 @@ function Cover({ cv, photo, picks, links }: { cv: ResolvedCv; photo: PdfImage | 
           </View>
         </View>
         <T style={{ fontSize: 10, color: C.muted }}>
-          <Link src={`mailto:${cv.email}`} style={s.link}>
-            {cv.email}
-          </Link>
-          {"   ·   "}
+          {cv.email && (
+            <>
+              <Link src={`mailto:${cv.email}`} style={s.link}>
+                {cv.email}
+              </Link>
+              {"   ·   "}
+            </>
+          )}
           <Link src={links.site} style={s.link}>
             {links.host}
           </Link>
@@ -298,8 +303,8 @@ function Cover({ cv, photo, picks, links }: { cv: ResolvedCv; photo: PdfImage | 
 
 function About({ cv, links }: { cv: ResolvedCv; links: Links }) {
   const profiles = [
-    { label: "GitHub", href: site.social.github },
-    { label: "LinkedIn", href: site.social.linkedin },
+    { label: "GitHub", href: cv.contact ? site.social.github : "" },
+    { label: "LinkedIn", href: cv.contact ? site.social.linkedin : "" },
     { label: "Upwork", href: site.social.upwork },
   ].filter((l) => l.href);
   return (
@@ -474,19 +479,21 @@ function Opener({ p, n, img, links }: { p: Project; n: number; img: PdfImage | n
           )}
         </View>
       </View>
-      <Link
-        src={links.project(p.slug)}
-        style={{
-          position: "absolute",
-          right: 0,
-          bottom: 0,
-          fontSize: 9.5,
-          color: C.text,
-          textDecoration: "none",
-        }}
-      >
-        <T>Read the full case study on the site ›</T>
-      </Link>
+      {!links.standalone && (
+        <Link
+          src={links.project(p.slug)}
+          style={{
+            position: "absolute",
+            right: 0,
+            bottom: 0,
+            fontSize: 9.5,
+            color: C.text,
+            textDecoration: "none",
+          }}
+        >
+          <T>Read the full case study on the site ›</T>
+        </Link>
+      )}
     </Slide>
   );
 }
@@ -533,7 +540,7 @@ function Overview({ p, links }: { p: Project; links: Links }) {
             </View>
           )}
           <View style={{ marginTop: 16 }}>
-            {[{ label: "The full case study", href: links.project(p.slug) }, ...(p.links ?? [])].map((l) => (
+            {(links.standalone ? [] : [{ label: "The full case study", href: links.project(p.slug) }, ...(p.links ?? [])]).map((l) => (
               <Link
                 key={l.href}
                 src={l.href}
@@ -704,17 +711,17 @@ function ChapterSlide({ p, c, n, of, img, links }: { p: Project; c: Chapter; n: 
 
 function Contact({ cv, links }: { cv: ResolvedCv; links: Links }) {
   const rows = [
-    { k: "Email", v: cv.email, href: `mailto:${cv.email}` },
+    { k: "Email", v: cv.email ?? "", href: cv.email ? `mailto:${cv.email}` : "" },
     { k: "Website", v: links.host, href: links.site },
     {
       k: "GitHub",
       v: site.social.github.replace(/^https:\/\/(www\.)?/, ""),
-      href: site.social.github,
+      href: cv.contact ? site.social.github : "",
     },
     {
       k: "LinkedIn",
       v: site.social.linkedin.replace(/^https:\/\/(www\.)?/, ""),
-      href: site.social.linkedin,
+      href: cv.contact ? site.social.linkedin : "",
     },
     { k: "Upwork", v: "Upwork profile", href: site.social.upwork },
   ].filter((r) => r.href);
@@ -785,11 +792,14 @@ type Deck = {
 
 export function PortfolioDocument({ deck }: { deck: Deck }) {
   const { cv, picks, photo, links } = deck;
+  const title = links.standalone ? `${picks[0].p.title} – ${cv.name}` : `${cv.name} – Portfolio`;
   return (
-    <Document title={`${cv.name} – Portfolio`} author={cv.name} subject={cv.headline} creator={cv.name} producer={cv.name}>
-      <Cover cv={cv} photo={photo} picks={picks.map((x) => x.p)} links={links} />
-      <About cv={cv} links={links} />
-      <Contents picks={picks.map((x) => x.p)} links={links} />
+    <Document title={title} author={cv.name} subject={cv.headline} creator={cv.name} producer={cv.name}>
+      {!links.standalone && [
+        <Cover key="cover" cv={cv} photo={photo} picks={picks.map((x) => x.p)} links={links} />,
+        <About key="about" cv={cv} links={links} />,
+        <Contents key="contents" picks={picks.map((x) => x.p)} links={links} />,
+      ]}
       {picks.map(({ p, opener, chapters }, i) => [
         <Opener key={`${p.slug}-open`} p={p} n={i + 1} img={opener} links={links} />,
         <Overview key={`${p.slug}-overview`} p={p} links={links} />,
@@ -797,14 +807,15 @@ export function PortfolioDocument({ deck }: { deck: Deck }) {
           <ChapterSlide key={`${p.slug}-${c.id}`} p={p} c={c} n={j + 1} of={chapters.length} img={img} links={links} />
         )),
       ])}
-      <Contact cv={cv} links={links} />
+      {!links.standalone && <Contact cv={cv} links={links} />}
     </Document>
   );
 }
 
 /**
  * Render the deck. `origin` is the site's address, for the links in it; `code` keeps a tailored link's
- * tailoring when the reader follows one back to the site.
+ * tailoring when the reader follows one back to the site. `project` renders that one project's slides
+ * alone, with no site address and no links out, for uploading to a platform such as Upwork.
  */
 export async function renderPortfolioPdf({
   cv,
@@ -812,20 +823,23 @@ export async function renderPortfolioPdf({
   origin,
   code,
   count = 3,
+  project,
 }: {
   cv: ResolvedCv;
   variant?: Variant;
   origin: string;
   code?: string;
   count?: number;
+  project?: string;
 }): Promise<{ pdf: Uint8Array<ArrayBuffer>; pages: number; expected: number }> {
   const q = code ? `?v=${code}` : "";
   const links: Links = {
     site: `${origin}/${q}`,
     project: (slug) => `${origin}/projects/${slug}${q}`,
-    host: origin.replace(/^https?:\/\//, ""),
+    host: project ? "" : origin.replace(/^https?:\/\//, ""),
+    standalone: Boolean(project),
   };
-  const projects = pickProjects(variant, count);
+  const projects = project ? pickProjects({ projects: [project] }, 1) : pickProjects(variant, count);
   const [photo, ...picks] = await Promise.all([
     pdfImage("/figma/hero/photo-main.webp", 800),
     ...projects.map(async (p) => {
@@ -851,6 +865,6 @@ export async function renderPortfolioPdf({
   };
   const buffer = await renderToBuffer(<PortfolioDocument deck={deck} />);
   const pages = (buffer.toString("latin1").match(/\/Type\s*\/Page(?![s\w])/g) ?? []).length;
-  const expected = 4 + deck.picks.reduce((n, x) => n + 2 + x.chapters.length, 0);
+  const expected = (project ? 0 : 4) + deck.picks.reduce((n, x) => n + 2 + x.chapters.length, 0);
   return { pdf: Uint8Array.from(buffer), pages, expected };
 }

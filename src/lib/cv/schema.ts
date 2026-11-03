@@ -32,4 +32,9 @@ export const variantSchema = z.object({
   skillItems: z.record(z.string(), z.array(z.string())).optional(),
   /** Site project slugs to lead with, in order; the rest follow in their usual order. */
   projects: z.array(z.string()).optional(),
+  /**
+   * False hides the email, GitHub and LinkedIn on the CV and both PDFs, for platforms such as Upwork that
+   * bar sharing contact details. The location, the site and the Upwork profile stay.
+   */
+  contact: z.boolean().optional(),
 });
