@@ -61,9 +61,10 @@ export async function deleteValue(key: string) {
 /** Count up; the count clears `window` seconds after its first step. Returns the new count. */
 export async function countUp(key: string, window: number): Promise<number> {
   if (redis) {
-    const count = await redis.incr(key);
-    if (count === 1) await redis.expire(key, window);
-    return count;
+    // The expiry is set before counting (INCR keeps it): a crash between the two calls must not leave a
+    // count with no expiry, which would refuse setup links for good.
+    await redis.set(key, 0, { nx: true, ex: window });
+    return redis.incr(key);
   }
   return inTurn(async () => {
     const store = file();

@@ -3,6 +3,28 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   cacheComponents: true,
+  // Safe everywhere: no MIME sniffing, no full URLs (which can carry a ?v= code) sent to other sites, and
+  // no camera, microphone or location for any page. The dashboard may never be framed, and sends no
+  // referrer at all, as its setup links carry a one-time token.
+  async headers() {
+    const site = [
+      { key: "X-Content-Type-Options", value: "nosniff" },
+      { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+      { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), browsing-topics=()" },
+    ];
+    const dashboard = [
+      { key: "X-Frame-Options", value: "DENY" },
+      { key: "Content-Security-Policy", value: "frame-ancestors 'none'" },
+      { key: "Referrer-Policy", value: "no-referrer" },
+      { key: "X-Robots-Tag", value: "noindex, nofollow" },
+    ];
+    return [
+      { source: "/:path*", headers: site },
+      { source: "/dashboard", headers: dashboard },
+      { source: "/dashboard/:path*", headers: dashboard },
+      { source: "/api/dashboard/:path*", headers: dashboard },
+    ];
+  },
   // The Experiences page became Career.
   async redirects() {
     return [{ source: "/experiences", destination: "/career", permanent: true }];

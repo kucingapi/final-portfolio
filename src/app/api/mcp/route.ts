@@ -1,3 +1,4 @@
+import { createHash, timingSafeEqual } from "node:crypto";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { Operation } from "rfc6902";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
@@ -276,8 +277,14 @@ function authorize(request: Request): Response | null {
       ? Response.json({ error: "CV_MCP_TOKEN is not set." }, { status: 503 })
       : null;
   }
-  const given = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-  return given === expected ? null : Response.json({ error: "Unauthorized." }, { status: 401 });
+  const given = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? "";
+  return sameSecret(given, expected) ? null : Response.json({ error: "Unauthorized." }, { status: 401 });
+}
+
+/** Compares in constant time (over hashes, so lengths don't leak either): `===` stops at the first wrong character. */
+function sameSecret(given: string, expected: string) {
+  const digest = (value: string) => createHash("sha256").update(value).digest();
+  return timingSafeEqual(digest(given), digest(expected));
 }
 
 async function handle(request: Request) {
