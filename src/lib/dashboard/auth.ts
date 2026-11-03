@@ -1,0 +1,165 @@
+import { createHmac, timingSafeEqual } from "node:crypto";
+import { redis } from "@/lib/kv";
+import { base32Decode, matchStep } from "./totp";
+
+/**
+ * Sign-in for the dashboard: an authenticator code, no users or passwords. The TOTP secret is the
+ * `DASHBOARD_TOTP_SECRET` env var; the session cookie is signed with a key derived from it, so a new
+ * secret signs every device out. Server only.
+ */
+
+export const SESSION_COOKIE = "nb_dash";
+export const SESSION_DAYS = 7;
+const MAX_FAILS = 5;
+const LOCK_SECONDS = 15 * 60;
+
+export function totpSecret(): Buffer | null {
+  const raw = process.env.DASHBOARD_TOTP_SECRET?.trim();
+  if (!raw) return null;
+  const secret = base32Decode(raw);
+  if (secret.length < 10) throw new Error("DASHBOARD_TOTP_SECRET is too short: use at least 16 base32 characters.");
+  return secret;
+}
+
+// --- Session ------------------------------------------------------------------------------------
+
+const sessionKey = (secret: Buffer) => createHmac("sha256", secret).update("novel-dashboard-session-v1").digest();
+const sign = (secret: Buffer, payload: string) =>
+  createHmac("sha256", sessionKey(secret)).update(payload).digest("base64url");
+
+export function newSessionToken(secret: Buffer, now = Date.now()) {
+  const payload = `v1.${now + SESSION_DAYS * 86_400_000}`;
+  return `${payload}.${sign(secret, payload)}`;
+}
+
+export function validSession(token: string | undefined, now = Date.now()) {
+  const secret = totpSecret();
+  if (!secret || !token) return false;
+  const match = /^(v1\.(\d+))\.([\w-]+)$/.exec(token);
+  if (!match || Number(match[2]) < now) return false;
+  const expected = Buffer.from(sign(secret, match[1]));
+  const given = Buffer.from(match[3]);
+  return expected.length === given.length && timingSafeEqual(expected, given);
+}
+
+const readCookie = (request: Request, name: string) =>
+  request.headers
+    .get("cookie")
+    ?.split(/;\s*/)
+    .find((part) => part.startsWith(`${name}=`))
+    ?.slice(name.length + 1);
+
+/** For route handlers: is this request from a signed-in browser? */
+export const signedIn = (request: Request) => validSession(readCookie(request, SESSION_COOKIE));
+
+export const unauthorized = () =>
+  Response.json({ error: "Sign in first." }, { status: 401, headers: { "Cache-Control": "no-store" } });
+
+/** Secure everywhere but plain-http localhost, where some browsers would drop a Secure cookie. */
+export function sessionCookie(request: Request, value: string, maxAge = SESSION_DAYS * 86_400) {
+  const secure = new URL(request.url).protocol === "https:" || process.env.NODE_ENV === "production";
+  return [
+    `${SESSION_COOKIE}=${value}`,
+    "Path=/",
+    `Max-Age=${maxAge}`,
+    "HttpOnly",
+    "SameSite=Strict",
+    ...(secure ? ["Secure"] : []),
+  ].join("; ");
+}
+
+// --- Rate limit and replay ------------------------------------------------------------------------
+
+/**
+ * A 6-digit code alone could be guessed, so wrong codes are counted: the fifth in a row locks sign-in
+ * for 15 minutes, for everyone, as there is only one person to let in. A code that worked once is
+ * refused if it comes again, and so is any code older than the last one used.
+ */
+type Limits = {
+  lockedFor(): Promise<number>;
+  fail(): Promise<void>;
+  /** Claims the step; false if it, or a later one, was already used. */
+  claim(step: number): Promise<boolean>;
+  reset(): Promise<void>;
+};
+
+const K = { fails: "dash:signin:fails", lock: "dash:signin:lock", last: "dash:signin:last", step: (s: number) => `dash:signin:step:${s}` };
+
+const redisLimits = (r: NonNullable<typeof redis>): Limits => ({
+  async lockedFor() {
+    const ttl = await r.ttl(K.lock);
+    return ttl > 0 ? ttl : 0;
+  },
+  async fail() {
+    const fails = await r.incr(K.fails);
+    await r.expire(K.fails, LOCK_SECONDS);
+    if (fails >= MAX_FAILS) {
+      await r.set(K.lock, 1, { ex: LOCK_SECONDS });
+      await r.del(K.fails);
+    }
+  },
+  async claim(step) {
+    const last = Number((await r.get<number>(K.last)) ?? 0);
+    if (step <= last) return false;
+    const fresh = await r.set(K.step(step), 1, { nx: true, ex: 120 });
+    if (fresh !== "OK") return false;
+    await r.set(K.last, step, { ex: 86_400 });
+    return true;
+  },
+  async reset() {
+    await r.del(K.fails);
+  },
+});
+
+/** Development without Redis: the same rules, kept in memory for as long as the dev server runs. */
+const memory = ((globalThis as { __nbDashLimits?: { fails: number; lockUntil: number; last: number } }).__nbDashLimits ??= {
+  fails: 0,
+  lockUntil: 0,
+  last: 0,
+});
+const memoryLimits: Limits = {
+  async lockedFor() {
+    return Math.max(0, Math.ceil((memory.lockUntil - Date.now()) / 1000));
+  },
+  async fail() {
+    if (++memory.fails >= MAX_FAILS) {
+      memory.lockUntil = Date.now() + LOCK_SECONDS * 1000;
+      memory.fails = 0;
+    }
+  },
+  async claim(step) {
+    if (step <= memory.last) return false;
+    memory.last = step;
+    return true;
+  },
+  async reset() {
+    memory.fails = 0;
+  },
+};
+
+function limits(): Limits {
+  if (redis) return redisLimits(redis);
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("Dashboard sign-in needs Upstash Redis for its rate limit: set KV_REST_API_URL and KV_REST_API_TOKEN.");
+  }
+  return memoryLimits;
+}
+
+export type SignInResult = { ok: true; token: string } | { ok: false; error: string; status: number };
+
+export async function signIn(code: string): Promise<SignInResult> {
+  const secret = totpSecret();
+  if (!secret) return { ok: false, error: "The dashboard has no TOTP secret yet.", status: 503 };
+  const store = limits();
+  const locked = await store.lockedFor();
+  if (locked) {
+    return { ok: false, error: `Too many wrong codes. Try again in ${Math.ceil(locked / 60)} min.`, status: 429 };
+  }
+  const step = matchStep(secret, code.replace(/\s/g, ""));
+  if (step === null || !(await store.claim(step))) {
+    await store.fail();
+    return { ok: false, error: step === null ? "That code is wrong." : "That code was already used. Wait for the next one.", status: 401 };
+  }
+  await store.reset();
+  return { ok: true, token: newSessionToken(secret) };
+}

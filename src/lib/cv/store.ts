@@ -1,12 +1,9 @@
-import { Redis } from "@upstash/redis";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import path from "node:path";
+import { localFile, redis } from "@/lib/kv";
 import type { Variant } from "./variant";
 
 /**
- * Where variants live: Upstash Redis in production (the env names the Vercel Upstash integration sets,
- * or Upstash's own), and a JSON file under `.data/` in development so the whole flow works locally
- * without an account. Server only.
+ * Where variants live: Upstash Redis in production, and `.data/cv-variants.json` in development so the
+ * whole flow works locally without an account (see src/lib/kv.ts). Server only.
  */
 
 export type StoredVariant = {
@@ -18,34 +15,14 @@ export type StoredVariant = {
   updatedAt: string;
 };
 
-const url = process.env.KV_REST_API_URL ?? process.env.UPSTASH_REDIS_REST_URL;
-const token = process.env.KV_REST_API_TOKEN ?? process.env.UPSTASH_REDIS_REST_TOKEN;
-const redis = url && token ? new Redis({ url, token }) : null;
-
 const KEY = (code: string) => `cv:variant:${code}`;
 const ACTIVITY_KEY = (code: string) => `cv:activity:${code}`;
 const INDEX = "cv:variants";
-const FILE = path.join(process.cwd(), ".data", "cv-variants.json");
-const ACTIVITY_FILE = path.join(process.cwd(), ".data", "cv-activity.json");
 
-function local<T = StoredVariant>(file = FILE) {
-  if (process.env.NODE_ENV === "production") {
-    throw new Error("CV variants need Upstash Redis: set KV_REST_API_URL and KV_REST_API_TOKEN.");
-  }
-  return {
-    async read(): Promise<Record<string, T>> {
-      try {
-        return JSON.parse(await readFile(file, "utf8"));
-      } catch {
-        return {};
-      }
-    },
-    async write(all: Record<string, T>) {
-      await mkdir(path.dirname(file), { recursive: true });
-      await writeFile(file, JSON.stringify(all, null, 2));
-    },
-  };
+function local<T = StoredVariant>(file = "cv-variants.json") {
+  return localFile<T>(file);
 }
+const ACTIVITY_FILE = "cv-activity.json";
 
 /** Codes look like noise on purpose: 8 characters with no look-alikes (no 0/o, 1/l/i). */
 const ALPHABET = "23456789abcdefghjkmnpqrstuvwxyz";
