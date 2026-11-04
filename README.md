@@ -61,6 +61,23 @@ the server.
 - Your own visits: open any page with `?test=1` once in each browser you use. That browser is then left out of the
   counts and PostHog for a year; `?test=0` undoes it.
 
+## Dashboard
+
+`/dashboard` is private to Novel: short links with click counts, every tailored CV link with its opens and downloads,
+and each project as Upwork's and Contra's portfolio forms ask for it. Decisions and the reasons behind them are in
+[DASHBOARD.md](DASHBOARD.md).
+
+- Sign-in is an authenticator code (TOTP), set up on the live site: open `/dashboard`, have a one-time link emailed
+  to the contact form's inbox (Resend), and add the key it shows to your authenticator app. Locally, without
+  `RESEND_API_KEY`, the link is printed in the dev server's log instead. Five wrong codes lock sign-in for 15 minutes;
+  a session lasts a week after the last visit.
+- On a phone it installs as an app (iPhone: Share → Add to Home Screen) and can send a notification for each click,
+  CV link open and PDF download. Turn them on in Settings; there is nothing to configure on the server.
+- Short links are `/go/<name>` (a 302). Clicks from link previews, bots and your own browser (`?test=1`) aren't
+  counted.
+- Project text comes from `src/content/projects.ts`; the export rules and the per-project overrides are in
+  `src/lib/dashboard/export.ts`.
+
 ## Still placeholder (TODO in `src/content/site.ts`)
 
 - Project titles and links (cards without `href` aren't clickable).
