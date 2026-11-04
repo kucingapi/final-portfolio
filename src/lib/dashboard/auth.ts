@@ -1,5 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { redis } from "@/lib/kv";
+import { countWithin, redis } from "@/lib/kv";
 import { getValue, setValue } from "./state";
 import { base32Decode, matchStep } from "./totp";
 
@@ -59,12 +59,16 @@ const readCookie = (request: Request, name: string) =>
     ?.slice(name.length + 1);
 
 /**
- * A browser saying the request came from another site's page. The session cookie is SameSite=Strict, so
- * such a request carries no session anyway; refusing it outright is the second lock on the door, and it
- * also covers the routes that need no session (sign-in, setup links). Requests without the header (curl,
- * older browsers) are left to the cookie.
+ * A browser saying the request came from a page that isn't this origin: another site, or a sibling
+ * subdomain ("same-site"), which a SameSite=Strict cookie would still go along with. Refusing it is the
+ * second lock on the door, and it also covers the routes that need no session (sign-in, setup links).
+ * The dashboard's own fetches say "same-origin"; requests without the header (curl, older browsers) are
+ * left to the cookie.
  */
-export const crossSite = (request: Request) => request.headers.get("sec-fetch-site") === "cross-site";
+export const crossSite = (request: Request) => {
+  const from = request.headers.get("sec-fetch-site");
+  return from === "cross-site" || from === "same-site";
+};
 
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
@@ -127,12 +131,9 @@ const K = { tries: "dash:signin:tries", last: "dash:signin:last", step: (s: numb
 
 const redisLimits = (r: NonNullable<typeof redis>): Limits => ({
   async begin() {
-    // The key gets its expiry before it is counted (INCR keeps it), so a crash between the two calls
-    // can never leave a count that locks sign-in for good.
-    await r.set(K.tries, 0, { nx: true, ex: LOCK_SECONDS });
-    const tries = await r.incr(K.tries);
-    if (tries <= MAX_FAILS) return 0;
-    const ttl = await r.ttl(K.tries);
+    // Counted and given its expiry in one atomic step, so no count can ever be left to lock sign-in for good.
+    const { count, ttl } = await countWithin(r, K.tries, LOCK_SECONDS);
+    if (count <= MAX_FAILS) return 0;
     return ttl > 0 ? ttl : LOCK_SECONDS;
   },
   async fail() {

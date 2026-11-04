@@ -1,4 +1,4 @@
-import { localFile, redis } from "@/lib/kv";
+import { countWithin, localFile, redis } from "@/lib/kv";
 
 /**
  * The dashboard's own small records: the sign-in secret, setup links, notification devices and the
@@ -60,12 +60,8 @@ export async function deleteValue(key: string) {
 
 /** Count up; the count clears `window` seconds after its first step. Returns the new count. */
 export async function countUp(key: string, window: number): Promise<number> {
-  if (redis) {
-    // The expiry is set before counting (INCR keeps it): a crash between the two calls must not leave a
-    // count with no expiry, which would refuse setup links for good.
-    await redis.set(key, 0, { nx: true, ex: window });
-    return redis.incr(key);
-  }
+  // Atomic, so a count can't be left without its expiry, which would refuse setup links for good.
+  if (redis) return (await countWithin(redis, key, window)).count;
   return inTurn(async () => {
     const store = file();
     const all = await store.read();

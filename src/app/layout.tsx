@@ -28,16 +28,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <head>
         {/* Freelance / Full-time: apply the saved mode before first paint (see components/mode/Mode.tsx). */}
         <script dangerouslySetInnerHTML={{ __html: MODE_SCRIPT }} />
-        {/* Chillax (clock, "Talk" wall, service cards) isn't on Google Fonts; it's served by Fontshare. */}
-        <link
-          rel="preconnect"
-          href="https://api.fontshare.com"
-          crossOrigin=""
-        />
-        <link
-          rel="stylesheet"
-          href="https://api.fontshare.com/v2/css?f[]=chillax@400,600,700&display=swap"
-        />
+        {/* Chillax's Fontshare stylesheet is linked by SiteChrome, so the dashboard doesn't load it. */}
         <noscript>
           <style>{`[data-node-id="350:12239"]{display:none}header{visibility:visible!important}`}</style>
         </noscript>

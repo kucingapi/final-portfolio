@@ -1,5 +1,5 @@
 import { services, site } from "@/content/site";
-import { redis } from "@/lib/kv";
+import { countWithin, redis } from "@/lib/kv";
 
 /**
  * Contact form endpoint.
@@ -30,13 +30,11 @@ function clientIp(request: Request) {
 async function overLimit(request: Request) {
   if (!redis) return false;
   try {
-    const count = async (key: string) => {
-      // The expiry goes on first (INCR keeps it), so no count can outlive its window.
-      await redis!.set(key, 0, { nx: true, ex: WINDOW });
-      return redis!.incr(key);
-    };
-    const [sender, all] = await Promise.all([count(`contact:rate:ip:${clientIp(request)}`), count("contact:rate:all")]);
-    return sender > PER_SENDER || all > SITE_WIDE;
+    const count = async (key: string) => (await countWithin(redis!, key, WINDOW)).count;
+    // A sender over their own limit doesn't count toward the site's, or one script could use up the
+    // whole hour's allowance and close the form for everyone else.
+    if ((await count(`contact:rate:ip:${clientIp(request)}`)) > PER_SENDER) return true;
+    return (await count("contact:rate:all")) > SITE_WIDE;
   } catch (error) {
     // Upstash being down must not lose a real enquiry.
     console.error("[contact] rate limit unavailable", error);
@@ -48,7 +46,9 @@ async function overLimit(request: Request) {
 const oneLine = (v: string) => v.replace(/[\r\n\u2028\u2029]+/g, " ");
 
 export async function POST(request: Request) {
-  if (request.headers.get("sec-fetch-site") === "cross-site") {
+  // Only this site's own form: a browser says where a request came from (no header: curl, older browsers).
+  const from = request.headers.get("sec-fetch-site");
+  if (from === "cross-site" || from === "same-site") {
     return Response.json({ error: "Please use the form on this site." }, { status: 403 });
   }
   let body: Payload;

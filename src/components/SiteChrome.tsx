@@ -6,6 +6,7 @@ import { ModeProvider } from "@/components/mode/Mode";
 import { VariantLoader } from "@/components/cv/Variant";
 import { getSiteContent } from "@/lib/content/read";
 import { PreviewBadge } from "@/components/PreviewBadge";
+import { ChillaxFont } from "@/components/ChillaxFont";
 
 /**
  * The portfolio around its pages: Freelance/Full-time mode, tailored links, smooth scroll, the page
@@ -14,15 +15,18 @@ import { PreviewBadge } from "@/components/PreviewBadge";
 export async function SiteChrome({ children }: { children: ReactNode }) {
   const { site, modes } = await getSiteContent();
   return (
-    <ModeProvider>
-      <VariantLoader />
-      <SmoothScroll>
-        <PageTransitionProvider>
-          <Navbar owner={{ name: site.name, email: site.email }} modeLabels={{ freelance: modes.freelance.label, fulltime: modes.fulltime.label }} />
-          <div className="page-canvas">{children}</div>
-          <PreviewBadge />
-        </PageTransitionProvider>
-      </SmoothScroll>
-    </ModeProvider>
+    <>
+      <ChillaxFont />
+      <ModeProvider>
+        <VariantLoader />
+        <SmoothScroll>
+          <PageTransitionProvider>
+            <Navbar owner={{ name: site.name, email: site.email }} modeLabels={{ freelance: modes.freelance.label, fulltime: modes.fulltime.label }} />
+            <div className="page-canvas">{children}</div>
+            <PreviewBadge />
+          </PageTransitionProvider>
+        </SmoothScroll>
+      </ModeProvider>
+    </>
   );
 }

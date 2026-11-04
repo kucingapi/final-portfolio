@@ -32,3 +32,22 @@ export function localFile<T>(name: string) {
     },
   };
 }
+
+/**
+ * One more on a count that clears `seconds` after its first step: `{ count, ttl }` (the seconds left).
+ * One atomic script rather than separate calls, which could see the key expire between them and leave
+ * an INCR'd count with no expiry: a limit that would then refuse for good, and that a burst of requests
+ * timed at the end of a window could cause on purpose. It also mends a count already left without one.
+ */
+const COUNT_WITHIN = `local n = redis.call('INCR', KEYS[1])
+local ttl = redis.call('TTL', KEYS[1])
+if ttl < 0 then
+  ttl = tonumber(ARGV[1])
+  redis.call('EXPIRE', KEYS[1], ttl)
+end
+return {n, ttl}`;
+
+export async function countWithin(r: Redis, key: string, seconds: number) {
+  const [count, ttl] = await r.eval<[number], [number, number]>(COUNT_WITHIN, [key], [seconds]);
+  return { count: Number(count), ttl: Number(ttl) };
+}
