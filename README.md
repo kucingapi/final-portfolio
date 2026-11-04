@@ -77,6 +77,8 @@ reasons behind them are in [DASHBOARD.md](DASHBOARD.md).
   CV link open and PDF download. Turn them on in Settings; there is nothing to configure on the server.
 - Short links are `/go/<name>` (a 302). Clicks from link previews, bots and your own browser (`?test=1`) aren't
   counted.
+- Jobs: each application with its posting, status and the links sent with it, and how often those were opened.
+  Agents file a tailored link under its job when they save it (`save_cv_variant` with `job`).
 - Inbox: every contact-form message, newest first, with a notification for each and a reply-by-email link.
 - Content: the projects, the master CV and the site's copy, edited as drafts and published from the dashboard. Pages
   stay prerendered and refresh on publish. Agents can edit drafts through the MCP tools `get_content`,

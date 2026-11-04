@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, ArrowUpRight, FolderOpen, Inbox as InboxIcon, Link2, PenLine, Plus, RefreshCw, Settings as SettingsIcon } from "lucide-react";
+import { Activity, ArrowUpRight, Briefcase, FolderOpen, Inbox as InboxIcon, Link2, PenLine, Plus, RefreshCw, Settings as SettingsIcon } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef } from "react";
@@ -9,6 +9,7 @@ import { ActivityView } from "./Activity";
 import { ContentView } from "./Content";
 import { DashboardData, useDashboard } from "./data";
 import { InboxView, useUnread } from "./Inbox";
+import { JobsView } from "./Jobs";
 import { LinkSheet } from "./LinkSheet";
 import { LinksView } from "./Links";
 import { Mark } from "./Mark";
@@ -20,12 +21,15 @@ import { cn } from "./ui/cn";
 const VIEWS = [
   { id: "activity", label: "Activity", icon: Activity },
   { id: "inbox", label: "Inbox", icon: InboxIcon },
+  { id: "jobs", label: "Jobs", icon: Briefcase },
   { id: "links", label: "Links", icon: Link2 },
   { id: "content", label: "Content", icon: PenLine },
   { id: "projects", label: "Projects", icon: FolderOpen },
   { id: "settings", label: "Settings", icon: SettingsIcon },
 ] as const;
 export type View = (typeof VIEWS)[number]["id"];
+/** On a phone these sit in the header rather than the tab bar, which keeps five tabs. */
+const HEADER_ON_PHONE: View[] = ["projects", "settings"];
 
 /**
  * The signed-in dashboard: a sidebar on a desktop, a tab bar on a phone. The view and any open link live
@@ -45,6 +49,7 @@ function Shell({ projects }: { projects: ProjectExport[] }) {
   const view = (VIEWS.find((v) => v.id === params.get("view"))?.id ?? "activity") as View;
   const open = params.get("link");
   const enquiry = params.get("enquiry");
+  const job = params.get("job");
   const pushed = useRef(false);
 
   // Opening the app counts as a visit: the session gets a fresh week, or shows sign-in if it lapsed.
@@ -73,6 +78,7 @@ function Shell({ projects }: { projects: ProjectExport[] }) {
     write((p) => {
       p.delete("link");
       p.delete("enquiry");
+      p.delete("job");
       if (id === "activity") p.delete("view");
       else p.set("view", id);
     });
@@ -85,7 +91,7 @@ function Shell({ projects }: { projects: ProjectExport[] }) {
           p.set("enquiry", ref.slice("enquiry:".length));
         }, true)
       : write((p) => p.set("link", ref), !open);
-  const close = (param: "link" | "enquiry") => {
+  const close = (param: "link" | "enquiry" | "job") => {
     if (pushed.current) {
       pushed.current = false;
       window.history.back();
@@ -93,6 +99,7 @@ function Shell({ projects }: { projects: ProjectExport[] }) {
   };
   const closeLink = () => close("link");
   const openEnquiry = (id: string) => write((p) => p.set("enquiry", id), !enquiry);
+  const openJob = (target: string) => write((p) => p.set("job", target), !job);
 
   const current = VIEWS.find((v) => v.id === view)!;
 
@@ -104,19 +111,19 @@ function Shell({ projects }: { projects: ProjectExport[] }) {
           <div className="mx-auto flex h-14 w-full max-w-3xl items-center gap-2 px-4 md:h-16 md:px-8">
             <h1 className="text-lg font-semibold tracking-[-0.01em] text-foreground md:text-xl">{current.label}</h1>
             <div className="ml-auto flex items-center gap-1">
-              <Actions view={view} onNew={() => openLink("new")} />
-              {view !== "settings" && (
-                // On a phone Settings sits up here, so the tab bar keeps five tabs.
-                <Button variant="ghost" size="icon" onClick={() => show("settings")} aria-label="Settings" className="md:hidden">
-                  <SettingsIcon className="size-[1.125rem]" />
+              <Actions view={view} onNew={() => (view === "jobs" ? openJob("new") : openLink("new"))} />
+              {VIEWS.filter((v) => HEADER_ON_PHONE.includes(v.id) && v.id !== view).map(({ id, label, icon: Icon }) => (
+                <Button key={id} variant="ghost" size="icon" onClick={() => show(id)} aria-label={label} className="md:hidden">
+                  <Icon className="size-[1.125rem]" />
                 </Button>
-              )}
+              ))}
             </div>
           </div>
         </header>
         <main className="mx-auto w-full max-w-3xl flex-1 px-4 pt-5 pb-[calc(6rem+env(safe-area-inset-bottom))] md:px-8 md:pt-7 md:pb-16">
           {view === "activity" && <ActivityView onOpen={openLink} onShow={show} />}
           {view === "inbox" && <InboxView open={enquiry} onOpen={openEnquiry} onClose={() => close("enquiry")} />}
+          {view === "jobs" && <JobsView open={job} onOpen={openJob} onClose={() => close("job")} />}
           {view === "links" && <LinksView onOpen={openLink} />}
           {view === "content" && <ContentView />}
           {view === "projects" && <Projects projects={projects} />}
@@ -130,18 +137,18 @@ function Shell({ projects }: { projects: ProjectExport[] }) {
 }
 
 function Actions({ view, onNew }: { view: View; onNew: () => void }) {
-  const { links, activity, enquiries } = useDashboard();
-  if (view !== "activity" && view !== "links" && view !== "inbox") return null;
-  const source = view === "activity" ? activity : view === "inbox" ? enquiries : links;
+  const { links, activity, enquiries, jobs } = useDashboard();
+  if (view !== "activity" && view !== "links" && view !== "inbox" && view !== "jobs") return null;
+  const source = view === "activity" ? activity : view === "inbox" ? enquiries : view === "jobs" ? jobs : links;
   return (
     <>
       <Button variant="ghost" size="icon" onClick={() => source.reload()} disabled={source.loading} aria-label="Refresh">
         <RefreshCw className={cn("size-[1.125rem]", source.loading && "animate-spin")} />
       </Button>
-      {view === "links" && (
+      {(view === "links" || view === "jobs") && (
         <Button onClick={onNew} className="max-md:size-10 max-md:px-0">
           <Plus className="size-5" />
-          <span className="max-md:sr-only">New link</span>
+          <span className="max-md:sr-only">{view === "jobs" ? "New job" : "New link"}</span>
         </Button>
       )}
     </>
@@ -200,7 +207,7 @@ function TabBar({ view, onShow }: { view: View; onShow: (v: View) => void }) {
   return (
     <nav aria-label="Dashboard" className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card pb-[env(safe-area-inset-bottom)] md:hidden">
       <ul className="grid grid-cols-5">
-        {VIEWS.filter((v) => v.id !== "settings").map(({ id, label, icon: Icon }) => (
+        {VIEWS.filter((v) => !HEADER_ON_PHONE.includes(v.id)).map(({ id, label, icon: Icon }) => (
           <li key={id}>
             <button
               type="button"

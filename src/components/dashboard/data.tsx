@@ -4,6 +4,7 @@ import { createContext, useContext } from "react";
 import type { LinkActivity } from "@/lib/cv/store";
 import type { ActivityEvent } from "@/lib/dashboard/activity";
 import type { Enquiry } from "@/lib/dashboard/enquiries";
+import type { Job } from "@/lib/dashboard/job-types";
 import type { LinkStats, ShortLink } from "@/lib/dashboard/links";
 import { useApi } from "./api";
 
@@ -20,16 +21,19 @@ type Data = {
   activity: ReturnType<typeof useApi<{ events: ActivityEvent[] }>>;
   /** Contact-form messages, and when the Inbox was last opened. */
   enquiries: ReturnType<typeof useApi<{ enquiries: Enquiry[]; seen: string | null }>>;
+  /** Jobs applied to, with the links sent for each. */
+  jobs: ReturnType<typeof useApi<{ jobs: Job[] }>>;
 };
 
 const DataContext = createContext<Data | null>(null);
 
-/** The links, the feed and the Inbox, loaded once for every view and fresh again each time the app comes back. */
+/** The links, the feed, the Inbox and the jobs, loaded once for every view and fresh again each time the app comes back. */
 export function DashboardData({ origin, inbox, children }: { origin: string; inbox: string; children: React.ReactNode }) {
   const links = useApi<{ links: LinkRow[]; cv: CvRow[] }>("/api/dashboard/links");
   const activity = useApi<{ events: ActivityEvent[] }>("/api/dashboard/activity");
   const enquiries = useApi<{ enquiries: Enquiry[]; seen: string | null }>("/api/dashboard/enquiries");
-  return <DataContext.Provider value={{ origin, inbox, links, activity, enquiries }}>{children}</DataContext.Provider>;
+  const jobs = useApi<{ jobs: Job[] }>("/api/dashboard/jobs");
+  return <DataContext.Provider value={{ origin, inbox, links, activity, enquiries, jobs }}>{children}</DataContext.Provider>;
 }
 
 export function useDashboard() {
