@@ -263,3 +263,114 @@ html.lenis body {
     transition-duration: 1ms !important;
   }
 }
+
+/*
+ * Dashboard (src/app/dashboard): an app inside the site. It runs on a fixed rem scale rather than the
+ * design-pixel canvas, and names its colours the way shadcn components do, all drawn from the midnight
+ * palette. Scoped to <html> through :has(), so it also reaches what Radix portals into <body>.
+ */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-popover: var(--popover);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --animate-sheet-up: dash-sheet-up 300ms var(--ease-out);
+  --animate-sheet-down: dash-sheet-down 200ms var(--ease-in-out);
+  --animate-sheet-left: dash-sheet-left 300ms var(--ease-out);
+  --animate-sheet-right: dash-sheet-right 200ms var(--ease-in-out);
+  --animate-fade-in: dash-fade-in 200ms var(--ease-out);
+  --animate-fade-out: dash-fade-out 150ms var(--ease-in-out);
+  --animate-pop-in: dash-pop-in 200ms var(--ease-out);
+  --animate-pop-out: dash-pop-out 150ms var(--ease-in-out);
+}
+
+html:has(.dash) {
+  --spacing: 0.25rem;
+  --radius-xs: 0.375rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1.125rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 2rem;
+
+  --background: #010326;
+  --foreground: #e5f0ff;
+  --card: #070a2f;
+  --popover: #0d1138;
+  --primary: #4571ff;
+  --primary-foreground: #010326;
+  --secondary: #121744;
+  --muted: #0a0e34;
+  --muted-foreground: #abcbff;
+  --accent: #151b4d;
+  --destructive: #ff8f8f;
+  --border: rgb(229 240 255 / 0.1);
+  --input: rgb(229 240 255 / 0.16);
+  --ring: #4571ff;
+
+  color-scheme: dark;
+  scrollbar-color: rgb(229 240 255 / 0.18) transparent;
+  -webkit-tap-highlight-color: transparent;
+}
+html:has(.dash) :focus-visible {
+  outline-width: 2px;
+  outline-offset: 2px;
+}
+html:has(.dash) :is(input, textarea) {
+  caret-color: var(--primary);
+}
+
+@keyframes dash-sheet-up {
+  from {
+    translate: 0 100%;
+  }
+}
+@keyframes dash-sheet-down {
+  to {
+    translate: 0 100%;
+  }
+}
+@keyframes dash-sheet-left {
+  from {
+    translate: 100% 0;
+  }
+}
+@keyframes dash-sheet-right {
+  to {
+    translate: 100% 0;
+  }
+}
+@keyframes dash-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes dash-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes dash-pop-in {
+  from {
+    opacity: 0;
+    scale: 0.96;
+  }
+}
+@keyframes dash-pop-out {
+  to {
+    opacity: 0;
+    scale: 0.96;
+  }
+}

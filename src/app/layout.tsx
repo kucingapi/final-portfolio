@@ -1,10 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Cabin, Inter } from "next/font/google";
-import { SmoothScroll } from "@/components/providers/SmoothScroll";
-import { PageTransitionProvider } from "@/components/transition/PageTransition";
-import { Navbar } from "@/components/Navbar";
-import { ModeProvider, MODE_SCRIPT } from "@/components/mode/Mode";
-import { VariantLoader } from "@/components/cv/Variant";
+import { MODE_SCRIPT } from "@/components/mode/Mode";
 import { site } from "@/content/site";
 import "./globals.css";
 
@@ -47,18 +43,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </noscript>
       </head>
       {/* Browser extensions add classes to <body> before React loads (e.g. "vc-init"). This only
-          ignores <body>'s own attributes; mismatches inside the page are still reported. */}
-      <body suppressHydrationWarning>
-        <ModeProvider>
-          <VariantLoader />
-          <SmoothScroll>
-            <PageTransitionProvider>
-              <Navbar />
-              <div className="page-canvas">{children}</div>
-            </PageTransitionProvider>
-          </SmoothScroll>
-        </ModeProvider>
-      </body>
+          ignores <body>'s own attributes; mismatches inside the page are still reported. The site's
+          chrome is in (site)/layout.tsx, so the dashboard can leave it out. */}
+      <body suppressHydrationWarning>{children}</body>
     </html>
   );
 }

@@ -26,9 +26,11 @@ const nextConfig: NextConfig = {
   },
   // The PDF renderer loads fonts and layout code at runtime; keep it out of the server bundle.
   serverExternalPackages: ["@react-pdf/renderer"],
-  // The portfolio PDF reads its font and the site's images from disk.
+  // The portfolio PDF reads its font and the site's images from disk, and so does the dashboard's
+  // image export.
   outputFileTracingIncludes: {
     "/api/portfolio": ["./src/lib/portfolio/fonts/*", "./public/projects/**/*", "./public/figma/hero/photo-main.webp"],
+    "/api/dashboard/projects/\\[slug\\]": ["./public/projects/**/*"],
   },
   turbopack: {
     rules: {
