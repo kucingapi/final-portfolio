@@ -50,12 +50,21 @@ export async function listVariants(): Promise<StoredVariant[]> {
   return all.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 }
 
-/** Create (no code) or replace (existing code) a variant. Returns what was stored. */
-export async function saveVariant(input: { code?: string; label: string; variant: Variant }): Promise<StoredVariant> {
+/**
+ * Create (no code) or replace (existing `code`) a variant, or create one under a chosen unused code (`claim`),
+ * for a link that went out before its variant was saved. Returns what was stored.
+ */
+export async function saveVariant(input: { code?: string; claim?: string; label: string; variant: Variant }): Promise<StoredVariant> {
   const now = new Date().toISOString();
+  const { claim } = input;
+  if (claim !== undefined) {
+    if (input.code) throw new Error("Pass code to replace a variant or claim to create one, not both.");
+    if (!isCode(claim)) throw new Error(`Cannot claim "${claim}": a code is 6 to 16 characters from "${ALPHABET}".`);
+    if (await getVariant(claim)) throw new Error(`Cannot claim "${claim}": it is taken. Pass it as code to replace that variant.`);
+  }
   const existing = input.code ? await getVariant(input.code) : null;
   if (input.code && !existing) throw new Error(`No variant with code "${input.code}".`);
-  let code = input.code;
+  let code = input.code || claim;
   while (!code) {
     const candidate = newCode();
     if (!(await getVariant(candidate))) code = candidate;

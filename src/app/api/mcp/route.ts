@@ -98,18 +98,19 @@ function buildServer(origin: string) {
     {
       title: "Save a CV variant",
       description:
-        "Create a variant (omit code) or replace one (pass its code). Refuses invalid ids. Returns the code, the links to send (site, CV page, CV PDF, portfolio PDF) and the page count.",
+        "Create a variant (omit code; pass claim to choose its code) or replace one (pass its code). Refuses invalid ids. Returns the code, the links to send (site, CV page, CV PDF, portfolio PDF) and the page count.",
       inputSchema: {
         label: z.string().trim().min(1).max(120).describe("Private note: who this is for."),
         variant: variantSchema,
         code: z.string().optional().describe("Existing code to replace; omit to create a new one."),
+        claim: z.string().optional().describe("Unused code to create the variant under, e.g. for a link already sent; refused if invalid or taken."),
       },
     },
-    async ({ label, variant, code }) => {
+    async ({ label, variant, code, claim }) => {
       const result = await preview(variant, origin);
       if (result.errors.length) return fail(`Not saved. Fix these first:\n${result.errors.join("\n")}`);
       try {
-        const row = await saveVariant({ code, label, variant });
+        const row = await saveVariant({ code, claim, label, variant });
         return json({
           code: row.code,
           label: row.label,
