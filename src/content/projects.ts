@@ -1,88 +1,15 @@
 /**
- * Projects: the home grid and every case-study page read from here.
+ * The projects as they ship with the code: the home grid, the projects index and every case-study page
+ * start from these. The site reads them through src/lib/content, where the dashboard and agents edit
+ * them; once a version is published there, it wins.
  * Numbers come from Novel's career record (PRs, PostHog, Lighthouse runs); nothing is estimated
  * unless the copy says "about".
  */
 
-/** Where an image sits inside a frame, in design px (see `--s` in globals.css). */
-export type Placement = { w: number; h: number; x: number; y: number };
+import type { Project, Shot } from "@/lib/content/schema";
 
-export type Art = {
-  /** Full-colour render with the real product on screen. */
-  real: string;
-  /** Flat two-tone twin of the same render; the real one opens over it. */
-  abstract: string;
-  /** Intrinsic size of both files. */
-  width: number;
-  height: number;
-  /**
-   * The circle the reveal grows from, as fractions of the image (x, y of its centre; r of its width).
-   * `drawn` circles are painted by the page as the "open" button; the others are already in the picture.
-   */
-  circle: { x: number; y: number; r: number; drawn: boolean };
-  alt: string;
-};
-
-export type Shot = { src: string; width: number; height: number; alt: string; caption?: string };
-
-export type Chapter = {
-  id: string;
-  title: string;
-  problem: string;
-  did: string[];
-  result: string;
-  /** One before/after figure that carries the chapter, set large beside the result. */
-  figure?: { from?: string; to: string; label: string };
-  /** A small data graphic instead of a screenshot. */
-  bars?: { label: string; value: number; note: string }[];
-  shot?: Shot;
-};
-
-/** A stretch of the work, for projects told in parts. It opens at chapter `from`. */
-export type Part = { from: string; title: string; period: string; lede: string };
-
-export const PLATFORMS = ["Web", "Mobile", "Desktop"] as const;
-export const CONTEXTS = ["Multimodal", "Client work", "Side project", "Study"] as const;
-export type Platform = (typeof PLATFORMS)[number];
-export type Context = (typeof CONTEXTS)[number];
-
-export type Project = {
-  slug: string;
-  title: string;
-  /** Long name, when the title is an acronym. */
-  fullName?: string;
-  client: string;
-  period: string;
-  role: string;
-  /** One line for the home grid chip. */
-  tag: string;
-  /** For the projects index: when, what kind of thing, and the one number that sums it up. */
-  year: string;
-  kind: string;
-  stat: { value: string; label: string };
-  /** Filters on the projects index. */
-  platform: Platform;
-  context: Context;
-  summary: string;
-  stack: string[];
-  intro: string[];
-  part: string[];
-  links?: { label: string; href: string }[];
-  /** Featured projects only: the device render with its circle reveal. */
-  art?: Art;
-  /** Home grid: card size and image crop. */
-  card?: { w: number; h: number; place: Placement; mobileH: number };
-  /** Case-study hero crop inside the 1240×700 frame. */
-  hero?: Placement;
-  /** Projects without a device render: a screenshot or design board for the hero and index. */
-  cover?: Shot;
-  chapters: Chapter[];
-  parts?: Part[];
-  /** Work that is still being built, said plainly on the card and the case page. */
-  status?: { label: string; note: string };
-  /** How the work was done, where it is worth saying. */
-  method?: string;
-};
+export { CONTEXTS, PLATFORMS } from "@/lib/content/schema";
+export type { Art, Chapter, Context, Part, Placement, Platform, Project, Shot } from "@/lib/content/schema";
 
 const gallery = (src: string, alt: string, caption?: string, width = 2000, height = 1250): Shot => ({
   src,
@@ -1010,12 +937,8 @@ export type FeaturedProject = Project & Required<Pick<Project, "art" | "card" | 
 
 export const isFeatured = (p: Project): p is FeaturedProject => Boolean(p.art && p.card && p.hero);
 
-export const featuredProjects = projects.filter(isFeatured);
-export const moreProjects = projects.filter((p) => !isFeatured(p));
-
-export const getProject = (slug: string) => projects.find((p) => p.slug === slug);
-
-export const nextProject = (slug: string) => {
-  const i = projects.findIndex((p) => p.slug === slug);
-  return projects[(i + 1) % projects.length];
+/** The project after this one, wrapping round to the first. */
+export const nextProject = (list: Project[], slug: string) => {
+  const i = list.findIndex((p) => p.slug === slug);
+  return list[(i + 1) % list.length];
 };

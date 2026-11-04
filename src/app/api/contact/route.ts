@@ -50,6 +50,7 @@ export async function POST(request: Request) {
     headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       from: process.env.CONTACT_FROM_EMAIL ?? "Portfolio <onboarding@resend.dev>",
+      // The address in the code, not the editable copy, so an edit can't redirect enquiries.
       to: [process.env.CONTACT_TO_EMAIL ?? site.email],
       reply_to: email,
       subject: `New ${service} enquiry from ${name}`,

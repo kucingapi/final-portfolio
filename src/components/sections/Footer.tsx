@@ -1,17 +1,19 @@
 import Image from "next/image";
 import { SectionMotion } from "@/components/motion/SectionMotion";
 import { Logo } from "@/components/Navbar";
-import { site, mailHref } from "@/content/site";
-
-const ICONS = [
-  { key: "github", label: "GitHub", src: "/figma/icons/github.svg", href: site.social.github },
-  { key: "linkedin", label: "LinkedIn", src: "/figma/icons/linkedin.svg", href: site.social.linkedin },
-  { key: "instagram", label: "Instagram", src: "/figma/icons/instagram.svg", href: site.social.instagram },
-  { key: "mail", label: "Email", src: "/figma/icons/mail.svg", href: mailHref },
-];
+import { mailto } from "@/content/site";
+import { getSiteContent } from "@/lib/content/read";
 
 /** Footer (Figma 270:3045). */
-export function Footer() {
+export async function Footer() {
+  const { site } = await getSiteContent();
+  const mailHref = mailto(site.email);
+  const ICONS = [
+    { key: "github", label: "GitHub", src: "/figma/icons/github.svg", href: site.social.github },
+    { key: "linkedin", label: "LinkedIn", src: "/figma/icons/linkedin.svg", href: site.social.linkedin },
+    { key: "instagram", label: "Instagram", src: "/figma/icons/instagram.svg", href: site.social.instagram },
+    { key: "mail", label: "Email", src: "/figma/icons/mail.svg", href: mailHref },
+  ];
   return (
     <SectionMotion preset="footer">
       <footer data-node-id="270:3045" className="relative overflow-clip bg-midnight-600">

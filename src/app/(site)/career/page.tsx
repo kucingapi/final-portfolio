@@ -4,24 +4,25 @@ import { Deco, Heading } from "@/components/ui";
 import { SectionMotion } from "@/components/motion/SectionMotion";
 import { Footer } from "@/components/sections/Footer";
 import { CareerList } from "@/components/career/CareerList";
-import { about, careerDetail, mailHref, site } from "@/content/site";
+import { RESUME_URL, mailto } from "@/content/site";
+import { getSiteContent } from "@/lib/content/read";
 
-export const metadata: Metadata = {
-  title: "Career",
-  description: `The career of ${site.name}: roles, education and leadership.`,
-};
-
-const LINKS = [
-  { label: "GitHub", href: site.social.github, icon: "/figma/icons/github-large.svg", box: "size-63" },
-  { label: "Upwork", href: site.social.upwork, icon: "/figma/icons/upwork.svg", box: "h-44 w-63" },
-  { label: "Email", href: mailHref, icon: "/figma/icons/mail-large.svg", box: "size-63" },
-  { label: "LinkedIn", href: site.social.linkedin, icon: "/figma/icons/linkedin.svg", box: "size-63" },
-];
+export async function generateMetadata(): Promise<Metadata> {
+  const { site } = await getSiteContent();
+  return { title: "Career", description: `The career of ${site.name}: roles, education and leadership.` };
+}
 
 const round = "relative block size-100 shrink-0 rounded-full bg-midnight-500 transition-colors max-md:size-64";
 
 /** Career page (Figma 317:462, "Experiences"). */
-export default function CareerPage() {
+export default async function CareerPage() {
+  const { site, about, careerDetail } = await getSiteContent();
+  const LINKS = [
+    { label: "GitHub", href: site.social.github, icon: "/figma/icons/github-large.svg", box: "size-63" },
+    { label: "Upwork", href: site.social.upwork, icon: "/figma/icons/upwork.svg", box: "h-44 w-63" },
+    { label: "Email", href: mailto(site.email), icon: "/figma/icons/mail-large.svg", box: "size-63" },
+    { label: "LinkedIn", href: site.social.linkedin, icon: "/figma/icons/linkedin.svg", box: "size-63" },
+  ];
   return (
     <>
       <SectionMotion preset="experiences">
@@ -42,7 +43,7 @@ export default function CareerPage() {
                 <a
                   data-pop
                   data-magnetic="8"
-                  href={site.resumeUrl}
+                  href={RESUME_URL}
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex items-center rounded-full border-2 border-midnight-50 px-32 py-12 text-h4 font-semibold text-midnight-50 transition-colors hover:bg-midnight-50 hover:text-midnight-950"

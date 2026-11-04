@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
-import { getProject } from "@/content/projects";
+import { getProject } from "@/lib/content/read";
 import { signedIn, unauthorized } from "@/lib/dashboard/auth";
 import { exportImages } from "@/lib/dashboard/export";
 import { zip } from "@/lib/dashboard/zip";
@@ -17,11 +17,14 @@ const MATTE = "#010326";
 export async function GET(request: Request, ctx: RouteContext<"/api/dashboard/projects/[slug]">) {
   if (!(await signedIn(request))) return unauthorized();
   const { slug } = await ctx.params;
-  const project = getProject(slug);
+  const project = await getProject(slug);
   if (!project) return Response.json({ error: "No such project." }, { status: 404 });
   const files = await Promise.all(
     exportImages(project).map(async (image) => {
-      const source = await readFile(path.join(process.cwd(), "public", image.src));
+      // A path under public/, or a full URL once images are uploaded elsewhere.
+      const source = /^https?:\/\//.test(image.src)
+        ? Buffer.from(await (await fetch(image.src)).arrayBuffer())
+        : await readFile(path.join(process.cwd(), "public", image.src));
       const data = await sharp(source)
         .resize({ width: 2400, height: 2400, fit: "inside", withoutEnlargement: true })
         .flatten({ background: MATTE })

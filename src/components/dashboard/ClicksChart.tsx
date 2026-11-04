@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { site } from "@/content/site";
+import { TIME_ZONE } from "@/content/site";
 import { cn } from "./ui/cn";
 
 const DAYS = 30;
@@ -10,7 +10,7 @@ const H = 120;
 const GAP = 3;
 
 const dayKey = (date: Date) =>
-  new Intl.DateTimeFormat("en-CA", { timeZone: site.timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(date);
+  new Intl.DateTimeFormat("en-CA", { timeZone: TIME_ZONE, year: "numeric", month: "2-digit", day: "2-digit" }).format(date);
 const dayLabel = (key: string) =>
   new Date(`${key}T12:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
 

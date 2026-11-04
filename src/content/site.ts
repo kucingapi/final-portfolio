@@ -1,19 +1,26 @@
+import type { SiteContent } from "@/lib/content/schema";
+
+export type { CareerRole, Mode, Testimonial } from "@/lib/content/schema";
+
 /**
- * All copy, links and lists for the site live here.
+ * The site's copy as it ships with the code. Pages read it through src/lib/content, where the dashboard
+ * and agents edit it; once a version is published there, it wins over these.
  * Anything marked TODO is still placeholder content from the Figma file.
  */
 
-export const site = {
+/** Not content: the navbar clock and the dashboard's days run on Jakarta time. */
+export const TIME_ZONE = "Asia/Jakarta";
+/** The CV page; it tailors itself when the visitor came through a `?v=` link. */
+export const RESUME_URL = "/cv";
+
+export const site: SiteContent["site"] = {
   name: "Novel Bafagih",
   role: "Software Engineer",
   title: "Novel Bafagih | Software Engineer",
   description:
     "Software engineer building web and Android products with React, Next.js and Kotlin Jetpack Compose. AI speeds up the work; every line is still reviewed, clean and maintainable.",
   location: "Based in Indonesia, Jakarta",
-  timeZone: "Asia/Jakarta",
   email: "novelbafagih09@gmail.com",
-  /** The CV page; it tailors itself when the visitor came through a `?v=` link. */
-  resumeUrl: "/cv",
   /** Profile URLs. Empty strings render as plain (non-link) icons. */
   social: {
     github: "https://github.com/kucingapi",
@@ -27,7 +34,7 @@ export const about =
   "I’m Novel Bafagih, a software engineer who never goes a day without learning something new. I build scalable, flexible and robust software, mostly with React, Next.js and Kotlin Jetpack Compose. AI is part of how I work: it helps me move fast, and I review every line so the code stays clean and easy to maintain. Give me a week, a computer and an internet connection, and I’ll learn whatever the project needs.";
 
 /** "How I work" on the home page. The numbers in the last step are from the case studies. */
-export const philosophy = {
+export const philosophy: SiteContent["philosophy"] = {
   title: "How I work",
   lede: "AI is my tool, not my replacement. I take a product end to end, from the first sketch to the backend, and every step starts from facts, not hunches.",
   span: ["Design", "Frontend", "Backend", "Testing", "Analytics"],
@@ -58,14 +65,12 @@ export const philosophy = {
   pledgeNote: "I test it, and I answer for what ships, not just a human proxy.",
 };
 
-export type Testimonial = { quote: string; name: string; relation: string; role: string; avatar?: string };
-
 /**
  * The first is real: quoted word for word from Dr. Ehmann's letter of recommendation (July 2023).
  * TODO: the rest are placeholders; replace them with real testimonials before publishing. Cards
  * without `avatar` show initials.
  */
-export const testimonials: Testimonial[] = [
+export const testimonials: SiteContent["testimonials"] = [
   {
     quote:
       "Mr. Bafagih played a pivotal role in developing a functioning prototype of a digital anamnesis solution, demonstrating great technical skills…",
@@ -97,7 +102,7 @@ export const testimonials: Testimonial[] = [
  * Two ways to read the site, switched from the navbar. Freelance (the default) leads with projects
  * for clients; Full-time leads with the career for employers. Only the copy below changes.
  */
-export const modes = {
+export const modes: SiteContent["modes"] = {
   freelance: {
     label: "Freelance",
     hero: { lead: "Looking for a", mark: "Freelance", rest: "Developer?" },
@@ -126,24 +131,10 @@ export const modes = {
       body: "I am open to full-time roles. Let’s talk about your team and the work.",
     },
   },
-} as const;
-
-export type Mode = keyof typeof modes;
-
-export type CareerRole = {
-  period: string;
-  role: string;
-  org: string;
-  place?: string;
-  /** Only where the profile or CV says so. */
-  kind?: "Full-time" | "Freelance" | "Program" | "Degree";
-  points: string[];
-  /** A case study this role is told through. */
-  href?: string;
 };
 
 /** The home page's Career section, shown in Full-time mode. Newest first. */
-export const career: CareerRole[] = [
+export const career: SiteContent["career"] = [
   {
     period: "Apr 2024 – Oct 2026",
     role: "Software Engineer",
@@ -200,7 +191,7 @@ export const career: CareerRole[] = [
  * The Career page, in full: every role with what I did there. From the LinkedIn profile, the CV and
  * the case studies; numbers are as those sources give them.
  */
-export const careerDetail: { id: string; heading: string; roles: CareerRole[] }[] = [
+export const careerDetail: SiteContent["careerDetail"] = [
   {
     id: "work",
     heading: "Work",
@@ -323,4 +314,4 @@ export const careerDetail: { id: string; heading: string; roles: CareerRole[] }[
 export const services = ["Design", "Web", "Mobile", "Others"] as const;
 export type Service = (typeof services)[number];
 
-export const mailHref = `mailto:${site.email}`;
+export const mailto = (email: string) => `mailto:${email}`;

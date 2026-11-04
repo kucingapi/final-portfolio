@@ -3,6 +3,7 @@
 import { useVariant } from "./Variant";
 import { Downloads } from "./Downloads";
 import { resolveCv, type ResolvedEntry } from "@/lib/cv/variant";
+import type { CvContent } from "@/lib/content/schema";
 
 /**
  * The CV as a sheet of paper on the page: the same lines, order and layout as the PDF, tailored when
@@ -49,9 +50,10 @@ function Entry({ e }: { e: ResolvedEntry }) {
   );
 }
 
-export function CvSheet() {
+/** `content` is the master CV as published; the variant picks from it here, in the browser. */
+export function CvSheet({ content }: { content: CvContent }) {
   const { current, loading } = useVariant();
-  const cv = resolveCv(current?.variant, current?.code);
+  const cv = resolveCv(content, current?.variant, current?.code);
 
   return (
     <div className="flex flex-col gap-32 max-md:gap-20">

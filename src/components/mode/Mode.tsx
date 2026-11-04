@@ -3,7 +3,7 @@
 import { createContext, useContext, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { ScrollTrigger, prefersReducedMotion } from "@/lib/gsap";
 import { track } from "@/lib/analytics";
-import { modes, type Mode } from "@/content/site";
+import type { Mode } from "@/content/site";
 
 /**
  * Freelance / Full-time. The mode lives on <html data-mode> (set before first paint by MODE_SCRIPT,
@@ -91,7 +91,7 @@ export function ModeProvider({ children }: { children: ReactNode }) {
 }
 
 /** The navbar tab: two options with a thumb that slides to the active one. */
-export function ModeToggle({ className = "" }: { className?: string }) {
+export function ModeToggle({ className = "", labels }: { className?: string; labels: Record<Mode, string> }) {
   const { mode, setMode } = useMode();
   const order: Mode[] = ["freelance", "fulltime"];
   return (
@@ -112,7 +112,7 @@ export function ModeToggle({ className = "" }: { className?: string }) {
             mode === m ? "text-midnight-950" : "text-midnight-50 hover:text-white"
           }`}
         >
-          {modes[m].label}
+          {labels[m]}
         </button>
       ))}
     </div>

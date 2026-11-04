@@ -1,16 +1,16 @@
 import type { Metadata, Viewport } from "next";
 import { Cabin, Inter } from "next/font/google";
 import { MODE_SCRIPT } from "@/components/mode/Mode";
-import { site } from "@/content/site";
+import { getSiteContent } from "@/lib/content/read";
 import "./globals.css";
 
 const cabin = Cabin({ variable: "--font-cabin", subsets: ["latin"] });
 const inter = Inter({ variable: "--font-inter-face", subsets: ["latin"] });
 
-export const metadata: Metadata = {
-  title: { default: site.title, template: `%s | ${site.name}` },
-  description: site.description,
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { site } = await getSiteContent();
+  return { title: { default: site.title, template: `%s | ${site.name}` }, description: site.description };
+}
 
 export const viewport: Viewport = {
   themeColor: "#010326",

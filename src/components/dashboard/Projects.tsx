@@ -1,6 +1,6 @@
 "use client";
 
-import { Download } from "lucide-react";
+import { Download, ExternalLink } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import { CONTRA, UPWORK, type ProjectExport } from "@/lib/dashboard/export";
@@ -9,7 +9,7 @@ import { Button } from "./ui/button";
 
 /**
  * Each project as Upwork's and Contra's forms ask for it: copy-ready fields, read-only (they come from
- * src/content/projects.ts), and the images as one numbered zip.
+ * the published projects), the images as one numbered zip, and the project's slides as a PDF.
  */
 export function Projects({ projects }: { projects: ProjectExport[] }) {
   const [slug, setSlug] = useState(projects[0]?.slug);
@@ -48,7 +48,8 @@ function ProjectExportView({ p }: { p: ProjectExport }) {
   return (
     <article className="flex flex-col gap-10">
       <p className="text-[0.8125rem] leading-relaxed text-muted-foreground">
-        Made from src/content/projects.ts. To change a line, edit the project or the rules in src/lib/dashboard/export.ts.
+        Made from the published projects. To change a line, edit the project in Content, or the rules in
+        src/lib/dashboard/export.ts.
       </p>
 
       <Part title={`Images (${p.images.length})`}>
@@ -78,12 +79,34 @@ function ProjectExportView({ p }: { p: ProjectExport }) {
         )}
       </Part>
 
+      <Part title="PDF">
+        <p className="-mt-2 text-[0.8125rem] leading-relaxed text-muted-foreground">
+          This project&apos;s slides from the portfolio deck, without the site address or links.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="secondary">
+            <a href={`/api/portfolio?project=${p.slug}&download=1`} download>
+              <Download />
+              Download the PDF
+            </a>
+          </Button>
+          <Button asChild variant="ghost">
+            <a href={`/api/portfolio?project=${p.slug}`} target="_blank" rel="noopener">
+              <ExternalLink />
+              Open
+            </a>
+          </Button>
+        </div>
+      </Part>
+
       <Part title="Upwork">
         <CopyField {...p.upwork.title} />
         <CopyField {...p.upwork.role} />
         <CopyField {...p.upwork.description} />
         <CopyList label="Skills (from the stack)" items={p.upwork.skills} limit={UPWORK.skills} />
-        <p className="text-[0.8125rem] text-muted-foreground">Media: the zip above, in its order. The first image is the thumbnail.</p>
+        <p className="text-[0.8125rem] text-muted-foreground">
+          Media: the zip above, in its order (the first image is the thumbnail), or the PDF.
+        </p>
       </Part>
 
       <Part title="Contra">

@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
 import { ContactFlow } from "@/components/contact/ContactFlow";
-import { site } from "@/content/site";
+import { getSiteContent } from "@/lib/content/read";
 
-export const metadata: Metadata = {
-  title: "Contact",
-  description: `Start a design, web or mobile project with ${site.name}.`,
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { site } = await getSiteContent();
+  return { title: "Contact", description: `Start a design, web or mobile project with ${site.name}.` };
+}
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const { site } = await getSiteContent();
   return (
     <main className="bg-midnight-950">
-      <ContactFlow />
+      <ContactFlow email={site.email} />
     </main>
   );
 }

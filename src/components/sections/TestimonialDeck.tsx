@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useRef, useState } from "react";
 import { gsap, useGSAP, ScrollTrigger, prefersReducedMotion } from "@/lib/gsap";
 import { designUnit } from "@/lib/motion";
-import { testimonials } from "@/content/site";
+import type { Testimonial } from "@/content/site";
 
 /** Seconds a card stays in front before autoplay moves on. */
 const DWELL = 6;
@@ -32,7 +32,7 @@ const initials = (name: string) =>
  * Autoplay holds while the deck is off screen, hovered, focused, dragged, or the tab is hidden,
  * and never runs with reduced motion.
  */
-export function TestimonialDeck() {
+export function TestimonialDeck({ testimonials }: { testimonials: Testimonial[] }) {
   const root = useRef<HTMLDivElement>(null);
   const controls = useRef<{ step: (dir: 1 | -1) => void } | null>(null);
   const [front, setFront] = useState(0);

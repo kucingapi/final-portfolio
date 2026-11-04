@@ -14,12 +14,8 @@ import {
   FilterSection,
   type FilterMeta,
 } from "@/components/projects/ProjectFilter";
-import {
-  featuredProjects,
-  moreProjects,
-  projects,
-  type Project,
-} from "@/content/projects";
+import { isFeatured, type Project } from "@/content/projects";
+import { getProjects } from "@/lib/content/read";
 
 export const metadata: Metadata = {
   title: "Projects",
@@ -89,7 +85,10 @@ function ReadMore() {
   );
 }
 
-export default function ProjectsPage() {
+export default async function ProjectsPage() {
+  const projects = await getProjects();
+  const featuredProjects = projects.filter(isFeatured);
+  const moreProjects = projects.filter((p) => !isFeatured(p));
   return (
     <>
       <SectionMotion preset="index">

@@ -2,7 +2,8 @@
 
 A private page on the portfolio for Novel only: short links with click analytics, every tailored CV link in the
 same list, and each project exported in the shape Upwork and Contra ask for. Decided 2026-11-03; on the same day,
-setup moved to the live site, and the dashboard became a phone app with notifications and a new UI.
+setup moved to the live site, and the dashboard became a phone app with notifications and a new UI. On 2026-11-04
+it gained Content: the site's copy, the master CV and the projects became editable there and by agents over MCP.
 
 ## Access
 
@@ -50,6 +51,34 @@ setup moved to the live site, and the dashboard became a phone app with notifica
   `src/components/dashboard/ui`. Their colour names and a plain rem scale apply only on dashboard pages, through
   `html:has(.dash)` in `globals.css`, so the site's design-pixel canvas is untouched.
 
+## Content: the site's own CMS
+
+Chosen over a hosted CMS (Sanity) and one inside the app (Payload): the dashboard, the store and the MCP endpoint were
+already here, every CMS's admin is a separate app with its own login, and Payload's admin breaks under Cache
+Components until its version 4.
+
+- **Three documents** under Content: Projects (every case study, in the site's order), CV (the master CV that tailored
+  links pick from) and Site (the basics, About, How I work, testimonials, the Freelance and Full-time copy, and both
+  career lists).
+- **Drafts, then Publish.** Saving writes a draft that only the dashboard sees. Publish puts it on the site and
+  expires that document's cache tag, so the next visit renders it. Preview opens the site with the drafts showing
+  (Next's Draft Mode) and a "Showing drafts · Exit" pill.
+- **Pages stay prerendered.** Pages, the PDFs and the MCP read content through cached functions, tagged per document
+  with the longest lifetime (`src/lib/content/read.ts`), so publishing is the only thing that re-renders them.
+- **The code's copy until the first publish.** `src/content/*.ts` are the defaults. Once a document is published,
+  the stored copy wins. Earlier versions keeps the last 20 publishes and the shipped copy, each restorable as a draft.
+- **Agents edit drafts only**, with the MCP tools `get_content`, `edit_content` (RFC 6902 JSON Patch) and
+  `content_changes`, on the same bearer token as the CV tools. Each write names the revision it started from, and a
+  stale one is refused. A draft an agent wrote says so, with its changes listed. Only the dashboard publishes.
+- **One schema** (`src/lib/content/schema.ts`, zod) checks every save, types the content and lays out the editor, so
+  a field added there appears in the form and the MCP with no other code. A new required field needs a default for
+  content that is already stored.
+- **Where mail goes stays in code.** Setup links and contact enquiries go to `CONTACT_TO_EMAIL` or the email in
+  `src/content/site.ts`, never the editable copy, so an edit can't redirect sign-in links.
+- **Previews keep their own content** (`content:preview:*` keys), as they share production's Upstash: editing on a
+  preview never changes the live site.
+- **Images** are paths under `public/` or full URLs; uploading from the dashboard isn't built yet.
+
 ## Short links
 
 - **Shape: `novelbafagih.com/go/<name>`.** The name is free text (lowercase letters, digits, dashes). Left blank, it
@@ -72,8 +101,10 @@ setup moved to the live site, and the dashboard became a phone app with notifica
 
 Neither platform can import a file, so the export is copy-ready fields plus the images.
 
-- **Text is generated, read-only**, from `src/content/projects.ts` on each view. To change the wording, edit the
-  project or the export rules. Each field shows its length against the limit.
+- **Text is generated, read-only**, from the published projects on each view. To change the wording, edit the
+  project under Content, or the export rules. Each field shows its length against the limit.
+- **A PDF per project**, for forms that take one: the project's slides from the portfolio deck, with no site address
+  or links (`/api/portfolio?project=<slug>`).
 - **Upwork:** title (≤ 70), your role (≤ 100), description (≤ 600), up to 5 skills (taken from `stack`), media.
   Upwork's own pages disagree (the help center says 70/100/600, the portfolio guide says 40/≤300), so check the
   live form once and record the real limits here.
@@ -105,6 +136,8 @@ Neither platform can import a file, so the export is copy-ready fields plus the 
 | Short links and their clicks | `src/lib/dashboard/links.ts`, `/api/dashboard/links`, `/api/dashboard/links/<name>` |
 | The redirect | `src/app/go/[name]/route.ts`; previews are told apart in `src/lib/dashboard/visitor.ts` |
 | Project export | `src/lib/dashboard/export.ts`; images zip at `/api/dashboard/projects/<slug>` |
+| Content: schema, store, cached reads, defaults | `src/lib/content/` (`schema.ts`, `store.ts`, `read.ts`, `defaults.ts`, `changes.ts`) |
+| Content editor | `src/components/dashboard/Content.tsx`, `src/components/dashboard/content/Editor.tsx`; actions in `src/app/dashboard/content-actions.ts`; Preview at `/api/dashboard/preview` |
 | Shared Redis client (also used by the CV store) | `src/lib/kv.ts` |
 
 Choices made while building, which the decisions above left open:
