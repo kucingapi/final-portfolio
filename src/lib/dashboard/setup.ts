@@ -30,6 +30,7 @@ export class SetupError extends Error {
   }
 }
 
+// The address in the code, not the editable copy: an edit to the site's email must never redirect sign-in links.
 const inbox = () => process.env.CONTACT_TO_EMAIL || site.email;
 
 /** "no•••••••••••09@gmail.com": enough to recognise, not enough to harvest. */

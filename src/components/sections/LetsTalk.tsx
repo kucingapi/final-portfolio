@@ -2,7 +2,7 @@ import { Heading } from "@/components/ui";
 import { Marquee } from "@/components/motion/Marquee";
 import { SectionMotion } from "@/components/motion/SectionMotion";
 import { TransitionLink } from "@/components/transition/PageTransition";
-import { modes } from "@/content/site";
+import { getSiteContent } from "@/lib/content/read";
 
 function TalkRow({ outline = false }: { outline?: boolean }) {
   return (
@@ -22,7 +22,8 @@ function TalkRow({ outline = false }: { outline?: boolean }) {
 }
 
 /** The closing call to talk, worded per mode, + the Talk wall (Figma 275:3116). */
-export function LetsTalk() {
+export async function LetsTalk() {
+  const { modes } = await getSiteContent();
   return (
     <SectionMotion preset="talk">
       <section aria-label="Let’s talk" data-node-id="275:3116" className="relative overflow-clip bg-midnight-950">

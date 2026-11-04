@@ -1,18 +1,14 @@
 import type { z } from "zod";
 import type { variantSchema } from "./schema";
 import {
-  SECTION_TITLES,
-  cvEntries,
-  cvHeader,
-  cvSkills,
-  cvSummaries,
-  getCvEntry,
   MAX_BULLETS,
+  SECTION_TITLES,
   type CvBullet,
+  type CvContent,
   type CvEntry,
   type CvSectionId,
   type CvSkillGroup,
-} from "@/content/cv";
+} from "@/lib/content/schema";
 
 /** One tailored version of the CV and the site; see `variantSchema` in ./schema for the fields. */
 export type Variant = z.infer<typeof variantSchema>;
@@ -35,9 +31,10 @@ function defaultBullets(entry: CvEntry): CvBullet[] {
  * Check a variant against the master CV. Returns every problem found, so an agent can fix them in one
  * pass; an empty list means it is valid.
  */
-export function checkVariant(v: Variant, projectSlugs: string[]): string[] {
+export function checkVariant(cv: CvContent, v: Variant, projectSlugs: string[]): string[] {
+  const getCvEntry = (id: string) => cv.entries.find((e) => e.id === id);
   const errors: string[] = [];
-  if (v.summaryId && !cvSummaries.some((s) => s.id === v.summaryId)) errors.push(`Unknown summaryId "${v.summaryId}".`);
+  if (v.summaryId && !cv.summaries.some((s) => s.id === v.summaryId)) errors.push(`Unknown summaryId "${v.summaryId}".`);
   for (const id of v.entries ?? []) if (!getCvEntry(id)) errors.push(`Unknown entry "${id}".`);
   for (const [id, bulletIds] of Object.entries(v.bullets ?? {})) {
     const entry = getCvEntry(id);
@@ -58,9 +55,9 @@ export function checkVariant(v: Variant, projectSlugs: string[]): string[] {
     if (!entry) errors.push(`titles: unknown entry "${id}".`);
     else if (!entry.titles.includes(title)) errors.push(`titles.${id}: "${title}" is not one of ${entry.titles.join(", ")}.`);
   }
-  for (const id of v.skills ?? []) if (!cvSkills.some((g) => g.id === id)) errors.push(`Unknown skill group "${id}".`);
+  for (const id of v.skills ?? []) if (!cv.skills.some((g) => g.id === id)) errors.push(`Unknown skill group "${id}".`);
   for (const [id, items] of Object.entries(v.skillItems ?? {})) {
-    const group = cvSkills.find((g) => g.id === id);
+    const group = cv.skills.find((g) => g.id === id);
     if (!group) errors.push(`skillItems: unknown skill group "${id}".`);
     else for (const t of items) if (!group.items.includes(t)) errors.push(`skillItems.${id}: "${t}" is not in ${group.label}.`);
   }
@@ -87,10 +84,10 @@ export type ResolvedCv = {
  * Turn a variant into the CV it describes. Unknown ids are skipped, not fatal. With the variant's `code`,
  * the site link carries it, so a reader who clicks it lands on the site tailored for them.
  */
-export function resolveCv(v: Variant = {}, code?: string): ResolvedCv {
+export function resolveCv(cv: CvContent, v: Variant = {}, code?: string): ResolvedCv {
   const chosen = v.entries
-    ? v.entries.map(getCvEntry).filter((e): e is CvEntry => Boolean(e))
-    : cvEntries.filter((e) => e.weight >= 2);
+    ? v.entries.map((id) => cv.entries.find((e) => e.id === id)).filter((e): e is CvEntry => Boolean(e))
+    : cv.entries.filter((e) => e.weight >= 2);
   const resolve = (e: CvEntry): ResolvedEntry => {
     const { titles, bullets: all, ...rest } = e;
     const ids = v.bullets?.[e.id];
@@ -108,21 +105,22 @@ export function resolveCv(v: Variant = {}, code?: string): ResolvedCv {
     if (id === "skills" || entries.length) sections.push({ id, title: SECTION_TITLES[id], entries });
   }
   const skills = (
-    v.skills ? v.skills.map((id) => cvSkills.find((g) => g.id === id)).filter((g): g is CvSkillGroup => Boolean(g)) : cvSkills
+    v.skills ? v.skills.map((id) => cv.skills.find((g) => g.id === id)).filter((g): g is CvSkillGroup => Boolean(g)) : cv.skills
   ).map((g) => {
     const items = v.skillItems?.[g.id]?.filter((t) => g.items.includes(t));
     return items ? { ...g, items } : g;
   });
-  const summary = v.summary ?? cvSummaries.find((s) => s.id === v.summaryId)?.text ?? cvSummaries[0].text;
+  const summary = v.summary ?? cv.summaries.find((s) => s.id === v.summaryId)?.text ?? cv.summaries[0].text;
   const contact = v.contact ?? true;
-  const site = code ? { ...cvHeader.site, href: `${cvHeader.site.href}/?v=${code}` } : cvHeader.site;
+  const { header } = cv;
+  const site = code ? { ...header.site, href: `${header.site.href}/?v=${code}` } : header.site;
   return {
-    name: cvHeader.name,
-    headline: v.headline ?? cvHeader.headlines[0],
-    location: cvHeader.location,
+    name: header.name,
+    headline: v.headline ?? header.headlines[0],
+    location: header.location,
     contact,
-    email: contact ? cvHeader.email : undefined,
-    links: contact ? [site, ...cvHeader.links] : [site],
+    email: contact ? header.email : undefined,
+    links: contact ? [site, ...header.links] : [site],
     summary,
     sections,
     skills,
@@ -133,16 +131,21 @@ export function resolveCv(v: Variant = {}, code?: string): ResolvedCv {
  * The whole master CV, for proofreading: every entry and every line, with the alternative headlines,
  * summaries and titles side by side. It runs long; it is not a CV to send.
  */
-export function masterCv(): ResolvedCv {
-  const cv = resolveCv({ entries: cvEntries.map((e) => e.id) });
+export function masterCv(content: CvContent): ResolvedCv {
+  const cv = resolveCv(content, { entries: content.entries.map((e) => e.id) });
   const sections = cv.sections.map((s) => ({
     ...s,
     entries: s.entries.map((e) => {
-      const full = getCvEntry(e.id)!;
+      const full = content.entries.find((x) => x.id === e.id)!;
       return { ...e, title: full.titles.join(" / "), bullets: full.bullets };
     }),
   }));
-  return { ...cv, headline: cvHeader.headlines.join(" / "), summary: cvSummaries.map((s) => s.text).join("\n\n"), sections };
+  return {
+    ...cv,
+    headline: content.header.headlines.join(" / "),
+    summary: content.summaries.map((s) => s.text).join("\n\n"),
+    sections,
+  };
 }
 
 /** Plain-text rendering, for agents to read what a variant produces. */

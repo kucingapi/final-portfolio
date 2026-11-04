@@ -1,6 +1,6 @@
 import { localFile, redis } from "@/lib/kv";
 import { newCode } from "@/lib/cv/store";
-import { site } from "@/content/site";
+import { TIME_ZONE } from "@/content/site";
 
 /**
  * Short links: `/go/<name>` redirects to a destination and counts the click. Stored beside the CV
@@ -48,7 +48,7 @@ export function checkDestination(url: string) {
 }
 
 export const dayKey = (date: Date) =>
-  new Intl.DateTimeFormat("en-CA", { timeZone: site.timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(date);
+  new Intl.DateTimeFormat("en-CA", { timeZone: TIME_ZONE, year: "numeric", month: "2-digit", day: "2-digit" }).format(date);
 
 export async function getLink(name: string): Promise<ShortLink | null> {
   if (!isName(name)) return null;

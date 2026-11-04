@@ -3,7 +3,8 @@ import { Chip, Deco, Heading } from "@/components/ui";
 import { SectionMotion } from "@/components/motion/SectionMotion";
 import { TransitionLink } from "@/components/transition/PageTransition";
 import { ProjectArt } from "@/components/projects/ProjectArt";
-import { featuredProjects } from "@/content/projects";
+import { isFeatured } from "@/content/projects";
+import { getProjects } from "@/lib/content/read";
 
 /**
  * Slots of the Figma grid, in reading order. Multimodal leads: AgentFlow takes the big tile,
@@ -42,7 +43,8 @@ export function SeamDecor() {
   );
 }
 
-export function Projects() {
+export async function Projects() {
+  const featuredProjects = (await getProjects()).filter(isFeatured);
   return (
     <SectionMotion preset="projects">
       <section id="projects" data-for="freelance" data-slot aria-labelledby="projects-title" data-node-id="193:2317" className="relative overflow-clip bg-midnight-900">

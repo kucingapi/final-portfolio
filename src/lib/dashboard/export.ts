@@ -1,8 +1,8 @@
-import { projects, type Project } from "@/content/projects";
+import type { Project } from "@/content/projects";
 
 /**
  * Each project in the shape Upwork's and Contra's portfolio forms ask for. Neither can import a file,
- * so this is copy-ready text plus the images, generated from src/content/projects.ts on every view.
+ * so this is copy-ready text plus the images, generated from the published projects on every view.
  * To change the wording, edit the project, or the rules and overrides below.
  */
 
@@ -106,4 +106,3 @@ export function projectExport(p: Project, origin: string): ProjectExport {
   };
 }
 
-export const allExports = (origin: string) => projects.map((p) => projectExport(p, origin));

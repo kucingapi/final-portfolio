@@ -3,14 +3,15 @@ import { InlineSvg } from "@/components/InlineSvg";
 import { Chip, Deco } from "@/components/ui";
 import { SectionMotion } from "@/components/motion/SectionMotion";
 import { ByMode } from "@/components/mode/Mode";
-import { modes } from "@/content/site";
+import { getSiteContent } from "@/lib/content/read";
 
 /**
  * Hero (Figma 186:1436). Desktop positions are Figma canvas px on the 1440 frame;
  * the photo collage lives in its own box (origin = Figma x 656, y 152) so it can be
  * scaled as one piece on phones.
  */
-export function Hero() {
+export async function Hero() {
+  const { modes } = await getSiteContent();
   return (
     <SectionMotion preset="hero">
       <section aria-label="Intro" data-node-id="186:1436" className="relative overflow-clip bg-midnight-950">

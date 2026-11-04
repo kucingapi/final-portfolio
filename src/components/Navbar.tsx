@@ -8,7 +8,7 @@ import {
   TransitionLink,
   onPageReveal,
 } from "@/components/transition/PageTransition";
-import { site, mailHref } from "@/content/site";
+import { TIME_ZONE, mailto, type Mode } from "@/content/site";
 import { ModeToggle } from "@/components/mode/Mode";
 
 const MENU = [
@@ -26,7 +26,7 @@ function useJakartaTime() {
   const [time, setTime] = useState<string | null>(null);
   useEffect(() => {
     const fmt = new Intl.DateTimeFormat("en-US", {
-      timeZone: site.timeZone,
+      timeZone: TIME_ZONE,
       hour: "numeric",
       minute: "2-digit",
     });
@@ -55,8 +55,13 @@ export function Logo({ className = "" }: { className?: string }) {
   );
 }
 
-/** Navbar (Figma 348:12162) with the drop-down menu overlay (Figma "Open" 314:260). */
-export function Navbar() {
+/**
+ * Navbar (Figma 348:12162) with the drop-down menu overlay (Figma "Open" 314:260). `owner` and
+ * `modeLabels` come from the site's copy, read on the server.
+ */
+export function Navbar({ owner, modeLabels }: { owner: { name: string; email: string }; modeLabels: Record<Mode, string> }) {
+  const site = owner;
+  const mailHref = mailto(owner.email);
   const time = useJakartaTime();
   const lenis = useLenis();
   const [open, setOpen] = useState(false);
@@ -233,7 +238,7 @@ export function Navbar() {
             </span>
           </TransitionLink>
           <div className="flex items-center gap-28 max-md:gap-10">
-            <ModeToggle />
+            <ModeToggle labels={modeLabels} />
             <button
               type="button"
               onClick={() => setOpen((o) => !o)}

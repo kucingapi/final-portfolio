@@ -4,7 +4,8 @@ import { connection } from "next/server";
 import { App } from "@/components/dashboard/App";
 import { SetupRequired, SignIn } from "@/components/dashboard/SignIn";
 import { SESSION_COOKIE, totpSecret, validSession } from "@/lib/dashboard/auth";
-import { allExports } from "@/lib/dashboard/export";
+import { getProjects } from "@/lib/content/read";
+import { projectExport } from "@/lib/dashboard/export";
 import { setupInbox } from "@/lib/dashboard/setup";
 import { siteOrigin } from "./origin";
 
@@ -28,5 +29,5 @@ async function Gate() {
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
   if (!(await validSession(token))) return <SignIn inbox={inbox} />;
   const origin = await siteOrigin();
-  return <App origin={origin} inbox={inbox} projects={allExports(origin)} />;
+  return <App origin={origin} inbox={inbox} projects={(await getProjects()).map((p) => projectExport(p, origin))} />;
 }

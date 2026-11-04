@@ -2,15 +2,16 @@ import type { Metadata } from "next";
 import { Heading } from "@/components/ui";
 import { CvSheet } from "@/components/cv/CvSheet";
 import { Footer } from "@/components/sections/Footer";
-import { site } from "@/content/site";
+import { getCvContent, getSiteContent } from "@/lib/content/read";
 
-export const metadata: Metadata = {
-  title: "CV",
-  description: `The CV of ${site.name}, ${site.role}.`,
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { site } = await getSiteContent();
+  return { title: "CV", description: `The CV of ${site.name}, ${site.role}.` };
+}
 
 /** The CV on the page, with the PDF a click away. */
-export default function CvPage() {
+export default async function CvPage() {
+  const content = await getCvContent();
   return (
     <>
       <main className="bg-midnight-950">
@@ -19,7 +20,7 @@ export default function CvPage() {
             CV
           </Heading>
           <div className="mt-48 max-md:mt-28">
-            <CvSheet />
+            <CvSheet content={content} />
           </div>
         </div>
       </main>

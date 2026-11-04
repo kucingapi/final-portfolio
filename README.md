@@ -13,7 +13,7 @@ npm run build   # production build
 
 | What | Where |
 |---|---|
-| Copy, links, projects, testimonials, experiences | `src/content/site.ts` |
+| Copy, the master CV, projects | Edited in the dashboard (Content); the defaults are `src/content/*.ts`, the schema and store `src/lib/content/` |
 | Landing sections | `src/components/sections/*` |
 | Experiences / Contact pages | `src/app/experiences/page.tsx`, `src/components/contact/*` |
 | Motion per section (presets) | `src/components/motion/SectionMotion.tsx` |
@@ -37,7 +37,8 @@ in development, and in production the form shows an "email me directly" fallback
 
 ## Tailored CVs and links
 
-The master CV is `src/content/cv.ts`: every role, project and bullet, longer than any one CV, each bullet with an id,
+The master CV (edited under Content in the dashboard; it starts as `src/content/cv.ts`) holds every role, project and
+bullet, longer than any one CV, each bullet with an id,
 tags and a weight. A **variant** picks, orders and titles lines from it for one application (`src/lib/cv/schema.ts`), and
 is stored under a random code. A link like `/?v=k7qx2pmd` applies it: the code leaves the address bar at once, the
 variant is kept in the visitor's localStorage, the projects page leads with its projects, the mode can switch, and
@@ -64,8 +65,8 @@ the server.
 ## Dashboard
 
 `/dashboard` is private to Novel: short links with click counts, every tailored CV link with its opens and downloads,
-and each project as Upwork's and Contra's portfolio forms ask for it. Decisions and the reasons behind them are in
-[DASHBOARD.md](DASHBOARD.md).
+each project as Upwork's and Contra's portfolio forms ask for it, and the site's content to edit. Decisions and the
+reasons behind them are in [DASHBOARD.md](DASHBOARD.md).
 
 - Sign-in is an authenticator code (TOTP), set up on the live site: open `/dashboard`, have a one-time link emailed
   to the contact form's inbox (Resend), and add the key it shows to your authenticator app. Locally, without
@@ -75,8 +76,12 @@ and each project as Upwork's and Contra's portfolio forms ask for it. Decisions 
   CV link open and PDF download. Turn them on in Settings; there is nothing to configure on the server.
 - Short links are `/go/<name>` (a 302). Clicks from link previews, bots and your own browser (`?test=1`) aren't
   counted.
-- Project text comes from `src/content/projects.ts`; the export rules and the per-project overrides are in
-  `src/lib/dashboard/export.ts`.
+- Content: the projects, the master CV and the site's copy, edited as drafts and published from the dashboard. Pages
+  stay prerendered and refresh on publish. Agents can edit drafts through the MCP tools `get_content`,
+  `edit_content` and `content_changes`; only the dashboard publishes. Until something is published, the site shows
+  `src/content/*.ts`.
+- Project export text comes from the published projects; the export rules and the per-project overrides are in
+  `src/lib/dashboard/export.ts`. Each project also downloads as a PDF of its slides.
 
 ## Still placeholder (TODO in `src/content/site.ts`)
 

@@ -1,6 +1,6 @@
 import { Chip, Heading } from "@/components/ui";
 import { SectionMotion } from "@/components/motion/SectionMotion";
-import { philosophy } from "@/content/site";
+import { getSiteContent } from "@/lib/content/read";
 import * as wide from "@/components/philosophy/brain-pattern";
 import * as tall from "@/components/philosophy/brain-pattern-mobile";
 
@@ -31,7 +31,8 @@ function Pattern({ art, className }: { art: PatternArt; className: string }) {
 }
 
 /** "How I work": the working philosophy, over a brain pattern that grows as the section scrolls by. */
-export function Philosophy() {
+export async function Philosophy() {
+  const { philosophy } = await getSiteContent();
   return (
     <SectionMotion preset="philosophy">
       <section id="philosophy" aria-labelledby="philosophy-title" className="relative overflow-clip bg-midnight-900">

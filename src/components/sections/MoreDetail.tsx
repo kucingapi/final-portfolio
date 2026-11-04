@@ -2,10 +2,11 @@ import { ArrowIcon, Heading } from "@/components/ui";
 import { SectionMotion } from "@/components/motion/SectionMotion";
 import { TransitionLink } from "@/components/transition/PageTransition";
 import { Downloads } from "@/components/cv/Downloads";
-import { modes } from "@/content/site";
+import { getSiteContent } from "@/lib/content/read";
 
 /** "More Detail" CTA band (Figma 245:2581). */
-export function MoreDetail() {
+export async function MoreDetail() {
+  const { modes } = await getSiteContent();
   return (
     <SectionMotion preset="detail">
       <section aria-labelledby="detail-title" data-node-id="245:2581" className="relative overflow-clip bg-midnight-900">

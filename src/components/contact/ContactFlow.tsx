@@ -8,7 +8,7 @@ import { track } from "@/lib/analytics";
 import { onPageReveal, TransitionLink } from "@/components/transition/PageTransition";
 import { ArrowIcon } from "@/components/ui";
 import { ServiceArt } from "./ServiceArt";
-import { mailHref, services, site, type Service } from "@/content/site";
+import { mailto, services, type Service } from "@/content/site";
 
 type Step = "service" | "details" | "sent";
 type Status = { state: "idle" | "sending" | "error"; message?: string };
@@ -20,7 +20,9 @@ const FIELDS = [
 ] as const;
 
 /** Two-step contact flow: Figma "Chose Service" (281:3615) → "Information Detail" (281:3763). */
-export function ContactFlow() {
+/** `email` is the site's address, shown as the fallback when the form can't send. */
+export function ContactFlow({ email }: { email: string }) {
+  const mailHref = mailto(email);
   const root = useRef<HTMLDivElement>(null);
   const [step, setStep] = useState<Step>("service");
   const [service, setService] = useState<Service | null>(null);
@@ -264,7 +266,7 @@ export function ContactFlow() {
                 <p role="alert" className="text-lead font-semibold text-midnight-200">
                   {status.message} You can also email me at{" "}
                   <a href={mailHref} className="underline">
-                    {site.email}
+                    {email}
                   </a>
                   .
                 </p>

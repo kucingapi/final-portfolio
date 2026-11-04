@@ -3,8 +3,8 @@ import type { ReactNode } from "react";
 // `Image as PdfImg`: the lint rule for HTML <img> alt text would flag it, and a PDF image has no alt.
 import { Document, Font, Image as PdfImg, Link, Page, Path, StyleSheet, Svg, Text, View, renderToBuffer } from "@react-pdf/renderer";
 import type { Style } from "@react-pdf/stylesheet";
-import { about, site } from "@/content/site";
-import { projects as allProjects, type Chapter, type Project } from "@/content/projects";
+import { getProjects, getSiteContent } from "@/lib/content/read";
+import type { Chapter, Project, SiteContent } from "@/lib/content/schema";
 import type { ResolvedCv, Variant } from "@/lib/cv/variant";
 import { pdfImage, type PdfImage } from "./images";
 
@@ -159,10 +159,10 @@ function Picture({ img, w, h, radius = 12 }: { img: PdfImage; w: number; h: numb
   );
 }
 
-function Footer({ project, host }: { project?: string; host: string }) {
+function Footer({ project, host, name }: { project?: string; host: string; name: string }) {
   return (
     <View style={s.footer}>
-      <T style={s.footerText}>{`${site.name} · Portfolio${project ? ` · ${project}` : ""}`}</T>
+      <T style={s.footerText}>{`${name} · Portfolio${project ? ` · ${project}` : ""}`}</T>
       {host && <T style={s.footerText}>{host}</T>}
     </View>
   );
@@ -174,19 +174,19 @@ function Slide({
   project,
   footer = true,
   id,
-  host,
+  links,
 }: {
   children: ReactNode;
   brand?: boolean;
   project?: string;
   footer?: boolean;
   id?: string;
-  host: string;
+  links: Links;
 }) {
   return (
     <Page size={[W, H]} style={brand ? [s.page, s.brandPage] : s.page} id={id}>
       <View style={s.body}>{children}</View>
-      {footer ? <Footer project={project} host={host} /> : <View style={{ height: 24 }} />}
+      {footer ? <Footer project={project} host={links.host} name={links.owner.name} /> : <View style={{ height: 24 }} />}
     </Page>
   );
 }
@@ -194,9 +194,9 @@ function Slide({
 /* ---------- Choosing what goes in ---------- */
 
 /** The variant's lead projects first, then the site's order; the first three make the deck. */
-export function pickProjects(v: Variant = {}, count = 3): Project[] {
-  const lead = (v.projects ?? []).map((slug) => allProjects.find((p) => p.slug === slug)).filter((p): p is Project => Boolean(p));
-  return [...lead, ...allProjects.filter((p) => !lead.includes(p))].slice(0, count);
+export function pickProjects(all: Project[], v: Variant = {}, count = 3): Project[] {
+  const lead = (v.projects ?? []).map((slug) => all.find((p) => p.slug === slug)).filter((p): p is Project => Boolean(p));
+  return [...lead, ...all.filter((p) => !lead.includes(p))].slice(0, count);
 }
 
 const weight = (c: Chapter) => (c.figure && c.shot ? 3 : c.shot || c.figure || c.bars ? 2 : 0);
@@ -216,12 +216,19 @@ export function pickChapters(p: Project, count = 3): Chapter[] {
 /* ---------- Slides ---------- */
 
 /** `standalone`: a one-project file for a platform such as Upwork, with no site address and no links out. */
-type Links = { site: string; project: (slug: string) => string; host: string; standalone?: boolean };
+type Links = {
+  site: string;
+  project: (slug: string) => string;
+  host: string;
+  standalone?: boolean;
+  /** Who the deck is by, from the site's copy. */
+  owner: { name: string; about: string; social: SiteContent["site"]["social"] };
+};
 
 function Cover({ cv, photo, picks, links }: { cv: ResolvedCv; photo: PdfImage | null; picks: Project[]; links: Links }) {
   const D = 380;
   return (
-    <Slide host={links.host} footer={false}>
+    <Slide links={links} footer={false}>
       {/* The circle reveal, from the site: a disc with the photo inside and a ring around it. */}
       <View
         style={{
@@ -303,19 +310,19 @@ function Cover({ cv, photo, picks, links }: { cv: ResolvedCv; photo: PdfImage | 
 
 function About({ cv, links }: { cv: ResolvedCv; links: Links }) {
   const profiles = [
-    { label: "GitHub", href: cv.contact ? site.social.github : "" },
-    { label: "LinkedIn", href: cv.contact ? site.social.linkedin : "" },
-    { label: "Upwork", href: site.social.upwork },
+    { label: "GitHub", href: cv.contact ? links.owner.social.github : "" },
+    { label: "LinkedIn", href: cv.contact ? links.owner.social.linkedin : "" },
+    { label: "Upwork", href: links.owner.social.upwork },
   ].filter((l) => l.href);
   return (
-    <Slide host={links.host}>
+    <Slide links={links}>
       <View style={{ flexDirection: "row", gap: 48, flexGrow: 1 }}>
         <View style={{ width: 430 }}>
           <T style={s.label}>About me</T>
           <View style={{ marginTop: 10 }}>
             <Heading size={36}>Hi, I’m Novel</Heading>
           </View>
-          <T style={[s.lead, { marginTop: 18 }]}>{cv.summary ?? about}</T>
+          <T style={[s.lead, { marginTop: 18 }]}>{cv.summary ?? links.owner.about}</T>
           <T style={[s.para, { marginTop: 14 }]}>{cv.location}.</T>
           <View style={{ flexDirection: "row", marginTop: 18 }}>
             {profiles.map((l) => (
@@ -351,7 +358,7 @@ function About({ cv, links }: { cv: ResolvedCv; links: Links }) {
 
 function Contents({ picks, links }: { picks: Project[]; links: Links }) {
   return (
-    <Slide host={links.host}>
+    <Slide links={links}>
       <T style={s.label}>Selected work</T>
       <View style={{ marginTop: 10 }}>
         <Heading size={36}>Three projects</Heading>
@@ -416,7 +423,7 @@ function Opener({ p, n, img, links }: { p: Project; n: number; img: PdfImage | n
     { k: "What", v: `${p.kind}, ${p.platform.toLowerCase()}` },
   ];
   return (
-    <Slide host={links.host} brand project={p.title} id={p.slug}>
+    <Slide links={links} brand project={p.title} id={p.slug}>
       <View style={{ flexDirection: "row", gap: 40, flexGrow: 1 }}>
         <View style={{ width: 400, justifyContent: "space-between" }}>
           <View>
@@ -500,7 +507,7 @@ function Opener({ p, n, img, links }: { p: Project; n: number; img: PdfImage | n
 
 function Overview({ p, links }: { p: Project; links: Links }) {
   return (
-    <Slide host={links.host} project={p.title}>
+    <Slide links={links} project={p.title}>
       <View style={{ flexDirection: "row", gap: 48, flexGrow: 1 }}>
         <View style={{ flex: 1 }}>
           <Heading size={26}>The project</Heading>
@@ -565,7 +572,7 @@ function ChapterSlide({ p, c, n, of, img, links }: { p: Project; c: Chapter; n: 
   const visual = Boolean(img || c.figure || c.bars);
   const side = W - 2 * PAD_X - 420 - 40;
   return (
-    <Slide host={links.host} project={p.title}>
+    <Slide links={links} project={p.title}>
       <View style={{ flexDirection: "row", gap: 40, flexGrow: 1 }}>
         <View style={{ width: 420 }}>
           <T style={s.label}>
@@ -715,18 +722,18 @@ function Contact({ cv, links }: { cv: ResolvedCv; links: Links }) {
     { k: "Website", v: links.host, href: links.site },
     {
       k: "GitHub",
-      v: site.social.github.replace(/^https:\/\/(www\.)?/, ""),
-      href: cv.contact ? site.social.github : "",
+      v: links.owner.social.github.replace(/^https:\/\/(www\.)?/, ""),
+      href: cv.contact ? links.owner.social.github : "",
     },
     {
       k: "LinkedIn",
-      v: site.social.linkedin.replace(/^https:\/\/(www\.)?/, ""),
-      href: cv.contact ? site.social.linkedin : "",
+      v: links.owner.social.linkedin.replace(/^https:\/\/(www\.)?/, ""),
+      href: cv.contact ? links.owner.social.linkedin : "",
     },
-    { k: "Upwork", v: "Upwork profile", href: site.social.upwork },
+    { k: "Upwork", v: "Upwork profile", href: links.owner.social.upwork },
   ].filter((r) => r.href);
   return (
-    <Slide host={links.host} brand footer={false}>
+    <Slide links={links} brand footer={false}>
       <View
         style={{
           flexDirection: "row",
@@ -833,13 +840,15 @@ export async function renderPortfolioPdf({
   project?: string;
 }): Promise<{ pdf: Uint8Array<ArrayBuffer>; pages: number; expected: number }> {
   const q = code ? `?v=${code}` : "";
+  const [{ site, about }, all] = await Promise.all([getSiteContent(), getProjects()]);
   const links: Links = {
     site: `${origin}/${q}`,
     project: (slug) => `${origin}/projects/${slug}${q}`,
     host: project ? "" : origin.replace(/^https?:\/\//, ""),
     standalone: Boolean(project),
+    owner: { name: site.name, about, social: site.social },
   };
-  const projects = project ? pickProjects({ projects: [project] }, 1) : pickProjects(variant, count);
+  const projects = project ? pickProjects(all, { projects: [project] }, 1) : pickProjects(all, variant, count);
   const [photo, ...picks] = await Promise.all([
     pdfImage("/figma/hero/photo-main.webp", 800),
     ...projects.map(async (p) => {

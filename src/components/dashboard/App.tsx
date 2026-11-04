@@ -1,11 +1,12 @@
 "use client";
 
-import { Activity, ArrowUpRight, FolderOpen, Link2, Plus, RefreshCw, Settings as SettingsIcon } from "lucide-react";
+import { Activity, ArrowUpRight, FolderOpen, Link2, PenLine, Plus, RefreshCw, Settings as SettingsIcon } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef } from "react";
 import type { ProjectExport } from "@/lib/dashboard/export";
 import { ActivityView } from "./Activity";
+import { ContentView } from "./Content";
 import { DashboardData, useDashboard } from "./data";
 import { LinkSheet } from "./LinkSheet";
 import { LinksView } from "./Links";
@@ -18,6 +19,7 @@ import { cn } from "./ui/cn";
 const VIEWS = [
   { id: "activity", label: "Activity", icon: Activity },
   { id: "links", label: "Links", icon: Link2 },
+  { id: "content", label: "Content", icon: PenLine },
   { id: "projects", label: "Projects", icon: FolderOpen },
   { id: "settings", label: "Settings", icon: SettingsIcon },
 ] as const;
@@ -95,6 +97,7 @@ function Shell({ projects }: { projects: ProjectExport[] }) {
         <main className="mx-auto w-full max-w-3xl flex-1 px-4 pt-5 pb-[calc(6rem+env(safe-area-inset-bottom))] md:px-8 md:pt-7 md:pb-16">
           {view === "activity" && <ActivityView onOpen={openLink} onShow={show} />}
           {view === "links" && <LinksView onOpen={openLink} />}
+          {view === "content" && <ContentView />}
           {view === "projects" && <Projects projects={projects} />}
           {view === "settings" && <SettingsView />}
         </main>
@@ -162,7 +165,7 @@ function Sidebar({ view, onShow }: { view: View; onShow: (v: View) => void }) {
 function TabBar({ view, onShow }: { view: View; onShow: (v: View) => void }) {
   return (
     <nav aria-label="Dashboard" className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card pb-[env(safe-area-inset-bottom)] md:hidden">
-      <ul className="grid grid-cols-4">
+      <ul className="grid grid-cols-5">
         {VIEWS.map(({ id, label, icon: Icon }) => (
           <li key={id}>
             <button

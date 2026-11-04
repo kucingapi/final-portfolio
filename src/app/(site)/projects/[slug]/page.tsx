@@ -8,7 +8,8 @@ import { TransitionLink } from "@/components/transition/PageTransition";
 import { ProjectVisual } from "@/components/projects/ProjectVisual";
 import { LetsTalk } from "@/components/sections/LetsTalk";
 import { Footer } from "@/components/sections/Footer";
-import { getProject, nextProject, projects, type Chapter, type Part } from "@/content/projects";
+import { nextProject, type Chapter, type Part } from "@/content/projects";
+import { getProject, getProjects } from "@/lib/content/read";
 
 /*
  * Every slug is prerendered, and the page transition covers the screen until the route is ready,
@@ -16,12 +17,12 @@ import { getProject, nextProject, projects, type Chapter, type Part } from "@/co
  */
 export const instant = false;
 
-export function generateStaticParams() {
-  return projects.map((p) => ({ slug: p.slug }));
+export async function generateStaticParams() {
+  return (await getProjects()).map((p) => ({ slug: p.slug }));
 }
 
 export async function generateMetadata({ params }: PageProps<"/projects/[slug]">): Promise<Metadata> {
-  const project = getProject((await params).slug);
+  const project = await getProject((await params).slug);
   if (!project) return {};
   return { title: project.title, description: project.summary };
 }
@@ -162,9 +163,9 @@ function ChapterBlock({ chapter, flip, level }: { chapter: Chapter; flip: boolea
 }
 
 export default async function ProjectPage({ params }: PageProps<"/projects/[slug]">) {
-  const project = getProject((await params).slug);
+  const project = await getProject((await params).slug);
   if (!project) notFound();
-  const next = nextProject(project.slug);
+  const next = nextProject(await getProjects(), project.slug);
 
   return (
     <>

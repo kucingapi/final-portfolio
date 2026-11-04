@@ -1,5 +1,7 @@
 /**
- * The master CV: every role, project and line Novel can stand behind, longer than any one CV should be.
+ * The master CV as it ships with the code: every role, project and line Novel can stand behind, longer
+ * than any one CV should be. The site reads it through src/lib/content, where the dashboard and agents
+ * edit it; once a version is published there, it wins over this one.
  * A variant (src/lib/cv/variant.ts) picks and orders from it to make a two-page CV for one application.
  *
  * Bullets lead with the result. Numbers come from the career record and the case studies; anything
@@ -7,71 +9,12 @@
  * (3 = lead with it), and the default CV is built from the heaviest lines.
  */
 
-export const CV_TAGS = [
-  "frontend",
-  "backend",
-  "mobile",
-  "desktop",
-  "ai",
-  "product",
-  "design",
-  "performance",
-  "fintech",
-  "health",
-  "client",
-  "leadership",
-  "testing",
-  "analytics",
-] as const;
-export type CvTag = (typeof CV_TAGS)[number];
+import type { CvEntry, CvHeader, CvSkillGroup, CvSummary } from "@/lib/content/schema";
 
-export type CvBullet = { id: string; text: string; tags: CvTag[]; weight: 1 | 2 | 3 };
+export { CV_SECTIONS, CV_TAGS, MAX_BULLETS, SECTION_TITLES } from "@/lib/content/schema";
+export type { CvBullet, CvEntry, CvEntrySection, CvSectionId, CvSkillGroup, CvTag } from "@/lib/content/schema";
 
-/** Leadership lives inside Education (the student organisations) and Awards, which keeps the CV compact. */
-export const CV_SECTIONS = ["skills", "experience", "projects", "education", "awards"] as const;
-export type CvSectionId = (typeof CV_SECTIONS)[number];
-export type CvEntrySection = Exclude<CvSectionId, "skills">;
-
-export const SECTION_TITLES: Record<CvSectionId, string> = {
-  experience: "Experience",
-  projects: "Projects",
-  education: "Education",
-  awards: "Awards and Certifications",
-  skills: "Skills",
-};
-
-export type CvEntry = {
-  id: string;
-  section: CvEntrySection;
-  org: string;
-  place?: string;
-  /** Titles this role can honestly go by; the first is the default. */
-  titles: string[];
-  period: string;
-  /** A short qualifier after the title, e.g. "Freelance" or "In progress". */
-  note?: string;
-  /** Case study on the site. */
-  link?: string;
-  /** The certificate behind it, as an image on the site (public/certificates). */
-  proof?: string;
-  /** One line on what the organisation is, for a name the reader won't know. */
-  about?: string;
-  /** What it was built with, most telling first; shown as a "Tech:" line under the bullets. */
-  stack?: string[];
-  tags: CvTag[];
-  /** How strong the entry is overall; the default CV leaves out the lightest. */
-  weight: 1 | 2 | 3;
-  /** Most bullets the default CV shows, when this entry needs other than its section's cap. */
-  bulletCap?: number;
-  bullets: CvBullet[];
-};
-
-/** Four bullets is the most an entry should carry; five only for a lead role where every line is strong. */
-export const MAX_BULLETS = 5;
-
-export type CvSkillGroup = { id: string; label: string; items: string[] };
-
-export const cvHeader = {
+export const cvHeader: CvHeader = {
   name: "Novel Bafagih",
   /** Headlines a variant may choose from, or it may write its own. */
   headlines: ["Software Engineer", "Frontend Engineer", "Full-stack Engineer", "Frontend Engineer, AI products"],
@@ -86,7 +29,7 @@ export const cvHeader = {
 };
 
 /** Summaries a variant may start from. */
-export const cvSummaries: { id: string; text: string; tags: CvTag[] }[] = [
+export const cvSummaries: CvSummary[] = [
   {
     id: "founding-fe",
     text: "Software engineer who builds products end to end, from design to backend. Founding frontend engineer on AgentFlow, an AI document platform for banks and credit unions, which I took from its first commit to more than a hundred client users a week. I use AI coding agents to move fast, and I test and own everything that ships.",
@@ -635,5 +578,3 @@ export const cvSkills: CvSkillGroup[] = [
   { id: "ai", label: "AI", items: ["LLM product features", "AI coding agents", "MCP"] },
   { id: "tools", label: "Tools", items: ["Git", "Playwright", "PostHog", "Figma", "Vercel", "Docker", "Google Cloud"] },
 ];
-
-export const getCvEntry = (id: string) => cvEntries.find((e) => e.id === id);

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CV_SECTIONS } from "@/content/cv";
+import { CV_SECTIONS } from "@/lib/content/schema";
 
 /**
  * A variant is one tailored version of the CV and the site, made for one application. It only picks,

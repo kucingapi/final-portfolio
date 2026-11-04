@@ -3,7 +3,7 @@ import { CareerList } from "@/components/career/CareerList";
 import { SectionMotion } from "@/components/motion/SectionMotion";
 import { TransitionLink } from "@/components/transition/PageTransition";
 import { SeamDecor } from "@/components/sections/Projects";
-import { career } from "@/content/site";
+import { getSiteContent } from "@/lib/content/read";
 
 function Arrow({ className = "" }: { className?: string }) {
   return (
@@ -18,7 +18,8 @@ function Arrow({ className = "" }: { className?: string }) {
  * Projects has them and the list starts where the project grid does, so switching modes reads as
  * one section changing its contents (see ModeSlot).
  */
-export function Career() {
+export async function Career() {
+  const { career } = await getSiteContent();
   return (
     <SectionMotion preset="career">
       <section id="career" data-for="fulltime" data-slot aria-labelledby="career-title" className="relative overflow-clip bg-midnight-900">

@@ -4,19 +4,23 @@ import { PageTransitionProvider } from "@/components/transition/PageTransition";
 import { Navbar } from "@/components/Navbar";
 import { ModeProvider } from "@/components/mode/Mode";
 import { VariantLoader } from "@/components/cv/Variant";
+import { getSiteContent } from "@/lib/content/read";
+import { PreviewBadge } from "@/components/PreviewBadge";
 
 /**
  * The portfolio around its pages: Freelance/Full-time mode, tailored links, smooth scroll, the page
  * transition and the navbar. The dashboard is an app of its own and leaves all of it out.
  */
-export function SiteChrome({ children }: { children: ReactNode }) {
+export async function SiteChrome({ children }: { children: ReactNode }) {
+  const { site, modes } = await getSiteContent();
   return (
     <ModeProvider>
       <VariantLoader />
       <SmoothScroll>
         <PageTransitionProvider>
-          <Navbar />
+          <Navbar owner={{ name: site.name, email: site.email }} modeLabels={{ freelance: modes.freelance.label, fulltime: modes.fulltime.label }} />
           <div className="page-canvas">{children}</div>
+          <PreviewBadge />
         </PageTransitionProvider>
       </SmoothScroll>
     </ModeProvider>

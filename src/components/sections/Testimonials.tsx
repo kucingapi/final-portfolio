@@ -1,9 +1,11 @@
 import { Heading } from "@/components/ui";
 import { SectionMotion } from "@/components/motion/SectionMotion";
+import { getSiteContent } from "@/lib/content/read";
 import { TestimonialDeck } from "./TestimonialDeck";
 
 /** Testimonials (Figma 249:2682): heading on the left, the fanned card deck on the right. */
-export function Testimonials() {
+export async function Testimonials() {
+  const { testimonials } = await getSiteContent();
   return (
     <SectionMotion preset="testimonials">
       <section id="testimonials" aria-labelledby="testimonials-title" data-node-id="249:2682" className="relative overflow-clip bg-midnight-950">
@@ -19,7 +21,7 @@ export function Testimonials() {
             </p>
           </div>
 
-          <TestimonialDeck />
+          <TestimonialDeck testimonials={testimonials} />
         </div>
       </section>
     </SectionMotion>
