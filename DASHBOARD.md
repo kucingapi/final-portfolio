@@ -51,6 +51,17 @@ it gained Content: the site's copy, the master CV and the projects became editab
   `src/components/dashboard/ui`. Their colour names and a plain rem scale apply only on dashboard pages, through
   `html:has(.dash)` in `globals.css`, so the site's design-pixel canvas is untouched.
 
+## Inbox: contact-form messages
+
+- **Every message is saved**, whether or not the email copy goes out, so none is lost when Resend is down or not set
+  up. The form only shows its "email me directly" fallback when it can neither save nor email.
+- **In the dashboard:** Inbox lists them newest first, with a dot on the ones that arrived since it was last opened
+  and a count on the tab. A message opens in a panel with the sender's email and phone, a "Reply by email" link with
+  the subject filled in, and Delete (which also takes it out of the activity feed).
+- **On the phone:** each message is a notification ("New message from …"), on its own switch in Settings, and an
+  entry in the activity feed; both open the message.
+- The latest 500 are kept. On a phone, Settings moved to the header so the tab bar keeps five tabs.
+
 ## Content: the site's own CMS
 
 Chosen over a hosted CMS (Sanity) and one inside the app (Payload): the dashboard, the store and the MCP endpoint were
@@ -59,7 +70,7 @@ Components until its version 4.
 
 - **Three documents** under Content: Projects (every case study, in the site's order), CV (the master CV that tailored
   links pick from) and Site (the basics, About, How I work, testimonials, the Freelance and Full-time copy, and both
-  career lists).
+  career lists). Each testimonial says where it shows: Freelance mode, Full-time mode, or both.
 - **Drafts, then Publish.** Saving writes a draft that only the dashboard sees. Publish puts it on the site and
   expires that document's cache tag, so the next visit renders it. Preview opens the site with the drafts showing
   (Next's Draft Mode) and a "Showing drafts · Exit" pill.
@@ -137,6 +148,7 @@ Neither platform can import a file, so the export is copy-ready fields plus the 
 | The redirect | `src/app/go/[name]/route.ts`; previews are told apart in `src/lib/dashboard/visitor.ts` |
 | Project export | `src/lib/dashboard/export.ts`; images zip at `/api/dashboard/projects/<slug>` |
 | Content: schema, store, cached reads, defaults | `src/lib/content/` (`schema.ts`, `store.ts`, `read.ts`, `defaults.ts`, `changes.ts`) |
+| Inbox: saving, listing, delete | `src/lib/dashboard/enquiries.ts`, `/api/contact`, `/api/dashboard/enquiries`, `/api/dashboard/enquiries/<id>`; view `src/components/dashboard/Inbox.tsx` |
 | Content editor | `src/components/dashboard/Content.tsx`, `src/components/dashboard/content/Editor.tsx`; actions in `src/app/dashboard/content-actions.ts`; Preview at `/api/dashboard/preview` |
 | Shared Redis client (also used by the CV store) | `src/lib/kv.ts` |
 

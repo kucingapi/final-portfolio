@@ -67,6 +67,7 @@ export const philosophy: SiteContent["philosophy"] = {
 
 /**
  * The first is real: quoted word for word from Dr. Ehmann's letter of recommendation (July 2023).
+ * `mode` picks where each shows: Freelance mode, Full-time mode, or both.
  * TODO: the rest are placeholders; replace them with real testimonials before publishing. Cards
  * without `avatar` show initials.
  */
@@ -77,24 +78,28 @@ export const testimonials: SiteContent["testimonials"] = [
     name: "Yannick Ehmann",
     relation: "Supervisor",
     role: "Physician, TUM Sports Orthopaedics",
+    mode: "both",
   },
   {
     quote: "Placeholder: Novel turned our rough idea into a working web app in a few weeks and kept us in the loop the whole way.",
     name: "Client Name",
     relation: "Client",
     role: "Founder, Company",
+    mode: "both",
   },
   {
     quote: "Placeholder: Clear communication, clean code, and he caught problems before they reached our users. Would hire again.",
     name: "Client Name",
     relation: "Client",
     role: "Product Manager, Company",
+    mode: "both",
   },
   {
     quote: "Placeholder: Fast, reliable and easy to work with. The mobile app shipped on time and our team could pick it up right away.",
     name: "Teammate Name",
     relation: "Teammate",
     role: "Designer, Company",
+    mode: "both",
   },
 ];
 

@@ -505,7 +505,7 @@ function Leaf({
       >
         {options.map((o) => (
           <option key={String(o)} value={String(o)}>
-            {String(o)}
+            {meta.labels?.[String(o)] ?? String(o)}
           </option>
         ))}
       </select>

@@ -40,9 +40,18 @@ export const PLATFORMS = ["Web", "Mobile", "Desktop"] as const;
 export const CONTEXTS = ["Multimodal", "Client work", "Side project", "Study"] as const;
 export const CAREER_KINDS = ["Full-time", "Freelance", "Program", "Degree"] as const;
 export const MODES = ["freelance", "fulltime"] as const;
+/** Where a testimonial shows: one mode or both. */
+export const SHOWN_IN = ["both", "freelance", "fulltime"] as const;
 
 /** How the dashboard's editor shows a field. */
-export type FieldMeta = { title?: string; description?: string; widget?: "textarea" | "image"; advanced?: boolean };
+export type FieldMeta = {
+  title?: string;
+  description?: string;
+  widget?: "textarea" | "image";
+  advanced?: boolean;
+  /** Words for a choice's values, e.g. { fulltime: "Full-time" }. */
+  labels?: Record<string, string>;
+};
 
 const required = "Required.";
 const line = (m: FieldMeta = {}) => z.string().min(1, required).meta(m);
@@ -121,6 +130,11 @@ export const siteSchema = z
         relation: line(),
         role: line(),
         avatar: image({ description: "Optional; without one the card shows initials." }).optional(),
+        mode: z.enum(SHOWN_IN).meta({
+          title: "Shown in",
+          description: "Which way of reading the site shows it: Freelance, Full-time, or both.",
+          labels: { both: "Both modes", freelance: "Freelance", fulltime: "Full-time" },
+        }),
       }),
     ),
     modes: z
