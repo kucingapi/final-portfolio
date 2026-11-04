@@ -118,8 +118,8 @@ function buildServer(origin: string) {
       inputSchema: {
         label: z.string().trim().min(1).max(120).describe("Private note: who this is for."),
         variant: variantSchema,
-        code: z.string().optional().describe("Existing code to replace; omit to create a new one."),
-        claim: z.string().optional().describe("Unused code to create the variant under, e.g. for a link already sent; refused if invalid or taken."),
+        code: z.string().max(16).optional().describe("Existing code to replace; omit to create a new one."),
+        claim: z.string().max(16).optional().describe("Unused code to create the variant under, e.g. for a link already sent; refused if invalid or taken."),
       },
     },
     async ({ label, variant, code, claim }) => {
@@ -167,7 +167,7 @@ function buildServer(origin: string) {
     {
       title: "Get a CV variant",
       description: "One saved variant by code, with its label, fields and activity.",
-      inputSchema: { code: z.string() },
+      inputSchema: { code: z.string().max(16) },
       annotations: { readOnlyHint: true },
     },
     async ({ code }) => {
@@ -181,7 +181,7 @@ function buildServer(origin: string) {
     {
       title: "Delete a CV variant",
       description: "Delete a variant. Its link falls back to the default site and CV.",
-      inputSchema: { code: z.string() },
+      inputSchema: { code: z.string().max(16) },
       annotations: { destructiveHint: true },
     },
     async ({ code }) => ((await deleteVariant(code)) ? json({ deleted: code }) : fail(`No variant with code "${code}".`)),
@@ -273,12 +273,33 @@ function authorize(request: Request): Response | null {
   const expected = process.env.CV_MCP_TOKEN;
   if (!expected) {
     // Locally the endpoint is open, so it can be tried before a token exists; never in production.
-    return process.env.NODE_ENV === "production"
-      ? Response.json({ error: "CV_MCP_TOKEN is not set." }, { status: 503 })
-      : null;
+    if (process.env.NODE_ENV === "production") return Response.json({ error: "CV_MCP_TOKEN is not set." }, { status: 503 });
+    // Open to this machine only. A page that rebinds its own hostname to 127.0.0.1 reaches the dev server
+    // as same-origin, but its requests still carry that hostname in Host (and Origin), so refuse them.
+    return fromThisMachine(request)
+      ? null
+      : Response.json({ error: "Set CV_MCP_TOKEN to reach this endpoint from another host." }, { status: 403 });
   }
   const given = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? "";
   return sameSecret(given, expected) ? null : Response.json({ error: "Unauthorized." }, { status: 401 });
+}
+
+const LOOPBACK = new Set(["localhost", "127.0.0.1", "[::1]"]);
+
+/**
+ * True when Host, and Origin if the request has one, name this machine (on any port). An Origin of "null"
+ * (a sandboxed frame, or a form posted from a page with no-referrer) could be any site, so it's refused.
+ */
+function fromThisMachine(request: Request) {
+  const hostname = (value: string) => value.trim().toLowerCase().replace(/:\d+$/, "");
+  if (!LOOPBACK.has(hostname(request.headers.get("host") ?? ""))) return false;
+  const origin = request.headers.get("origin");
+  if (!origin) return true;
+  try {
+    return LOOPBACK.has(new URL(origin).host.toLowerCase().replace(/:\d+$/, ""));
+  } catch {
+    return false;
+  }
 }
 
 /** Compares in constant time (over hashes, so lengths don't leak either): `===` stops at the first wrong character. */

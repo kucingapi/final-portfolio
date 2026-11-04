@@ -295,7 +295,8 @@ export function ContactFlow({ email }: { email: string }) {
 
       {step === "sent" && (
         <div data-step className="flex min-h-svh flex-col items-start justify-center px-100 py-160 max-md:px-20">
-          <h1 data-step-title className="text-h1 font-bold text-midnight-50">
+          {/* The visitor's name: kept out of session recordings (on the h1, as SplitText rebuilds its children). */}
+          <h1 data-step-title data-ph-mask className="ph-no-capture text-h1 font-bold text-midnight-50">
             Thanks{sentName ? `, ${sentName}` : ""}!
           </h1>
           <p data-step-sub className="mt-24 max-w-900 text-h4 font-semibold text-midnight-100">

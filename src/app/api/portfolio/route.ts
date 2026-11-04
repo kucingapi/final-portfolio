@@ -1,5 +1,6 @@
 import { renderPortfolioPdf } from "@/lib/portfolio/pdf";
 import { after } from "next/server";
+import { pdfLimited } from "@/lib/rate";
 import { fromTester, getVariant, recordActivity } from "@/lib/cv/store";
 import { resolveCv } from "@/lib/cv/variant";
 import { reportDownload } from "@/lib/dashboard/visitor";
@@ -11,6 +12,8 @@ import { getCvContent, getProjects } from "@/lib/content/read";
  * `?project=<slug>` gives that one project's slides alone, with no site address or links, for Upwork.
  */
 export async function GET(request: Request) {
+  const limited = await pdfLimited(request);
+  if (limited) return limited;
   const url = new URL(request.url);
   const code = url.searchParams.get("v");
   const row = code ? await getVariant(code) : null;

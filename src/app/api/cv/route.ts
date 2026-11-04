@@ -1,5 +1,6 @@
 import { renderCvPdf } from "@/lib/cv/pdf";
 import { after } from "next/server";
+import { pdfLimited } from "@/lib/rate";
 import { fromTester, getVariant, recordActivity } from "@/lib/cv/store";
 import { getCvContent } from "@/lib/content/read";
 import { masterCv, resolveCv } from "@/lib/cv/variant";
@@ -11,6 +12,8 @@ import { reportDownload } from "@/lib/dashboard/visitor";
  * master CV, every line and alternative, for proofreading.
  */
 export async function GET(request: Request) {
+  const limited = await pdfLimited(request);
+  if (limited) return limited;
   const url = new URL(request.url);
   const params = url.searchParams;
   const code = params.get("v");

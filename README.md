@@ -34,6 +34,8 @@ to the screen, with `max-md:` layouts.
 `POST /api/contact` sends enquiries through [Resend](https://resend.com). Copy `.env.example` to `.env.local` and set
 `RESEND_API_KEY` (plus optionally `CONTACT_TO_EMAIL` / `CONTACT_FROM_EMAIL`). Without a key, submissions are only logged
 in development, and in production the form shows an "email me directly" fallback.
+With Upstash set, messages are limited per sender (IPv4 address or IPv6 /64), per reply address and site-wide
+(`CONTACT_DAILY_CAP` a day, default 80, so the Resend quota the dashboard's setup links share isn't spent).
 
 ## Tailored CVs and links
 
