@@ -1,23 +1,25 @@
 import type { Device } from "./links";
 import { getPrefs, send, type Ping, type Prefs } from "./push";
-import { pushToList, readList, setValue } from "./state";
+import { pushToList, readList, removeFromList, setValue } from "./state";
 
 /**
- * What happened to Novel's links, newest first: short-link clicks, tailored CV links opened, and their
- * CV and portfolio PDFs downloaded. Each event goes to the dashboard's feed and, when that kind is
- * switched on, to his phone as a notification. Callers have already left out link previews and his own
- * browser (`nb_test`). Server only.
+ * What happened on the site, newest first: short-link clicks, tailored CV links opened, their CV and
+ * portfolio PDFs downloaded, and messages sent through the contact form. Each event goes to the
+ * dashboard's feed and, when that kind is switched on, to the phone as a notification. Callers have
+ * already left out link previews and Novel's own browser (`nb_test`). Server only.
  */
 
-export type ActivityKind = "click" | "open" | "cv" | "portfolio";
+export type ActivityKind = "click" | "open" | "cv" | "portfolio" | "enquiry";
 
 export type ActivityEvent = {
   at: string;
   kind: ActivityKind;
-  /** The link it happened to: "go:<name>" or "cv:<code>". */
+  /** What it happened to: "go:<name>", "cv:<code>", or "enquiry:<id>" for a message. */
   ref: string;
-  /** The short link's name, or who the tailored link is for (private). */
+  /** The short link's name, who the tailored link is for (private), or who sent the message. */
   name: string;
+  /** A message's service and first words. */
+  detail?: string;
   country?: string;
   device?: Device;
   referrer?: string;
@@ -28,8 +30,9 @@ export const FEED_SIZE = 300;
 /** One ping per link a minute: a burst of clicks is one notification, and the feed has every one. */
 const QUIET_SECONDS = 60;
 
-const PREF: Record<ActivityKind, keyof Prefs> = { click: "clicks", open: "opens", cv: "downloads", portfolio: "downloads" };
+const PREF: Record<ActivityKind, keyof Prefs> = { click: "clicks", open: "opens", cv: "downloads", portfolio: "downloads", enquiry: "enquiries" };
 const TITLE: Record<ActivityKind, string> = {
+  enquiry: "New message",
   click: "Short link opened",
   open: "CV link opened",
   cv: "CV downloaded",
@@ -37,6 +40,11 @@ const TITLE: Record<ActivityKind, string> = {
 };
 
 export const listEvents = (count = FEED_SIZE) => readList<ActivityEvent>(FEED, count);
+
+/** Take every event about one thing (a deleted message) out of the feed. */
+export async function forget(ref: string) {
+  for (const e of (await listEvents()).filter((e) => e.ref === ref)) await removeFromList(FEED, e);
+}
 
 /** Record an event and ping the phone. Run it inside `after()`, so the visitor never waits for it. */
 export async function report(event: ActivityEvent) {
@@ -51,6 +59,10 @@ async function ping(event: ActivityEvent) {
 }
 
 export function describe(e: ActivityEvent): Ping {
+  if (e.kind === "enquiry") {
+    const id = e.ref.slice("enquiry:".length);
+    return { title: `New message from ${e.name}`, body: e.detail ?? "", url: `/dashboard?view=inbox&enquiry=${id}`, tag: e.ref };
+  }
   const what = e.kind === "click" ? `/go/${e.name}` : e.name;
   const where = [e.country && countryName(e.country), e.device, e.referrer && `from ${e.referrer}`].filter(Boolean);
   return {

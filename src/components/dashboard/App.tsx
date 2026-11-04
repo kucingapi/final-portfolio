@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, ArrowUpRight, FolderOpen, Link2, PenLine, Plus, RefreshCw, Settings as SettingsIcon } from "lucide-react";
+import { Activity, ArrowUpRight, FolderOpen, Inbox as InboxIcon, Link2, PenLine, Plus, RefreshCw, Settings as SettingsIcon } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef } from "react";
@@ -8,6 +8,7 @@ import type { ProjectExport } from "@/lib/dashboard/export";
 import { ActivityView } from "./Activity";
 import { ContentView } from "./Content";
 import { DashboardData, useDashboard } from "./data";
+import { InboxView, useUnread } from "./Inbox";
 import { LinkSheet } from "./LinkSheet";
 import { LinksView } from "./Links";
 import { Mark } from "./Mark";
@@ -18,6 +19,7 @@ import { cn } from "./ui/cn";
 
 const VIEWS = [
   { id: "activity", label: "Activity", icon: Activity },
+  { id: "inbox", label: "Inbox", icon: InboxIcon },
   { id: "links", label: "Links", icon: Link2 },
   { id: "content", label: "Content", icon: PenLine },
   { id: "projects", label: "Projects", icon: FolderOpen },
@@ -42,6 +44,7 @@ function Shell({ projects }: { projects: ProjectExport[] }) {
   const params = useSearchParams();
   const view = (VIEWS.find((v) => v.id === params.get("view"))?.id ?? "activity") as View;
   const open = params.get("link");
+  const enquiry = params.get("enquiry");
   const pushed = useRef(false);
 
   // Opening the app counts as a visit: the session gets a fresh week, or shows sign-in if it lapsed.
@@ -69,16 +72,27 @@ function Shell({ projects }: { projects: ProjectExport[] }) {
   const show = (id: View) =>
     write((p) => {
       p.delete("link");
+      p.delete("enquiry");
       if (id === "activity") p.delete("view");
       else p.set("view", id);
     });
-  const openLink = (ref: string) => write((p) => p.set("link", ref), !open);
-  const closeLink = () => {
+  // A message in the feed opens in the Inbox; everything else is a link.
+  const openLink = (ref: string) =>
+    ref.startsWith("enquiry:")
+      ? write((p) => {
+          p.set("view", "inbox");
+          p.delete("link");
+          p.set("enquiry", ref.slice("enquiry:".length));
+        }, true)
+      : write((p) => p.set("link", ref), !open);
+  const close = (param: "link" | "enquiry") => {
     if (pushed.current) {
       pushed.current = false;
       window.history.back();
-    } else write((p) => p.delete("link"));
+    } else write((p) => p.delete(param));
   };
+  const closeLink = () => close("link");
+  const openEnquiry = (id: string) => write((p) => p.set("enquiry", id), !enquiry);
 
   const current = VIEWS.find((v) => v.id === view)!;
 
@@ -91,11 +105,18 @@ function Shell({ projects }: { projects: ProjectExport[] }) {
             <h1 className="text-lg font-semibold tracking-[-0.01em] text-foreground md:text-xl">{current.label}</h1>
             <div className="ml-auto flex items-center gap-1">
               <Actions view={view} onNew={() => openLink("new")} />
+              {view !== "settings" && (
+                // On a phone Settings sits up here, so the tab bar keeps five tabs.
+                <Button variant="ghost" size="icon" onClick={() => show("settings")} aria-label="Settings" className="md:hidden">
+                  <SettingsIcon className="size-[1.125rem]" />
+                </Button>
+              )}
             </div>
           </div>
         </header>
         <main className="mx-auto w-full max-w-3xl flex-1 px-4 pt-5 pb-[calc(6rem+env(safe-area-inset-bottom))] md:px-8 md:pt-7 md:pb-16">
           {view === "activity" && <ActivityView onOpen={openLink} onShow={show} />}
+          {view === "inbox" && <InboxView open={enquiry} onOpen={openEnquiry} onClose={() => close("enquiry")} />}
           {view === "links" && <LinksView onOpen={openLink} />}
           {view === "content" && <ContentView />}
           {view === "projects" && <Projects projects={projects} />}
@@ -109,9 +130,9 @@ function Shell({ projects }: { projects: ProjectExport[] }) {
 }
 
 function Actions({ view, onNew }: { view: View; onNew: () => void }) {
-  const { links, activity } = useDashboard();
-  if (view !== "activity" && view !== "links") return null;
-  const source = view === "activity" ? activity : links;
+  const { links, activity, enquiries } = useDashboard();
+  if (view !== "activity" && view !== "links" && view !== "inbox") return null;
+  const source = view === "activity" ? activity : view === "inbox" ? enquiries : links;
   return (
     <>
       <Button variant="ghost" size="icon" onClick={() => source.reload()} disabled={source.loading} aria-label="Refresh">
@@ -124,6 +145,18 @@ function Actions({ view, onNew }: { view: View; onNew: () => void }) {
         </Button>
       )}
     </>
+  );
+}
+
+/** The unread count beside Inbox, in the sidebar and the tab bar. */
+function Badge({ className }: { className?: string }) {
+  const unread = useUnread();
+  if (!unread) return null;
+  return (
+    <span className={cn("grid h-5 min-w-5 place-items-center rounded-full bg-primary px-1.5 text-[0.6875rem] font-semibold text-primary-foreground tabular-nums", className)}>
+      {unread > 99 ? "99+" : unread}
+      <span className="sr-only"> new</span>
+    </span>
   );
 }
 
@@ -146,6 +179,7 @@ function Sidebar({ view, onShow }: { view: View; onShow: (v: View) => void }) {
               >
                 <Icon className="size-[1.125rem]" />
                 {label}
+                {id === "inbox" && <Badge className="ml-auto" />}
               </button>
             </li>
           ))}
@@ -166,7 +200,7 @@ function TabBar({ view, onShow }: { view: View; onShow: (v: View) => void }) {
   return (
     <nav aria-label="Dashboard" className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card pb-[env(safe-area-inset-bottom)] md:hidden">
       <ul className="grid grid-cols-5">
-        {VIEWS.map(({ id, label, icon: Icon }) => (
+        {VIEWS.filter((v) => v.id !== "settings").map(({ id, label, icon: Icon }) => (
           <li key={id}>
             <button
               type="button"
@@ -174,8 +208,9 @@ function TabBar({ view, onShow }: { view: View; onShow: (v: View) => void }) {
               aria-current={view === id ? "page" : undefined}
               className="group flex h-16 w-full flex-col items-center justify-center gap-1 text-[0.6875rem] font-medium text-muted-foreground/75 transition-colors duration-150 aria-[current=page]:text-foreground"
             >
-              <span className="grid h-7 w-14 place-items-center rounded-full transition-colors duration-150 group-aria-[current=page]:bg-primary/18 group-aria-[current=page]:text-primary">
+              <span className="relative grid h-7 w-14 place-items-center rounded-full transition-colors duration-150 group-aria-[current=page]:bg-primary/18 group-aria-[current=page]:text-primary">
                 <Icon className="size-[1.25rem]" />
+                {id === "inbox" && <Badge className="absolute -top-1.5 right-1.5" />}
               </span>
               {label}
             </button>

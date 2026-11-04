@@ -10,13 +10,13 @@ import { getValue, setValue } from "./state";
  */
 
 export type Device = { id: string; name: string; createdAt: string; subscription: PushSubscription };
-export type Prefs = { clicks: boolean; opens: boolean; downloads: boolean };
+export type Prefs = { enquiries: boolean; clicks: boolean; opens: boolean; downloads: boolean };
 export type Ping = { title: string; body: string; url: string; tag: string };
 
 const KEYS = "dash:push:vapid";
 const DEVICES = "dash:push:devices";
 const PREFS = "dash:push:prefs";
-const DEFAULT_PREFS: Prefs = { clicks: true, opens: true, downloads: true };
+const DEFAULT_PREFS: Prefs = { enquiries: true, clicks: true, opens: true, downloads: true };
 
 type Vapid = { publicKey: string; privateKey: string };
 

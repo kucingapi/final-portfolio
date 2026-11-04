@@ -1,6 +1,6 @@
 "use client";
 
-import { BellRing, Eye, FileDown, MousePointerClick, Presentation, X } from "lucide-react";
+import { BellRing, Eye, FileDown, Mail, MousePointerClick, Presentation, X } from "lucide-react";
 import { useMemo, useState, useSyncExternalStore } from "react";
 import type { View } from "./App";
 import { type ActivityEvent, useDashboard } from "./data";
@@ -11,6 +11,7 @@ import { Skeleton } from "./ui/skeleton";
 import { useNotifications } from "./useNotifications";
 
 export const KIND = {
+  enquiry: { label: "Message", icon: Mail },
   click: { label: "Short link opened", icon: MousePointerClick },
   open: { label: "CV link opened", icon: Eye },
   cv: { label: "CV downloaded", icon: FileDown },
@@ -94,7 +95,7 @@ function Feed({ events, onOpen }: { events: ActivityEvent[]; onOpen: (ref: strin
 
 function EventRow({ event: e, onOpen }: { event: ActivityEvent; onOpen: (ref: string) => void }) {
   const { label, icon: Icon } = KIND[e.kind];
-  const details = [label, countryName(e.country), e.device, e.referrer && `from ${e.referrer}`].filter(Boolean).join(" · ");
+  const details = [label, e.detail, countryName(e.country), e.device, e.referrer && `from ${e.referrer}`].filter(Boolean).join(" · ");
   return (
     <li>
       <button

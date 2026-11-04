@@ -94,6 +94,23 @@ export async function pushToList(key: string, item: unknown, max: number) {
   });
 }
 
+/** Take one item, as `readList` returned it, out of a list. */
+export async function removeFromList(key: string, item: unknown) {
+  const stored = JSON.stringify(item);
+  if (redis) {
+    await redis.lrem(key, 1, stored);
+    return;
+  }
+  await inTurn(async () => {
+    const store = file();
+    const all = await store.read();
+    const list = (live(all[key])?.v as unknown[] | undefined) ?? [];
+    const at = list.findIndex((x) => JSON.stringify(x) === stored);
+    if (at >= 0) all[key] = { v: list.filter((_, i) => i !== at) };
+    await store.write(all);
+  });
+}
+
 export async function readList<T>(key: string, count: number): Promise<T[]> {
   if (redis) {
     const rows = await redis.lrange<T | string>(key, 0, count - 1);
