@@ -31,9 +31,10 @@ to the screen, with `max-md:` layouts.
 
 ## Contact form
 
-`POST /api/contact` sends enquiries through [Resend](https://resend.com). Copy `.env.example` to `.env.local` and set
-`RESEND_API_KEY` (plus optionally `CONTACT_TO_EMAIL` / `CONTACT_FROM_EMAIL`). Without a key, submissions are only logged
-in development, and in production the form shows an "email me directly" fallback.
+`POST /api/contact` saves every message to the dashboard's Inbox (and pings the phone), and emails a copy through
+[Resend](https://resend.com) when `RESEND_API_KEY` is set (plus optionally `CONTACT_TO_EMAIL` / `CONTACT_FROM_EMAIL`;
+copy `.env.example` to `.env.local`). The form falls back to "email me directly" only when it can neither save nor
+email.
 With Upstash set, messages are limited per sender (IPv4 address or IPv6 /64), per reply address and site-wide
 (`CONTACT_DAILY_CAP` a day, default 80, so the Resend quota the dashboard's setup links share isn't spent).
 
@@ -78,6 +79,9 @@ reasons behind them are in [DASHBOARD.md](DASHBOARD.md).
   CV link open and PDF download. Turn them on in Settings; there is nothing to configure on the server.
 - Short links are `/go/<name>` (a 302). Clicks from link previews, bots and your own browser (`?test=1`) aren't
   counted.
+- Jobs: each application with its posting, status and the links sent with it, and how often those were opened.
+  Agents file a tailored link under its job when they save it (`save_cv_variant` with `job`).
+- Inbox: every contact-form message, newest first, with a notification for each and a reply-by-email link.
 - Content: the projects, the master CV and the site's copy, edited as drafts and published from the dashboard. Pages
   stay prerendered and refresh on publish. Agents can edit drafts through the MCP tools `get_content`,
   `edit_content` and `content_changes`; only the dashboard publishes. Until something is published, the site shows

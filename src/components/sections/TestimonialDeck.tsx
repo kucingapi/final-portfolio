@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useRef, useState } from "react";
 import { gsap, useGSAP, ScrollTrigger, prefersReducedMotion } from "@/lib/gsap";
 import { designUnit } from "@/lib/motion";
-import type { Testimonial } from "@/content/site";
+import type { Mode, Testimonial } from "@/content/site";
 
 /** Seconds a card stays in front before autoplay moves on. */
 const DWELL = 6;
@@ -17,6 +17,18 @@ const DEPTH = [
 
 const card = "rounded-sm border-[calc(var(--s)*5)] border-midnight-50 bg-midnight-900 shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_8px_10px_-6px_rgba(0,0,0,0.1)]";
 const round = "flex size-64 shrink-0 items-center justify-center rounded-full bg-midnight-50 transition-[background-color,translate] duration-300 hover:bg-midnight-200 max-md:size-48";
+
+/**
+ * A long quote steps down a size, with roomier lines, so the card still holds it; a short one keeps the
+ * Figma size. Phones step down from their own smaller heading.
+ */
+function quoteSize(quote: string) {
+  const n = quote.length;
+  if (n <= 125) return "text-h4";
+  if (n <= 240) return "text-[calc(var(--s)*30)] leading-[1.25] max-md:text-[calc(var(--s)*19)]";
+  if (n <= 380) return "text-[calc(var(--s)*24)] leading-[1.35] max-md:text-[calc(var(--s)*17)]";
+  return "text-[calc(var(--s)*20)] leading-[1.45] font-medium max-md:text-[max(14px,calc(var(--s)*16))]";
+}
 
 const initials = (name: string) =>
   name
@@ -32,7 +44,7 @@ const initials = (name: string) =>
  * Autoplay holds while the deck is off screen, hovered, focused, dragged, or the tab is hidden,
  * and never runs with reduced motion.
  */
-export function TestimonialDeck({ testimonials }: { testimonials: Testimonial[] }) {
+export function TestimonialDeck({ testimonials, mode }: { testimonials: Testimonial[]; mode?: Mode }) {
   const root = useRef<HTMLDivElement>(null);
   const controls = useRef<{ step: (dir: 1 | -1) => void } | null>(null);
   const [front, setFront] = useState(0);
@@ -188,6 +200,7 @@ export function TestimonialDeck({ testimonials }: { testimonials: Testimonial[] 
   return (
     <div
       ref={root}
+      data-for={mode}
       role="region"
       aria-roledescription="carousel"
       aria-label="Testimonials"
@@ -204,12 +217,13 @@ export function TestimonialDeck({ testimonials }: { testimonials: Testimonial[] 
             aria-hidden={i !== front}
             inert={i !== front}
             style={{ zIndex: count - i }}
-            className={`relative [grid-area:1/1] h-381 w-707 origin-top touch-pan-y overflow-hidden select-none max-md:h-auto max-md:min-h-300 max-md:w-full ${card} ${
+            // The Figma height is the least: a longer quote makes the card, and so the whole stack, taller.
+            className={`relative [grid-area:1/1] min-h-381 w-707 origin-top touch-pan-y overflow-hidden select-none max-md:min-h-300 max-md:w-full ${card} ${
               i === front ? "cursor-grab active:cursor-grabbing" : ""
             }`}
           >
-            <div data-quote className={`flex h-full flex-col justify-between px-41 pt-32 pb-30 max-md:gap-32 max-md:p-24 ${i ? "invisible" : ""}`}>
-              <blockquote className="text-h4 font-semibold text-justify text-white max-md:text-left">{t.quote}</blockquote>
+            <div data-quote className={`flex h-full flex-col justify-between gap-24 px-41 pt-32 pb-30 max-md:gap-32 max-md:p-24 ${i ? "invisible" : ""}`}>
+              <blockquote className={`${quoteSize(t.quote)} font-semibold text-justify text-white max-md:text-left`}>{t.quote}</blockquote>
               <figcaption className="flex items-center gap-15">
                 {t.avatar ? (
                   <Image

@@ -57,6 +57,30 @@ it gained Content: the site's copy, the master CV and the projects became editab
   `src/components/dashboard/ui`. Their colour names and a plain rem scale apply only on dashboard pages, through
   `html:has(.dash)` in `globals.css`, so the site's design-pixel canvas is untouched.
 
+## Jobs: where each application stands
+
+- **One entry per job:** company, role, the posting's link, status (saved, applied, interviewing, offer, rejected,
+  closed), the day it went out, notes, and the links sent with it: tailored CV links and short links.
+- **Totals from the links:** each job adds up its tailored links' opens and CV and portfolio downloads and its short
+  links' clicks, with when anything last happened. The figures are the links' own, so they match the Links view.
+- **Agents record jobs themselves:** `save_cv_variant` takes the `job` it's for and files the tailored link under it
+  (a second CV for the same posting joins the same job). `list_jobs` returns every job with its totals, and
+  `save_job` adds or updates one.
+- A tailored link that isn't in a job yet is listed under the jobs, with "Make it a job" filling in the company and
+  role from its label. On a phone the tab bar is Activity, Inbox, Jobs, Links and Content; Projects and Settings sit
+  in the header.
+
+## Inbox: contact-form messages
+
+- **Every message is saved**, whether or not the email copy goes out, so none is lost when Resend is down or not set
+  up. The form only shows its "email me directly" fallback when it can neither save nor email.
+- **In the dashboard:** Inbox lists them newest first, with a dot on the ones that arrived since it was last opened
+  and a count on the tab. A message opens in a panel with the sender's email and phone, a "Reply by email" link with
+  the subject filled in, and Delete (which also takes it out of the activity feed).
+- **On the phone:** each message is a notification ("New message from …"), on its own switch in Settings, and an
+  entry in the activity feed; both open the message.
+- The latest 500 are kept. On a phone, Settings moved to the header so the tab bar keeps five tabs.
+
 ## Content: the site's own CMS
 
 Chosen over a hosted CMS (Sanity) and one inside the app (Payload): the dashboard, the store and the MCP endpoint were
@@ -65,7 +89,7 @@ Components until its version 4.
 
 - **Three documents** under Content: Projects (every case study, in the site's order), CV (the master CV that tailored
   links pick from) and Site (the basics, About, How I work, testimonials, the Freelance and Full-time copy, and both
-  career lists).
+  career lists). Each testimonial says where it shows: Freelance mode, Full-time mode, or both.
 - **Drafts, then Publish.** Saving writes a draft that only the dashboard sees. Publish puts it on the site and
   expires that document's cache tag, so the next visit renders it. Preview opens the site with the drafts showing
   (Next's Draft Mode) and a "Showing drafts · Exit" pill.
@@ -143,6 +167,8 @@ Neither platform can import a file, so the export is copy-ready fields plus the 
 | The redirect | `src/app/go/[name]/route.ts`; previews are told apart in `src/lib/dashboard/visitor.ts` |
 | Project export | `src/lib/dashboard/export.ts`; images zip at `/api/dashboard/projects/<slug>` |
 | Content: schema, store, cached reads, defaults | `src/lib/content/` (`schema.ts`, `store.ts`, `read.ts`, `defaults.ts`, `changes.ts`) |
+| Jobs: store, totals, agent recording | `src/lib/dashboard/jobs.ts` (shared types in `job-types.ts`), `/api/dashboard/jobs`, `/api/dashboard/jobs/<id>`; view `src/components/dashboard/Jobs.tsx` |
+| Inbox: saving, listing, delete | `src/lib/dashboard/enquiries.ts`, `/api/contact`, `/api/dashboard/enquiries`, `/api/dashboard/enquiries/<id>`; view `src/components/dashboard/Inbox.tsx` |
 | Content editor | `src/components/dashboard/Content.tsx`, `src/components/dashboard/content/Editor.tsx`; actions in `src/app/dashboard/content-actions.ts`; Preview at `/api/dashboard/preview` |
 | Shared Redis client (also used by the CV store) | `src/lib/kv.ts` |
 

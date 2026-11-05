@@ -11,6 +11,7 @@ import { renderCvPdf } from "@/lib/cv/pdf";
 import { deleteVariant, getActivity, getVariant, listVariants, saveVariant, type StoredVariant } from "@/lib/cv/store";
 import { variantSchema } from "@/lib/cv/schema";
 import { checkVariant, cvToText, resolveCv, type Variant } from "@/lib/cv/variant";
+import { JOB_STATUSES, JobError, createJob, listJobs, recordApplication, updateJob, withTotals } from "@/lib/dashboard/jobs";
 
 /**
  * MCP server for tailoring the CV and the site to one application. An agent reads the master CV,
@@ -30,6 +31,10 @@ const GUIDE = `How to tailor:
 - "projects" orders the site's projects page for this visitor (lead with the most relevant), and its first three are the three projects in the portfolio PDF deck. "mode" sets which way the site opens (fulltime for employers, freelance for clients).
 - For Upwork and other platforms that bar sharing contact details, set "contact": false. It hides the email, GitHub and LinkedIn on the CV and both PDFs.
 - The label is private (e.g. "Acme, Senior Frontend, 2026-11"); the visitor never sees it.`;
+
+const JOBS_GUIDE = `Tracking applications:
+- When a tailored CV is for a job application, pass "job" (company, title, and the posting's url) to save_cv_variant. The dashboard's Jobs view then shows the job with the link and how often it was opened; a second CV for the same posting joins the same job.
+- list_jobs shows every job with its opens, downloads and clicks; save_job adds one by hand or updates it (status: saved, applied, interviewing, offer, rejected, closed).`;
 
 const CONTENT_GUIDE = `Editing the site's content:
 - Three documents: "site" (the site's copy), "cv" (the master CV that tailored CVs pick from) and "projects" (the case studies, in the order the site lists them).
@@ -62,7 +67,7 @@ async function preview(variant: Variant, origin: string) {
 }
 
 function buildServer(origin: string) {
-  const server = new McpServer({ name: "novel-cv", version: "1.0.0" }, { instructions: [GUIDE, CONTENT_GUIDE].join("\n\n") });
+  const server = new McpServer({ name: "novel-cv", version: "1.0.0" }, { instructions: [GUIDE, JOBS_GUIDE, CONTENT_GUIDE].join("\n\n") });
 
   server.registerTool(
     "get_cv_master",
@@ -120,18 +125,29 @@ function buildServer(origin: string) {
         variant: variantSchema,
         code: z.string().max(16).optional().describe("Existing code to replace; omit to create a new one."),
         claim: z.string().max(16).optional().describe("Unused code to create the variant under, e.g. for a link already sent; refused if invalid or taken."),
+        job: z
+          .object({
+            company: z.string().trim().min(1).max(120),
+            title: z.string().trim().min(1).max(160).describe("The role."),
+            url: z.string().url().optional().describe("The job posting."),
+            status: z.enum(JOB_STATUSES).optional().describe("Default applied."),
+          })
+          .optional()
+          .describe("The job this CV is for. Recorded in the dashboard's Jobs view with this link; the same posting reuses its job."),
       },
     },
-    async ({ label, variant, code, claim }) => {
+    async ({ label, variant, code, claim, job }) => {
       const result = await preview(variant, origin);
       if (result.errors.length) return fail(`Not saved. Fix these first:\n${result.errors.join("\n")}`);
       try {
         const row = await saveVariant({ code, claim, label, variant });
+        const recorded = job ? await recordApplication(row.code, job) : undefined;
         return json({
           code: row.code,
           label: row.label,
           links: links(origin, row.code),
           pages: result.pages,
+          job: recorded && { id: recorded.id, company: recorded.company, title: recorded.title, status: recorded.status },
           warning: result.fitsTwoPages ? undefined : `The CV is ${result.pages} page(s); it should be 2.`,
         });
       } catch (e) {
@@ -185,6 +201,44 @@ function buildServer(origin: string) {
       annotations: { destructiveHint: true },
     },
     async ({ code }) => ((await deleteVariant(code)) ? json({ deleted: code }) : fail(`No variant with code "${code}".`)),
+  );
+
+  server.registerTool(
+    "list_jobs",
+    {
+      title: "List job applications",
+      description:
+        "Every job in the dashboard, newest first: company, role, posting, status, the day it was applied, the links sent with it (cv:<code>, go:<name>) and their totals: tailored-link opens, CV and portfolio downloads, short-link clicks, and the last time anything happened.",
+      annotations: { readOnlyHint: true },
+    },
+    async () => json(await withTotals(await listJobs())),
+  );
+
+  server.registerTool(
+    "save_job",
+    {
+      title: "Add or update a job",
+      description:
+        "Add a job (omit id) or change one (pass its id): any of company, title, url, status, appliedOn (2026-11-04), links (cv:<code> and go:<name>; replaces the list), notes.",
+      inputSchema: {
+        id: z.string().optional().describe("The job to change; omit to add one."),
+        company: z.string().optional(),
+        title: z.string().optional().describe("The role."),
+        url: z.string().optional().describe("The job posting."),
+        status: z.enum(JOB_STATUSES).optional(),
+        appliedOn: z.string().optional(),
+        links: z.array(z.string()).optional(),
+        notes: z.string().optional(),
+      },
+    },
+    async ({ id, ...fields }) => {
+      try {
+        return json(id ? await updateJob(id, fields) : await createJob(fields));
+      } catch (e) {
+        if (e instanceof JobError) return fail(e.message);
+        throw e;
+      }
+    },
   );
 
   const doc = z.enum(["site", "cv", "projects"]).describe("site: the site's copy; cv: the master CV; projects: the case studies.");

@@ -57,6 +57,7 @@ const Muted = ({ children }: { children: React.ReactNode }) => <span className="
 // --- Notifications ------------------------------------------------------------------------------------
 
 const KINDS: { key: keyof Prefs; label: string; hint: string }[] = [
+  { key: "enquiries", label: "Contact form messages", hint: "Someone sent the contact form." },
   { key: "clicks", label: "Short-link clicks", hint: "Someone opened a /go/ link." },
   { key: "opens", label: "Tailored CV links opened", hint: "Someone opened a ?v= link." },
   { key: "downloads", label: "CV and portfolio downloads", hint: "From a tailored link." },
@@ -65,7 +66,7 @@ const KINDS: { key: keyof Prefs; label: string; hint: string }[] = [
 function Notifications() {
   const n = useNotifications();
   return (
-    <Section title="Notifications" intro="A ping on your phone or computer when someone opens one of your links. One per link a minute at most.">
+    <Section title="Notifications" intro="A ping on your phone or computer when someone sends the contact form or opens one of your links. One per link a minute at most.">
       <Group>{n.support === null || n.loading ? <Row><Skeleton className="h-5 w-2/3" /></Row> : <ThisDevice n={n} />}</Group>
 
       {n.prefs && (
