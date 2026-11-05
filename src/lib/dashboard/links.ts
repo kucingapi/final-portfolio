@@ -36,7 +36,14 @@ export const isName = (name: string) => name.length <= 64 && NAME.test(name);
 
 /** Throws a readable error when the destination can't be redirected to. */
 export function checkDestination(url: string) {
-  if (url.startsWith("/") && !url.startsWith("//")) return url;
+  // A path on this site. Browsers read a backslash as a slash, so /\evil.com would be //evil.com,
+  // another host: refuse both, and control characters, which browsers strip from URLs.
+  if (url.startsWith("/")) {
+    if (url.startsWith("//") || /[\\\u0000-\u001f\u007f]/.test(url)) {
+      throw new Error("A path on this site starts with a single / (no // or backslashes).");
+    }
+    return url;
+  }
   let parsed: URL;
   try {
     parsed = new URL(url);

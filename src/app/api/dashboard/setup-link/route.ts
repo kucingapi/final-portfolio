@@ -1,9 +1,11 @@
+import { crossSite, forbiddenCrossSite } from "@/lib/dashboard/auth";
 import { SetupError, sendSetupLink } from "@/lib/dashboard/setup";
 
 const noStore = { "Cache-Control": "no-store" };
 
 /** Email a one-time setup link (or a reset link, once sign-in exists). Anyone may ask; only Novel's inbox gets it. */
 export async function POST(request: Request) {
+  if (crossSite(request)) return forbiddenCrossSite();
   try {
     return Response.json({ ok: true, ...(await sendSetupLink(request.url)) }, { headers: noStore });
   } catch (error) {

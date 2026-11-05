@@ -20,7 +20,13 @@ it gained Content: the site's copy, the master CV and the projects became editab
   another site and hand it the token, so production uses `NEXT_PUBLIC_SITE_URL` (else `VERCEL_PROJECT_PRODUCTION_URL`),
   a preview its own `VERCEL_BRANCH_URL`, and only local development the request's origin. Tokens are stored hashed.
 - **Rate limiting** in Upstash, because a 6-digit code alone can be brute-forced: 5 wrong codes lock sign-in (and
-  setup) for 15 minutes, and a code that worked once is refused if it is used again in the same window.
+  setup) for 15 minutes, and a code that worked once is refused if it is used again in the same window. Each
+  attempt is counted before its code is checked (one atomic script that also sets the window's expiry), so a burst of parallel requests gets no
+  more than five guesses either.
+- **Requests from other sites are refused** on every dashboard route that changes something, sign-in and setup
+  included (`Sec-Fetch-Site: cross-site`, or `same-site` from a sibling subdomain), on top of the SameSite=Strict
+  cookie. The dashboard can't be framed
+  (`frame-ancestors 'none'`) and sends no referrer.
 - **Session: a week after the last visit.** An httpOnly, Secure, SameSite=Strict cookie, signed with a key derived
   from the TOTP secret, so replacing the secret signs every device out. Opening the dashboard renews it.
 - **Lost phone:** "Lost your phone?" on the sign-in screen, or Settings → "Email a reset link", sends the same kind of

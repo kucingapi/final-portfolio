@@ -1,4 +1,4 @@
-import { sessionCookie } from "@/lib/dashboard/auth";
+import { crossSite, forbiddenCrossSite, sessionCookie } from "@/lib/dashboard/auth";
 import { finishSetup, revealSetup, SetupError } from "@/lib/dashboard/setup";
 
 const noStore = { "Cache-Control": "no-store" };
@@ -8,6 +8,7 @@ const noStore = { "Cache-Control": "no-store" };
  * one each time), and `{ token, code }` confirms it with the app's first code, then signs this browser in.
  */
 export async function POST(request: Request) {
+  if (crossSite(request)) return forbiddenCrossSite();
   const body = await request.json().catch(() => null);
   const token = typeof body?.token === "string" ? body.token : "";
   try {

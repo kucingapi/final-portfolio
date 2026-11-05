@@ -62,6 +62,23 @@ export function checkVariant(cv: CvContent, v: Variant, projectSlugs: string[]):
     else for (const t of items) if (!group.items.includes(t)) errors.push(`skillItems.${id}: "${t}" is not in ${group.label}.`);
   }
   for (const slug of v.projects ?? []) if (!projectSlugs.includes(slug)) errors.push(`Unknown project "${slug}".`);
+  // A repeated id would print its line again on every PDF fetch of the saved link, so refuse it.
+  const lists: [string, string[] | undefined][] = [
+    ["sections", v.sections],
+    ["entries", v.entries],
+    ["skills", v.skills],
+    ["projects", v.projects],
+    ...Object.entries(v.bullets ?? {}).map(([id, l]): [string, string[]] => [`bullets.${id}`, l]),
+    ...Object.entries(v.stacks ?? {}).map(([id, l]): [string, string[]] => [`stacks.${id}`, l]),
+    ...Object.entries(v.skillItems ?? {}).map(([id, l]): [string, string[]] => [`skillItems.${id}`, l]),
+  ];
+  for (const [name, list] of lists) {
+    const seen = new Set<string>();
+    for (const item of list ?? []) {
+      if (seen.has(item)) errors.push(`${name}: "${item}" is listed twice.`);
+      seen.add(item);
+    }
+  }
   return errors;
 }
 

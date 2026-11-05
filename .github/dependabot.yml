@@ -1,0 +1,13 @@
+# Weekly dependency update PRs. Minor and patch bumps are grouped into one PR, so routine updates stay reviewable;
+# a major bump still gets its own PR.
+# The repo has no GitHub Actions workflows yet; add a github-actions entry (directory "/") when the first one lands.
+version: 2
+updates:
+  # Single npm project (package-lock.json at the root).
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+    groups:
+      npm-minor-patch:
+        update-types: [minor, patch]

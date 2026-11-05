@@ -1,5 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { redis } from "@/lib/kv";
+import { countWithin, redis } from "@/lib/kv";
 import { getValue, setValue } from "./state";
 import { base32Decode, matchStep } from "./totp";
 
@@ -58,8 +58,27 @@ const readCookie = (request: Request, name: string) =>
     .find((part) => part.startsWith(`${name}=`))
     ?.slice(name.length + 1);
 
-/** For route handlers: is this request from a signed-in browser? */
-export const signedIn = (request: Request) => validSession(readCookie(request, SESSION_COOKIE));
+/**
+ * A browser saying the request came from a page that isn't this origin: another site, or a sibling
+ * subdomain ("same-site"), which a SameSite=Strict cookie would still go along with. Refusing it is the
+ * second lock on the door, and it also covers the routes that need no session (sign-in, setup links).
+ * The dashboard's own fetches say "same-origin"; requests without the header (curl, older browsers) are
+ * left to the cookie.
+ */
+export const crossSite = (request: Request) => {
+  const from = request.headers.get("sec-fetch-site");
+  return from === "cross-site" || from === "same-site";
+};
+
+const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
+
+/** For route handlers: is this request from a signed-in browser? Changes must also come from this site. */
+export const signedIn = async (request: Request) =>
+  !(crossSite(request) && !SAFE_METHODS.has(request.method)) && (await validSession(readCookie(request, SESSION_COOKIE)));
+
+/** For the routes that work without a session: a cross-site page may not call them. */
+export const forbiddenCrossSite = () =>
+  Response.json({ error: "Not from another site." }, { status: 403, headers: { "Cache-Control": "no-store" } });
 
 /** A fresh session token for a browser that is signed in, so a week counts from its last visit. */
 export async function renewSession(request: Request) {
@@ -87,12 +106,19 @@ export function sessionCookie(request: Request, value: string, maxAge = SESSION_
 // --- Rate limit and replay ------------------------------------------------------------------------
 
 /**
- * A 6-digit code alone could be guessed, so wrong codes are counted: the fifth in a row locks sign-in
- * for 15 minutes, for everyone, as there is only one person to let in. A code that worked once is
- * refused if it comes again, and so is any code older than the last one used.
+ * A 6-digit code alone could be guessed, so attempts are counted: five wrong codes in a row lock
+ * sign-in for 15 minutes, for everyone, as there is only one person to let in. A code that worked once
+ * is refused if it comes again, and so is any code older than the last one used.
+ *
+ * The attempt is counted *before* the code is checked, with one atomic increment. Checking a lock and
+ * counting the failure afterwards would let a burst of parallel requests all pass the check before the
+ * first failure lands, so a single burst could try thousands of codes. With the count taken first, only
+ * the first five of any burst ever reach the code check.
  */
 type Limits = {
-  lockedFor(): Promise<number>;
+  /** Reserves an attempt: 0 when it may go ahead, else the seconds left on the lock. */
+  begin(): Promise<number>;
+  /** The reserved attempt was wrong: the count lasts another 15 minutes, so the fifth in a row locks for 15. */
   fail(): Promise<void>;
   /** Claims the step; false if it, or a later one, was already used. */
   claim(step: number): Promise<boolean>;
@@ -101,20 +127,17 @@ type Limits = {
   restart(step: number): Promise<void>;
 };
 
-const K = { fails: "dash:signin:fails", lock: "dash:signin:lock", last: "dash:signin:last", step: (s: number) => `dash:signin:step:${s}` };
+const K = { tries: "dash:signin:tries", last: "dash:signin:last", step: (s: number) => `dash:signin:step:${s}` };
 
 const redisLimits = (r: NonNullable<typeof redis>): Limits => ({
-  async lockedFor() {
-    const ttl = await r.ttl(K.lock);
-    return ttl > 0 ? ttl : 0;
+  async begin() {
+    // Counted and given its expiry in one atomic step, so no count can ever be left to lock sign-in for good.
+    const { count, ttl } = await countWithin(r, K.tries, LOCK_SECONDS);
+    if (count <= MAX_FAILS) return 0;
+    return ttl > 0 ? ttl : LOCK_SECONDS;
   },
   async fail() {
-    const fails = await r.incr(K.fails);
-    await r.expire(K.fails, LOCK_SECONDS);
-    if (fails >= MAX_FAILS) {
-      await r.set(K.lock, 1, { ex: LOCK_SECONDS });
-      await r.del(K.fails);
-    }
+    await r.expire(K.tries, LOCK_SECONDS);
   },
   async claim(step) {
     const last = Number((await r.get<number>(K.last)) ?? 0);
@@ -125,30 +148,32 @@ const redisLimits = (r: NonNullable<typeof redis>): Limits => ({
     return true;
   },
   async reset() {
-    await r.del(K.fails);
+    await r.del(K.tries);
   },
   async restart(step) {
     await r.set(K.step(step), 1, { ex: 120 });
     await r.set(K.last, step, { ex: 86_400 });
-    await r.del(K.fails);
+    await r.del(K.tries);
   },
 });
 
 /** Development without Redis: the same rules, kept in memory for as long as the dev server runs. */
-const memory = ((globalThis as { __nbDashLimits?: { fails: number; lockUntil: number; last: number } }).__nbDashLimits ??= {
-  fails: 0,
-  lockUntil: 0,
+const memory = ((globalThis as { __nbDashTries?: { tries: number; until: number; last: number } }).__nbDashTries ??= {
+  tries: 0,
+  until: 0,
   last: 0,
 });
 const memoryLimits: Limits = {
-  async lockedFor() {
-    return Math.max(0, Math.ceil((memory.lockUntil - Date.now()) / 1000));
+  async begin() {
+    if (memory.until <= Date.now()) {
+      memory.tries = 0;
+      memory.until = Date.now() + LOCK_SECONDS * 1000;
+    }
+    if (++memory.tries <= MAX_FAILS) return 0;
+    return Math.max(1, Math.ceil((memory.until - Date.now()) / 1000));
   },
   async fail() {
-    if (++memory.fails >= MAX_FAILS) {
-      memory.lockUntil = Date.now() + LOCK_SECONDS * 1000;
-      memory.fails = 0;
-    }
+    memory.until = Date.now() + LOCK_SECONDS * 1000;
   },
   async claim(step) {
     if (step <= memory.last) return false;
@@ -156,11 +181,11 @@ const memoryLimits: Limits = {
     return true;
   },
   async reset() {
-    memory.fails = 0;
+    memory.tries = 0;
   },
   async restart(step) {
     memory.last = step;
-    memory.fails = 0;
+    memory.tries = 0;
   },
 };
 
@@ -184,7 +209,7 @@ export async function signIn(code: string): Promise<SignInResult> {
   const secret = await totpSecret();
   if (!secret) return { ok: false, error: "The dashboard has no sign-in set up yet.", status: 503 };
   const store = limits();
-  const locked = await store.lockedFor();
+  const locked = await store.begin();
   if (locked) return lockedOut(locked);
   const step = matchStep(secret, code.replace(/\s/g, ""));
   if (step === null || !(await store.claim(step))) {
@@ -201,7 +226,7 @@ export async function signIn(code: string): Promise<SignInResult> {
  */
 export async function adoptSecret(base32: string, code: string): Promise<SignInResult> {
   const store = limits();
-  const locked = await store.lockedFor();
+  const locked = await store.begin();
   if (locked) return lockedOut(locked);
   const secret = base32Decode(base32);
   const step = matchStep(secret, code.replace(/\s/g, ""));

@@ -48,7 +48,8 @@ export function loadAnalytics(tags?: Record<string, string>): Promise<PostHog | 
                 ui_host: "https://eu.posthog.com",
                 defaults: "2026-08-30",
                 person_profiles: "identified_only",
-                session_recording: { maskAllInputs: true },
+                // Inputs are masked; so is any text marked data-ph-mask (the contact thank-you, which names the visitor).
+                session_recording: { maskAllInputs: true, maskTextSelector: "[data-ph-mask]" },
                 // The landing pageview can fire before `register` lands, so tag it on the way out too.
                 before_send: (event) => {
                   if (event && tags) Object.assign(event.properties, { ...tags, ...event.properties });

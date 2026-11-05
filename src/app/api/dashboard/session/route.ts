@@ -1,4 +1,4 @@
-import { renewSession, sessionCookie, signIn } from "@/lib/dashboard/auth";
+import { crossSite, forbiddenCrossSite, renewSession, sessionCookie, signIn } from "@/lib/dashboard/auth";
 
 const noStore = { "Cache-Control": "no-store" };
 
@@ -14,6 +14,7 @@ export async function GET(request: Request) {
 
 /** Sign in with an authenticator code: `{ "code": "123456" }`. */
 export async function POST(request: Request) {
+  if (crossSite(request)) return forbiddenCrossSite();
   const body = await request.json().catch(() => null);
   const code = typeof body?.code === "string" ? body.code : "";
   const result = await signIn(code);
@@ -23,5 +24,6 @@ export async function POST(request: Request) {
 
 /** Sign out on this device. */
 export async function DELETE(request: Request) {
+  if (crossSite(request)) return forbiddenCrossSite();
   return Response.json({ ok: true }, { headers: { ...noStore, "Set-Cookie": sessionCookie(request, "", 0) } });
 }

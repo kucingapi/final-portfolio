@@ -1,5 +1,8 @@
 import { after } from "next/server";
 import { services, site } from "@/content/site";
+import { createHash } from "node:crypto";
+import { countWithin, redis } from "@/lib/kv";
+import { clientIp, senderKey } from "@/lib/rate";
 import { report } from "@/lib/dashboard/activity";
 import { saveEnquiry } from "@/lib/dashboard/enquiries";
 import { describeClick } from "@/lib/dashboard/visitor";
@@ -16,6 +19,52 @@ type Payload = { service?: string; name?: string; email?: string; phone?: string
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const clip = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) : "");
 
+/**
+ * Each message is saved to the Inbox, pings the phone and is emailed with the site's Resend key, so a
+ * script could otherwise flood all three and use up the sending quota (which the dashboard's setup and
+ * recovery links share). Counted in
+ * Upstash; in development without Upstash nothing is counted.
+ *
+ * Per sender (an IPv4 address, or an IPv6 /64, see senderKey) by the hour and by the day, and per reply
+ * address, so a few addresses can't take the site-wide allowance between them. Then for the whole site:
+ * by the hour, set high enough that closing the form takes many machines, and by the day, below
+ * Resend's free 100 a day, so contact mail alone can't spend the quota and leave the dashboard's links
+ * undelivered. CONTACT_DAILY_CAP raises that on a paid Resend plan.
+ */
+const HOUR = 3600;
+const DAY = 86400;
+const PER_SENDER = 5;
+const PER_SENDER_DAY = 10;
+const PER_ADDRESS = 5;
+const SITE_WIDE = 120;
+const SITE_WIDE_DAY = Number(process.env.CONTACT_DAILY_CAP) > 0 ? Number(process.env.CONTACT_DAILY_CAP) : 80;
+
+const BUSY = "Too many messages right now. Please try again later, or email me directly.";
+
+/** The reason to refuse this message, or null to send it. */
+async function overLimit(request: Request, email: string): Promise<string | null> {
+  if (!redis) return null;
+  try {
+    const count = async (key: string, seconds: number) => (await countWithin(redis!, key, seconds)).count;
+    const sender = senderKey(clientIp(request));
+    // A sender over their own limit doesn't count toward the site's, or one script could use up the
+    // whole allowance and close the form for everyone else. The reply address is kept as a hash.
+    if ((await count(`contact:rate:ip:${sender}`, HOUR)) > PER_SENDER) return "Too many messages from here in the last hour. Please try again later.";
+    if ((await count(`contact:rate:ip-day:${sender}`, DAY)) > PER_SENDER_DAY) return "Too many messages from here today. Please try again tomorrow.";
+    const address = createHash("sha256").update(email.toLowerCase()).digest("hex").slice(0, 32);
+    if ((await count(`contact:rate:email:${address}`, HOUR)) > PER_ADDRESS) return "Too many messages from this address in the last hour. Please try again later.";
+    if ((await count("contact:rate:all", HOUR)) > SITE_WIDE) return BUSY;
+    return (await count("contact:rate:day", DAY)) > SITE_WIDE_DAY ? BUSY : null;
+  } catch (error) {
+    // Upstash being down must not lose a real enquiry.
+    console.error("[contact] rate limit unavailable", error);
+    return null;
+  }
+}
+
+/** Header-bound text (the subject) on one line. */
+const oneLine = (v: string) => v.replace(/[\r\n\u2028\u2029]+/g, " ");
+
 /** true sent, false failed, null not set up. */
 async function emailCopy(fields: { service: string; name: string; email: string; text: string }): Promise<boolean | null> {
   const apiKey = process.env.RESEND_API_KEY;
@@ -29,7 +78,7 @@ async function emailCopy(fields: { service: string; name: string; email: string;
         // The address in the code, not the editable copy, so an edit can't redirect enquiries.
         to: [process.env.CONTACT_TO_EMAIL ?? site.email],
         reply_to: fields.email,
-        subject: `New ${fields.service} enquiry from ${fields.name}`,
+        subject: oneLine(`New ${fields.service} enquiry from ${fields.name}`),
         text: fields.text,
       }),
     });
@@ -42,6 +91,11 @@ async function emailCopy(fields: { service: string; name: string; email: string;
 }
 
 export async function POST(request: Request) {
+  // Only this site's own form: a browser says where a request came from (no header: curl, older browsers).
+  const from = request.headers.get("sec-fetch-site");
+  if (from === "cross-site" || from === "same-site") {
+    return Response.json({ error: "Please use the form on this site." }, { status: 403 });
+  }
   let body: Payload;
   try {
     body = await request.json();
@@ -60,6 +114,8 @@ export async function POST(request: Request) {
 
   if (!name) return Response.json({ error: "Please tell me your name." }, { status: 422 });
   if (!EMAIL.test(email)) return Response.json({ error: "Please use a valid email address." }, { status: 422 });
+  const limited = await overLimit(request, email);
+  if (limited) return Response.json({ error: limited }, { status: 429 });
 
   const details = [`Service: ${service}`, `Name: ${name}`, `Email: ${email}`];
   if (phone) details.push(`Phone: ${phone}`);

@@ -35,6 +35,8 @@ to the screen, with `max-md:` layouts.
 [Resend](https://resend.com) when `RESEND_API_KEY` is set (plus optionally `CONTACT_TO_EMAIL` / `CONTACT_FROM_EMAIL`;
 copy `.env.example` to `.env.local`). The form falls back to "email me directly" only when it can neither save nor
 email.
+With Upstash set, messages are limited per sender (IPv4 address or IPv6 /64), per reply address and site-wide
+(`CONTACT_DAILY_CAP` a day, default 80, so the Resend quota the dashboard's setup links share isn't spent).
 
 ## Tailored CVs and links
 

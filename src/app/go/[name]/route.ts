@@ -13,7 +13,10 @@ import { describeClick, isPreview } from "@/lib/dashboard/visitor";
 export async function GET(request: Request, ctx: RouteContext<"/go/[name]">) {
   const { name } = await ctx.params;
   const link = await getLink(name.toLowerCase());
-  const target = new URL(link?.url ?? "/", request.url);
+  const here = new URL(request.url);
+  let target = new URL(link?.url ?? "/", here);
+  // A path destination must stay on this site, whatever was saved before paths were checked.
+  if (link?.url.startsWith("/") && target.origin !== here.origin) target = new URL("/", here);
   if (link && !isPreview(request) && !fromTester(request)) {
     const click = describeClick(request);
     after(() => Promise.all([recordClick(link.name, click), report({ kind: "click", ref: `go:${link.name}`, name: link.name, ...click })]));
