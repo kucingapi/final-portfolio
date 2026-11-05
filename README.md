@@ -21,6 +21,7 @@ npm run build   # production build
 | Page transition + first-load loader | `src/components/transition/PageTransition.tsx` |
 | Design tokens (Midnight palette, type scale) | `src/app/globals.css` |
 | Figma assets | `public/figma/**` |
+| Device renders per project (real + two-tone twin) | `public/projects/<slug>-{real,abstract}.webp`, made by `scripts/mockups.py` from the Figma file's device scenes (kept in `.data/mockups/`) |
 
 ## Sizing
 
@@ -44,10 +45,18 @@ The master CV (edited under Content in the dashboard; it starts as `src/content/
 bullet, longer than any one CV, each bullet with an id,
 tags and a weight. A **variant** picks, orders and titles lines from it for one application (`src/lib/cv/schema.ts`), and
 is stored under a random code. A link like `/?v=k7qx2pmd` applies it: the code leaves the address bar at once, the
-variant is kept in the visitor's localStorage, the projects page leads with its projects, the mode can switch, and
-`/cv` plus its PDF (`/api/cv`) show the tailored two-page CV. The portfolio deck (`/api/portfolio`, a 16:9 PDF
-built in `src/lib/portfolio/`) shows the variant's first three projects. The private label (who it was for) never leaves
-the server.
+variant is kept in the visitor's localStorage, and the whole site follows it:
+
+- Projects: its first four lead the home page's grid and the projects page (any project can, as each has a device
+  render), and it can give a project another of its figures as the headline number (`stats`).
+- Career: the Career page and the home page's career list (Full-time mode) take the CV's choices for each role that
+  stands for a CV entry (the role's `cv`, or a unique match by organisation for work roles): the title, the lines,
+  and the order (`src/lib/cv/career.ts`).
+- `/cv` plus its PDF (`/api/cv`) show the tailored two-page CV, and the mode can switch.
+- The portfolio deck (`/api/portfolio`, a 16:9 PDF built in `src/lib/portfolio/`) shows the variant's first three
+  projects, with the chapters it chose for each (`chapters`) and their headline numbers.
+
+The private label (who it was for) never leaves the server.
 
 - Storage: Upstash Redis (`KV_REST_API_URL`, `KV_REST_API_TOKEN`, as Vercel's Upstash integration sets them). Without
   them, development keeps variants in `.data/cv-variants.json`.

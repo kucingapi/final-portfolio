@@ -5,6 +5,7 @@ import { Document, Font, Image as PdfImg, Link, Page, Path, StyleSheet, Svg, Tex
 import type { Style } from "@react-pdf/stylesheet";
 import { getProjects, getSiteContent } from "@/lib/content/read";
 import type { Chapter, Project, SiteContent } from "@/lib/content/schema";
+import { statOf } from "@/content/projects";
 import type { ResolvedCv, Variant } from "@/lib/cv/variant";
 import { pdfImage, type PdfImage } from "./images";
 
@@ -201,8 +202,13 @@ export function pickProjects(all: Project[], v: Variant = {}, count = 3): Projec
 
 const weight = (c: Chapter) => (c.figure && c.shot ? 3 : c.shot || c.figure || c.bars ? 2 : 0);
 
-/** The chapter that opens the story, then the two with the most to show, in reading order. */
-export function pickChapters(p: Project, count = 3): Chapter[] {
+/**
+ * The chapters a tailored link chose for this project, in its order; otherwise the chapter that opens the
+ * story, then the two with the most to show, in reading order.
+ */
+export function pickChapters(p: Project, count = 3, chosen?: string[]): Chapter[] {
+  const picked = (chosen ?? []).map((id) => p.chapters.find((c) => c.id === id)).filter((c): c is Chapter => Boolean(c));
+  if (picked.length) return picked.slice(0, count);
   const [first, ...rest] = p.chapters;
   const best = rest
     .map((c, i) => ({ c, i }))
@@ -851,9 +857,11 @@ export async function renderPortfolioPdf({
   const projects = project ? pickProjects(all, { projects: [project] }, 1) : pickProjects(all, variant, count);
   const [photo, ...picks] = await Promise.all([
     pdfImage("/figma/hero/photo-main.webp", 800),
-    ...projects.map(async (p) => {
+    ...projects.map(async (project) => {
+      // A tailored link can lead a project with another of its figures, and choose its chapters.
+      const p = { ...project, stat: statOf(project, variant?.stats?.[project.slug]) };
       const cover = p.art?.real ?? p.cover?.src ?? p.chapters.find((c) => c.shot)?.shot?.src;
-      const chapters = pickChapters(p);
+      const chapters = pickChapters(p, 3, variant?.chapters?.[p.slug]);
       return {
         p,
         opener: cover ? await pdfImage(cover, 1300) : null,

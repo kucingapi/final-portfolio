@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "node scripts/images.mjs && next dev",
+    "build": "node scripts/images.mjs && next build",
+    "images": "node scripts/images.mjs",
     "start": "next start",
     "lint": "eslint"
   },

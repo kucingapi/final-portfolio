@@ -87,6 +87,11 @@ const careerRoleSchema = z.object({
   kind: z.enum(CAREER_KINDS).meta({ description: "Only where the profile or CV says so." }).optional(),
   points: z.array(paragraph()),
   href: text({ title: "Case study", description: "A case study this role is told through, e.g. /projects/agentflow." }).optional(),
+  cv: id({
+    title: "CV entry",
+    description:
+      "The master CV entry this role is, by id (e.g. multimodal). A tailored link's title, lines and order for that entry then apply here too. Left empty, a role whose organisation matches one entry is linked to it.",
+  }).optional(),
 });
 
 const modeCopySchema = z.object({
@@ -250,9 +255,20 @@ const artSchema = z
     circle: z
       .object({ x: z.number(), y: z.number(), r: z.number(), drawn: z.boolean() })
       .meta({ description: "The circle the reveal grows from, as fractions of the image; drawn circles are painted by the page." }),
+    focus: z
+      .object({ x: z.number(), y: z.number(), w: z.number(), h: z.number() })
+      .meta({
+        description:
+          "The device's box, as fractions of the image. Any frame without a crop of its own (Home grid card, Hero crop) is filled around it.",
+      })
+      .optional(),
     alt: line(),
   })
-  .meta({ title: "Device render", description: "Featured projects only.", advanced: true });
+  .meta({
+    title: "Device render",
+    description: "A project with one can lead the home grid and the projects page (scripts/mockups.py makes them).",
+    advanced: true,
+  });
 
 const chapterSchema = z.object({
   id: id(),
@@ -299,10 +315,16 @@ const projectSchema = z.object({
   art: artSchema.optional(),
   card: z
     .object({ w: z.number(), h: z.number(), place: placementSchema, mobileH: z.number() })
-    .meta({ title: "Home grid card", description: "Card size and image crop, in design px.", advanced: true })
+    .meta({
+      title: "Home grid card",
+      description: "A crop drawn for one home-grid card size (w×h), used when the project lands in a card of that size; in design px.",
+      advanced: true,
+    })
     .optional(),
-  hero: placementSchema.meta({ title: "Hero crop", description: "Inside the 1240×700 frame, in design px.", advanced: true }).optional(),
-  cover: shotSchema.meta({ description: "Projects without a device render: a screenshot or design board." }).optional(),
+  hero: placementSchema
+    .meta({ title: "Hero crop", description: "Inside the 1240×700 frame, in design px. Without one, the render is fitted around its focus.", advanced: true })
+    .optional(),
+  cover: shotSchema.meta({ description: "A screenshot or design board: the cover where there is no device render, and in exports." }).optional(),
   chapters: z.array(chapterSchema),
   parts: z.array(partSchema).meta({ description: "For projects told in parts." }).optional(),
   status: z

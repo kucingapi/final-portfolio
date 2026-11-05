@@ -41,8 +41,18 @@ export const variantSchema = z.object({
   skills: ids(20).optional(),
   /** Per skill group, which of its items to show, in order, the job's requirements first. */
   skillItems: byId(ids(32)).optional(),
-  /** Site project slugs to lead with, in order; the rest follow in their usual order. */
+  /**
+   * Site project slugs to lead with, in order; the rest follow in their usual order. The first four with
+   * a device render lead the home page's grid and the projects page; the first three make the PDF deck.
+   */
   projects: ids(50).optional(),
+  /**
+   * Per project slug, the chapter whose figure (before → after) becomes the project's headline number,
+   * on the projects page and in the deck, instead of its usual one.
+   */
+  stats: byId(id).optional(),
+  /** Per project slug, the chapters the PDF deck shows for it (up to three), in order. */
+  chapters: byId(ids(3)).optional(),
   /**
    * False hides the email, GitHub and LinkedIn on the CV and both PDFs, for platforms such as Upwork that
    * bar sharing contact details. The location, the site and the Upwork profile stay.

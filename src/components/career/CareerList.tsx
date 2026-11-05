@@ -35,7 +35,8 @@ export function CareerList({
       <ol className={`flex flex-col ${className}`}>
         {roles.map((r) => (
           <li
-            key={r.org + r.role + r.period}
+            // Not the title: a tailored link can change it, and the row should stay the same row.
+            key={r.org + r.period}
             data-swap
             data-row
             data-preview={r.href ? "" : undefined}

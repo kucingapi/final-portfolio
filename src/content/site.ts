@@ -151,6 +151,7 @@ export const career: SiteContent["career"] = [
       "Moved multimodal.dev off Webflow; its median phone Lighthouse score went from 73 to 85.",
     ],
     href: "/projects/agentflow",
+    cv: "multimodal",
   },
   {
     period: "Mar 2023 – Jun 2024",
@@ -159,6 +160,7 @@ export const career: SiteContent["career"] = [
     place: "Munich, remote",
     points: ["Built TIA, a pilot with TUM for 500+ patients and their doctors, with 100+ branching medical questions."],
     href: "/projects/tia",
+    cv: "orthocopilot",
   },
   {
     period: "Jan 2023 – Mar 2024",
@@ -166,6 +168,7 @@ export const career: SiteContent["career"] = [
     org: "Upwork",
     kind: "Freelance",
     points: ["Worked with 5+ clients around the world; half of them came back for more."],
+    cv: "upwork",
   },
   {
     period: "Feb – Jul 2023",
@@ -174,6 +177,7 @@ export const career: SiteContent["career"] = [
     kind: "Program",
     points: ["Graduated with distinction, in the top 10%, and led a team of six to a working app in a month."],
     href: "/projects/breel",
+    cv: "bangkit",
   },
   {
     period: "Nov 2021 – Mar 2022",
@@ -181,6 +185,7 @@ export const career: SiteContent["career"] = [
     org: "Udana.id",
     place: "Jakarta",
     points: ["Built the product website for a small fintech team that went on to OJK verification."],
+    cv: "udana",
   },
   {
     period: "2020 – 2024",
@@ -215,6 +220,7 @@ export const careerDetail: SiteContent["careerDetail"] = [
           "Moved multimodal.dev off Webflow to Next.js and Sanity; its median phone Lighthouse score went from 73 to 85.",
         ],
         href: "/projects/agentflow",
+        cv: "multimodal",
       },
       {
         period: "Mar 2023 – Jun 2024",
@@ -227,6 +233,7 @@ export const careerDetail: SiteContent["careerDetail"] = [
           "Built the backend on Supabase and PostgreSQL, working with the Master's and PhD students behind the research.",
         ],
         href: "/projects/tia",
+        cv: "orthocopilot",
       },
       {
         period: "Jan 2023 – Mar 2024",
@@ -237,6 +244,7 @@ export const careerDetail: SiteContent["careerDetail"] = [
           "Worked with 5+ clients around the world, fitting in with each one's project and way of working.",
           "Half of them came back for more work.",
         ],
+        cv: "upwork",
       },
       {
         period: "Nov 2021 – Mar 2022",
@@ -247,6 +255,7 @@ export const careerDetail: SiteContent["careerDetail"] = [
           "Part of a small team that took the product through verification by OJK, Indonesia's Financial Services Authority.",
           "Built the 5+ page website that presents the main product.",
         ],
+        cv: "udana",
       },
     ],
   },
@@ -273,6 +282,7 @@ export const careerDetail: SiteContent["careerDetail"] = [
           "Graduated with distinction, in the top 10% of the cohort.",
           "Finished 7 Android courses on time, from the fundamentals to advanced techniques.",
         ],
+        cv: "bangkit",
       },
       {
         period: "Aug 2021",
@@ -281,6 +291,7 @@ export const careerDetail: SiteContent["careerDetail"] = [
         place: "Jakarta",
         kind: "Program",
         points: ["Won Best Participant and the Favorite Team award."],
+        cv: "compfest",
       },
     ],
   },

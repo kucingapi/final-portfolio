@@ -153,7 +153,7 @@ export function PageTransitionProvider({ children }: { children: ReactNode }) {
           className="absolute top-1/2 left-1/2 aspect-square w-[300vmax] -translate-x-1/2 -translate-y-1/2 rounded-full bg-midnight-600"
         />
         <div ref={mark} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-          <Image src="/figma/brand/logo.svg" alt="" width={39} height={42} priority className="h-42 w-39" />
+          <Image src="/figma/brand/logo.svg" alt="" width={39} height={42} preload className="h-42 w-39" />
         </div>
       </div>
     </TransitionContext.Provider>

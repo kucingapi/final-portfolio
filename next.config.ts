@@ -23,6 +23,9 @@ const nextConfig: NextConfig = {
       { source: "/dashboard", headers: dashboard },
       { source: "/dashboard/:path*", headers: dashboard },
       { source: "/api/dashboard/:path*", headers: dashboard },
+      // The images scripts/images.mjs builds carry a hash of their source in the name, so browsers can
+      // keep them for a year without asking again.
+      { source: "/img/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }] },
     ];
   },
   // The Experiences page became Career.
@@ -40,8 +43,9 @@ const nextConfig: NextConfig = {
   // PostHog's API paths end in a slash; redirecting them would break the proxy.
   skipTrailingSlashRedirect: true,
   partialPrefetching: true,
-  // AVIF first, about a fifth smaller than WebP for photos. Resized copies keep for 30 days, so a
-  // replaced photo should take a new file name.
+  // For images without built files (src/components/Picture.tsx), and browsers without AVIF. AVIF
+  // first, about a fifth smaller than WebP for photos. Resized copies keep for 30 days, so a replaced
+  // photo should take a new file name.
   images: {
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 2592000,

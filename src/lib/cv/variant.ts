@@ -8,6 +8,7 @@ import {
   type CvEntry,
   type CvSectionId,
   type CvSkillGroup,
+  type Project,
 } from "@/lib/content/schema";
 
 /** One tailored version of the CV and the site; see `variantSchema` in ./schema for the fields. */
@@ -31,7 +32,8 @@ function defaultBullets(entry: CvEntry): CvBullet[] {
  * Check a variant against the master CV. Returns every problem found, so an agent can fix them in one
  * pass; an empty list means it is valid.
  */
-export function checkVariant(cv: CvContent, v: Variant, projectSlugs: string[]): string[] {
+export function checkVariant(cv: CvContent, v: Variant, projects: Pick<Project, "slug" | "chapters">[]): string[] {
+  const projectSlugs = projects.map((p) => p.slug);
   const getCvEntry = (id: string) => cv.entries.find((e) => e.id === id);
   const errors: string[] = [];
   if (v.summaryId && !cv.summaries.some((s) => s.id === v.summaryId)) errors.push(`Unknown summaryId "${v.summaryId}".`);
@@ -62,6 +64,23 @@ export function checkVariant(cv: CvContent, v: Variant, projectSlugs: string[]):
     else for (const t of items) if (!group.items.includes(t)) errors.push(`skillItems.${id}: "${t}" is not in ${group.label}.`);
   }
   for (const slug of v.projects ?? []) if (!projectSlugs.includes(slug)) errors.push(`Unknown project "${slug}".`);
+  const chaptersOf = (slug: string, field: string) => {
+    const p = projects.find((x) => x.slug === slug);
+    if (!p) errors.push(`${field}: unknown project "${slug}".`);
+    return p?.chapters ?? [];
+  };
+  for (const [slug, id] of Object.entries(v.stats ?? {})) {
+    const chapters = chaptersOf(slug, "stats");
+    const c = chapters.find((x) => x.id === id);
+    if (chapters.length && !c) errors.push(`stats.${slug}: no chapter "${id}" (${chapters.map((x) => x.id).join(", ")}).`);
+    else if (c && !c.figure) errors.push(`stats.${slug}: chapter "${id}" has no figure; pick one that has.`);
+  }
+  for (const [slug, ids] of Object.entries(v.chapters ?? {})) {
+    const chapters = chaptersOf(slug, "chapters");
+    for (const id of ids)
+      if (chapters.length && !chapters.some((x) => x.id === id))
+        errors.push(`chapters.${slug}: no chapter "${id}" (${chapters.map((x) => x.id).join(", ")}).`);
+  }
   // A repeated id would print its line again on every PDF fetch of the saved link, so refuse it.
   const lists: [string, string[] | undefined][] = [
     ["sections", v.sections],
@@ -71,6 +90,7 @@ export function checkVariant(cv: CvContent, v: Variant, projectSlugs: string[]):
     ...Object.entries(v.bullets ?? {}).map(([id, l]): [string, string[]] => [`bullets.${id}`, l]),
     ...Object.entries(v.stacks ?? {}).map(([id, l]): [string, string[]] => [`stacks.${id}`, l]),
     ...Object.entries(v.skillItems ?? {}).map(([id, l]): [string, string[]] => [`skillItems.${id}`, l]),
+    ...Object.entries(v.chapters ?? {}).map(([slug, l]): [string, string[]] => [`chapters.${slug}`, l]),
   ];
   for (const [name, list] of lists) {
     const seen = new Set<string>();

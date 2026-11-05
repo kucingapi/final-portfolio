@@ -1,26 +1,9 @@
-import type { CSSProperties } from "react";
-import { Chip, Deco, Heading } from "@/components/ui";
+import { Deco, Heading } from "@/components/ui";
 import { SectionMotion } from "@/components/motion/SectionMotion";
 import { TransitionLink } from "@/components/transition/PageTransition";
-import { ProjectArt } from "@/components/projects/ProjectArt";
-import { isFeatured } from "@/content/projects";
+import { LeadGrid } from "@/components/projects/LeadGrid";
+import { hasArt } from "@/content/projects";
 import { getProjects } from "@/lib/content/read";
-
-/**
- * Slots of the Figma grid, in reading order. Multimodal leads: AgentFlow takes the big tile,
- * multimodal.dev the tall one beside it. Each card is drawn at its design size and scaled as a
- * whole on phones (`--k`), so the crops stay as composed.
- */
-const SLOTS = [
-  { pos: "top-306 left-100", radius: "rounded-br-lg" },
-  { pos: "top-306 left-950", radius: "rounded-bl-lg" },
-  { pos: "top-1084 left-100", radius: "rounded-tr-lg" },
-  { pos: "top-1084 left-527", radius: "rounded-tl-lg" },
-];
-
-/** The render is drawn wider than its card, so ask for an image as wide as the render, not the card. */
-const artSizes = (imageW: number, cardW: number) =>
-  `(max-width: 1023px) ${Math.round((imageW / cardW) * 91)}vw, ${Math.round(imageW / 14.4)}vw`;
 
 /**
  * Where the hero meets the home slot: the lower half of the blue starburst rising out of the hero
@@ -43,8 +26,12 @@ export function SeamDecor() {
   );
 }
 
+/**
+ * The four projects that lead (see LeadGrid): the site's first four, or the ones a tailored link puts
+ * first. Every project with a render can take any card, so only what a card needs goes to the browser.
+ */
 export async function Projects() {
-  const featuredProjects = (await getProjects()).filter(isFeatured);
+  const projects = (await getProjects()).filter(hasArt).map(({ slug, title, tag, card, hero, art }) => ({ slug, title, tag, card, hero, art }));
   return (
     <SectionMotion preset="projects">
       <section id="projects" data-for="freelance" data-slot aria-labelledby="projects-title" data-node-id="193:2317" className="relative overflow-clip bg-midnight-900">
@@ -56,44 +43,12 @@ export async function Projects() {
               <span id="projects-title">Projects</span>
             </Heading>
           </div>
+          {/* Says what the whole body of work is, so it holds whichever four projects a link puts first. */}
           <p data-swap data-lines className="absolute top-143 left-100 w-760 text-h4 font-semibold text-midnight-100 max-md:relative max-md:inset-auto max-md:mt-12 max-md:w-full">
-            Two years of building AgentFlow and multimodal.dev at Multimodal, and the work before it.
+            AI products at Multimodal, client work, and the apps I build on my own.
           </p>
 
-          <ul data-grid className="max-md:mt-32 max-md:flex max-md:flex-col max-md:gap-16">
-            {featuredProjects.map((project, i) => {
-              const slot = SLOTS[i];
-              const { w, h, place, mobileH } = project.card;
-              return (
-                <li
-                  key={project.slug}
-                  data-card
-                  data-swap
-                  className={`absolute h-[calc(var(--s)*var(--h))] w-[calc(var(--s)*var(--w))] ${slot.pos} max-md:relative max-md:inset-auto max-md:h-[calc(var(--s)*var(--mh))] max-md:w-full`}
-                  style={{ "--w": w, "--h": h, "--mh": mobileH, "--k": 390 / w } as CSSProperties}
-                >
-                  <TransitionLink
-                    href={`/projects/${project.slug}`}
-                    aria-label={`${project.title}, ${project.tag}: read the case study`}
-                    className={`group absolute inset-0 block overflow-hidden bg-midnight-950 ${slot.radius} max-md:rounded-lg`}
-                  >
-                    <div className="absolute top-0 left-0 h-[calc(var(--s)*var(--h))] w-[calc(var(--s)*var(--w))] origin-top-left max-md:scale-(--k)">
-                      <ProjectArt art={project.art} frame={{ w, h }} place={place} sizes={artSizes(place.w, w)} />
-                    </div>
-                    <span className="pointer-events-none absolute bottom-24 left-24 flex flex-wrap items-center gap-8 pr-24 max-md:bottom-14 max-md:left-14">
-                      <Chip>{project.title}</Chip>
-                      {/* Narrow cards keep only the title so the chips don't stack over the render. */}
-                      {w > 500 && (
-                        <span className="inline-flex h-40 items-center rounded-full border-2 border-midnight-50/70 bg-midnight-950/70 px-16 font-inter text-chip font-medium tracking-[-0.01em] whitespace-nowrap text-midnight-50 backdrop-blur-sm max-md:hidden">
-                          {project.tag}
-                        </span>
-                      )}
-                    </span>
-                  </TransitionLink>
-                </li>
-              );
-            })}
-          </ul>
+          <LeadGrid projects={projects} />
 
           <div data-more data-swap className="absolute top-1636 right-100 max-md:static max-md:mt-40 max-md:flex max-md:justify-center">
             <TransitionLink

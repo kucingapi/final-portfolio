@@ -1,9 +1,10 @@
 import { Heading } from "@/components/ui";
-import { CareerList } from "@/components/career/CareerList";
+import { TailoredCareerList } from "@/components/career/TailoredCareerList";
 import { SectionMotion } from "@/components/motion/SectionMotion";
 import { TransitionLink } from "@/components/transition/PageTransition";
 import { SeamDecor } from "@/components/sections/Projects";
-import { getSiteContent } from "@/lib/content/read";
+import { getCvContent, getSiteContent } from "@/lib/content/read";
+import { linkRoles, roleLines } from "@/lib/cv/career";
 
 function Arrow({ className = "" }: { className?: string }) {
   return (
@@ -19,7 +20,9 @@ function Arrow({ className = "" }: { className?: string }) {
  * one section changing its contents (see ModeSlot).
  */
 export async function Career() {
-  const { career } = await getSiteContent();
+  const [{ career }, cv] = await Promise.all([getSiteContent(), getCvContent()]);
+  // A tailored link shows each role as its CV does: the same title, its top lines, in the CV's order.
+  const links = linkRoles(career, cv);
   return (
     <SectionMotion preset="career">
       <section id="career" data-for="fulltime" data-slot aria-labelledby="career-title" className="relative overflow-clip bg-midnight-900">
@@ -35,7 +38,7 @@ export async function Career() {
             Two years at Multimodal, and the roles, programs and degree that led there.
           </p>
 
-          <CareerList roles={career} className="mx-100 max-md:mx-0 max-md:mt-32" />
+          <TailoredCareerList roles={career} links={links} lines={roleLines(cv, links)} summary className="mx-100 max-md:mx-0 max-md:mt-32" />
 
           <div data-swap className="mx-100 mt-56 flex justify-end max-md:mx-0 max-md:mt-40 max-md:justify-center">
             <TransitionLink

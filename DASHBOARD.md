@@ -191,7 +191,7 @@ Choices made while building, which the decisions above left open:
   the description is the summary plus the first "my part" paragraph when it fits in 600, or else the summary;
   roles are the part of `role` before the first comma, split on "and" (overrides for SIDAKU and Breel).
 - **Images** are re-encoded from the site's WebP to JPEG (quality 88, up to 2400 px), on the site's dark background
-  where a render has transparent corners. Payroll Formatter has no images yet, so it has no zip.
+  where a render has transparent corners. Every project has a render now, so every project has a zip.
 
 ## Sources
 

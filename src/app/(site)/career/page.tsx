@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import { Picture } from "@/components/Picture";
 import { Deco, Heading } from "@/components/ui";
 import { SectionMotion } from "@/components/motion/SectionMotion";
 import { Footer } from "@/components/sections/Footer";
-import { CareerList } from "@/components/career/CareerList";
+import { TailoredCareerList } from "@/components/career/TailoredCareerList";
 import { RESUME_URL, mailto } from "@/content/site";
-import { getSiteContent } from "@/lib/content/read";
+import { getCvContent, getSiteContent } from "@/lib/content/read";
+import { linkRoles, roleLines } from "@/lib/cv/career";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { site } = await getSiteContent();
@@ -16,7 +18,12 @@ const round = "relative block size-100 shrink-0 rounded-full bg-midnight-500 tra
 
 /** Career page (Figma 317:462, "Experiences"). */
 export default async function CareerPage() {
-  const { site, about, careerDetail } = await getSiteContent();
+  const [{ site, about, careerDetail }, cv] = await Promise.all([getSiteContent(), getCvContent()]);
+  // A tailored link shows each role as its CV does: the same title, its lines, in the CV's order.
+  const all = careerDetail.flatMap((g) => g.roles);
+  const allLinks = linkRoles(all, cv);
+  const lines = roleLines(cv, allLinks);
+  const starts = careerDetail.map((_, i) => careerDetail.slice(0, i).reduce((n, g) => n + g.roles.length, 0));
   const LINKS = [
     { label: "GitHub", href: site.social.github, icon: "/figma/icons/github-large.svg", box: "size-63" },
     { label: "Upwork", href: site.social.upwork, icon: "/figma/icons/upwork.svg", box: "h-44 w-63" },
@@ -83,13 +90,14 @@ export default async function CareerPage() {
                   data-portrait
                   className="absolute top-24 left-31 h-486 w-387 overflow-hidden rounded-[calc(var(--s)*43.7)] border-[calc(var(--s)*2.2)] border-base-200 bg-midnight-950 max-md:inset-x-0 max-md:top-24 max-md:bottom-0 max-md:h-auto max-md:w-auto"
                 >
-                  <Image
+                  {/* 520 design px wide on every screen: wider than its frame on phones. */}
+                  <Picture
                     src="/figma/about/portrait.webp"
                     alt="Portrait of Novel Bafagih"
                     width={520}
                     height={520}
-                    priority
-                    sizes="(max-width: 1023px) 80vw, 30vw"
+                    preload
+                    sizes="(max-width: 1023px) 121vw, (min-width: 1440px) 520px, 36vw"
                     className="absolute -top-36 left-1/2 size-520 max-w-none -translate-x-1/2 opacity-80"
                   />
                 </div>
@@ -118,7 +126,7 @@ export default async function CareerPage() {
                   <Heading barTop="0.875em">
                     <span id={`${group.id}-title`}>{group.heading}</span>
                   </Heading>
-                  <CareerList roles={group.roles} className="mt-48 max-md:mt-28" />
+                  <TailoredCareerList roles={group.roles} links={allLinks.slice(starts[i], starts[i] + group.roles.length)} lines={lines} className="mt-48 max-md:mt-28" />
                 </div>
               ))}
             </div>
