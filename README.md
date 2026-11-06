@@ -48,7 +48,10 @@ them, and server components read the language with `getLang()` (`next/root-param
 - A tailored link can be made in Bahasa (`"lang": "id"`): it opens the site under `/id`, and its CV and portfolio
   deck come in Bahasa. `/api/cv` and `/api/portfolio` take `?lang=en|id`, which the download buttons set to the
   page's language. Variants name titles and skills in English; on a page in the other language their stock lines
-  are translated and a custom summary gives way to a stock one.
+  are translated and a custom summary gives way to a stock one. A link opened in the other language moves to the
+  variant's own (counted once); links inside a PDF in the other language carry `&lang=` so they stay in it. A CV PDF
+  in the other language drops its least relevant lines until it fits two pages (`preview_cv` reports how many).
+- Numbers and dates turn Indonesian on their own (2.280, 7,4; Agu, Sekarang); figures never need a translation.
 
 ## Contact form
 

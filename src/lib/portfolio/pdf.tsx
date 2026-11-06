@@ -844,9 +844,10 @@ export async function renderPortfolioPdf({
   count?: number;
   project?: string;
 }): Promise<{ pdf: Uint8Array<ArrayBuffer>; pages: number; expected: number }> {
-  const q = code ? `?v=${code}` : "";
-  // The deck is in the CV's language, and so are the links back to the site.
+  // The deck is in the CV's language, and so are the links back to the site; in the other language than
+  // the link's own, they say so, so the site doesn't move the reader back (see VariantLoader).
   const { lang } = cv;
+  const q = code ? `?v=${code}${lang === (variant?.lang ?? "en") ? "" : `&lang=${lang}`}` : "";
   const [{ site, about }, all] = await Promise.all([getSiteContent(lang), getProjects(lang)]);
   const links: Links = {
     site: `${origin}${localePath(lang, "/")}${q}`,

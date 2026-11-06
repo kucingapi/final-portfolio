@@ -2,7 +2,7 @@
 
 import { FileText, Link2 } from "lucide-react";
 import { useMemo, useState } from "react";
-import { type CvRow, type LinkRow, useDashboard } from "./data";
+import { type CvRow, type LinkRow, cvPath, useDashboard } from "./data";
 import { ago, bare, count } from "./format";
 import { Problem } from "./Problem";
 import { Button } from "./ui/button";
@@ -124,7 +124,7 @@ function CvRowItem({ cv, onOpen }: { cv: CvRow; onOpen: (ref: string) => void })
     <Item
       icon={FileText}
       title={cv.label}
-      detail={`/?v=${cv.code} · ${a.cv} CV, ${a.portfolio} portfolio`}
+      detail={`${cvPath(cv.code, cv.lang)} · ${a.cv} CV, ${a.portfolio} portfolio`}
       figure={count(a.opens, "open")}
       when={a.lastOpen ? ago(a.lastOpen) : "not opened yet"}
       onClick={() => onOpen(`cv:${cv.code}`)}

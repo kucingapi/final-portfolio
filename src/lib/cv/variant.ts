@@ -160,7 +160,9 @@ export function resolveCv(cv: CvContent, v: Variant = {}, code?: string, lang: L
   const contact = v.contact ?? true;
   const { header } = cv;
   const home = lang === DEFAULT_LANG ? header.site.href : `${header.site.href}${localePath(lang, "/")}`;
-  const site = code ? { ...header.site, href: `${lang === DEFAULT_LANG ? `${home}/` : home}?v=${code}` } : { ...header.site, href: home };
+  // A CV in the other language than its link's keeps the reader in that language (see VariantLoader).
+  const pin = lang === (v.lang ?? DEFAULT_LANG) ? "" : `&lang=${lang}`;
+  const site = code ? { ...header.site, href: `${lang === DEFAULT_LANG ? `${home}/` : home}?v=${code}${pin}` } : { ...header.site, href: home };
   return {
     lang,
     name: header.name,

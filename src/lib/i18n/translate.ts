@@ -87,8 +87,9 @@ const MONTHS: Partial<Record<Lang, Record<string, string>>> = {
 };
 const ENGLISH_MONTHS = new Set(Object.keys(MONTHS.id!));
 
-/** "Mar 2023 – Jun 2024", "16 Aug 2024", "2020 – 2024": dates and nothing else. */
+/** "Mar 2023 – Jun 2024", "16 Aug 2024", "2020 – 2024": dates and nothing else (a bare figure like "2,280" is not one). */
 export function isDateLike(s: string): boolean {
+  if (/\d[.,]\d/.test(s)) return false;
   const words = s.split(/[\s–—\-,/.]+/).filter(Boolean);
   return words.length > 0 && words.every((w) => /^\d+$/.test(w) || ENGLISH_MONTHS.has(w)) && /\d/.test(s);
 }
@@ -102,9 +103,24 @@ export function localizeDate(s: string, lang: Lang): string | null {
 
 /* ── Translating ──────────────────────────────────────────────────────── */
 
-/** One string in the target language: its translation, its dates in local month names, or itself. */
+/* ── Numbers ──────────────────────────────────────────────────────────── */
+
+/** Languages that write 2.280 and 7,4 where English writes 2,280 and 7.4. */
+const COMMA_DECIMALS: Partial<Record<Lang, true>> = { id: true };
+const NUMERIC = /^[\d\s.,:%+×x→–—\-−/<>~#$()]+$/;
+
+/**
+ * A figure made of digits and symbols only ("−2,280", "7.4", "73 → 85") in the language's separators, or
+ * null. Words around a number are the translation's job; a bare figure never reaches the dictionary.
+ */
+export function localizeNumber(s: string, lang: Lang): string | null {
+  if (!COMMA_DECIMALS[lang] || !NUMERIC.test(s) || !/\d[.,]\d/.test(s)) return null;
+  return s.replace(/(\d)([.,])(?=\d)/g, (_, d: string, sep: string) => d + (sep === "," ? "." : ","));
+}
+
+/** One string in the target language: its translation, its dates or numbers in local form, or itself. */
 export function translateText(s: string, dict: Dict, lang: Lang): string {
-  return dict[s] ?? dict[s.trim()] ?? localizeDate(s, lang) ?? s;
+  return dict[s] ?? dict[s.trim()] ?? localizeDate(s, lang) ?? localizeNumber(s, lang) ?? s;
 }
 
 /** A content document (or any part of one) in another language. English comes back unchanged. */
@@ -126,18 +142,21 @@ export type Source = { path: string; text: string };
 
 const pointer = (path: Path) => path.map((p) => "/" + String(p).replaceAll("~", "~0").replaceAll("/", "~1")).join("");
 
-/** Text that reads the same in any language: numbers and symbols, web addresses, paths. */
+/**
+ * Text no translation needs: figures (their separators change on their own, see localizeNumber), web
+ * addresses and paths.
+ */
 function universal(s: string): boolean {
   const t = s.trim();
   if (!t) return true;
-  if (/^[\d\s.,:%+×x→–—\-/<>~#$()]+$/.test(t)) return true;
+  if (NUMERIC.test(t)) return true;
   if (/^(https?:\/\/|\/|mailto:)/.test(t)) return true;
   return /^[\w-]+(\.[\w-]+)+(\/\S*)?$/.test(t);
 }
 
 /**
  * Every string in a document a translation should cover, in document order, each once. Leaves out locked
- * fields, dates (their month names translate on their own) and text that reads the same in any language.
+ * fields, dates and figures (they turn local on their own) and text that reads the same in any language.
  */
 export function sourceStrings(value: unknown): Source[] {
   const seen = new Set<string>();

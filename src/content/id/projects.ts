@@ -112,7 +112,7 @@ export const projectsId: Record<string, string> = {
   "One design system":
     "Satu design system",
   "Home, Runs and Usage looked like three different products. A count of the code found 1,689 hand-typed colours (348 distinct), 33 separate status-to-colour maps and 417 font sizes typed as pixels.":
-    "Home, Runs, dan Usage terlihat seperti tiga produk yang berbeda. Hitungan pada kode menemukan 1.689 warna yang diketik manual (348 warna unik), 33 pemetaan status ke warna yang terpisah-pisah, dan 417 ukuran font yang ditulis dalam piksel.",
+    "Home, Runs, dan Usage terlihat seperti tiga produk yang berbeda. Setelah kodenya dihitung, ditemukan 1.689 warna yang diketik manual (348 warna unik), 33 pemetaan status ke warna yang terpisah-pisah, dan 417 ukuran font yang ditulis dalam piksel.",
   "Audited every v3 screen with a Playwright capture rig: 166 verified findings, 141 more checked and thrown out.":
     "Mengaudit setiap layar v3 dengan rig capture berbasis Playwright: 166 temuan terverifikasi, dan 141 lainnya sudah dicek lalu dicoret.",
   "Wrote the spec and made the calls: one token set, one status pill and one set of tones, one type ramp. Kept the brand orange even where it costs contrast, on purpose.":
@@ -492,7 +492,7 @@ export const projectsId: Record<string, string> = {
   "Offline, and it updates itself":
     "Offline, dan bisa memperbarui diri sendiri",
   "The volunteers work on one laptop, not always online, and nobody there should have to reinstall anything or worry about losing the data.":
-    "Para relawan bekerja di satu laptop yang tidak selalu online, dan tidak seorang pun di sana seharusnya perlu menginstal ulang apa pun atau khawatir datanya hilang.",
+    "Para relawan bekerja di satu laptop yang tidak selalu online, dan tidak boleh ada yang sampai harus menginstal ulang apa pun atau khawatir datanya hilang.",
   "Tauri with a local SQLite file; the schema moves forward on its own with migrations as new versions add columns.":
     "Tauri dengan file SQLite lokal; schema-nya diperbarui sendiri lewat migrasi setiap kali versi baru menambahkan kolom.",
   "Signed updates served from Cloudflare Pages: the app checks on start, shows the download, and restarts on the new version.":
@@ -526,7 +526,7 @@ export const projectsId: Record<string, string> = {
   "The program's vendor offered a way out: move to its new platform, with a fee for every user, every month.":
     "Vendor program itu menawarkan jalan keluar: pindah ke platform barunya, dengan biaya untuk setiap pengguna, setiap bulan.",
   "I built it in March 2025: the first working version, both forms, in a day, then refinements over the next three weeks. It ships as a single .exe the payroll staff run on their own machine.":
-    "Saya membangunnya pada Maret 2025: versi pertama yang sudah berfungsi, lengkap dengan kedua formulir, dalam sehari, lalu penyempurnaan selama tiga minggu berikutnya. Tool ini dikirim sebagai satu file .exe yang dijalankan staf payroll di komputer mereka sendiri.",
+    "Saya membangunnya pada Maret 2025: versi pertama yang sudah berfungsi, lengkap dengan kedua formulir, dalam sehari, lalu penyempurnaan selama tiga minggu berikutnya. Tool ini hadir sebagai satu file .exe yang dijalankan staf payroll di komputer mereka sendiri.",
   "The Payroll Formatter's window on a laptop":
     "Jendela Payroll Formatter di laptop",
   "From days to minutes":
@@ -540,7 +540,7 @@ export const projectsId: Record<string, string> = {
   "Match each employee by national ID, falling back to tax ID, and take each person's latest month for the yearly slip.":
     "Mencocokkan setiap karyawan lewat NIK, dengan NPWP sebagai cadangan, lalu mengambil bulan terakhir tiap orang untuk bukti potong tahunan.",
   "Drop in the period's export and the tool finds every figure itself. Preparing the upload went from 2 to 3 days of lookups to a couple of minutes, with the numbers taken from the source instead of retyped.":
-    "Cukup seret export periode itu ke jendelanya, dan tool ini menemukan sendiri semua angkanya. Menyiapkan unggahan turun dari 2 sampai 3 hari pencarian manual menjadi beberapa menit, dengan angka yang diambil langsung dari sumbernya, bukan diketik ulang.",
+    "Cukup seret export periode itu ke jendelanya, dan tool ini menemukan sendiri semua angkanya. Waktu menyiapkan unggahan turun dari 2 sampai 3 hari pencarian manual menjadi beberapa menit, dengan angka yang diambil langsung dari sumbernya, bukan diketik ulang.",
   "2–3 days":
     "2–3 hari",
   "to prepare each period's tax upload":
@@ -946,7 +946,7 @@ export const projectsId: Record<string, string> = {
   "Every refusal says which block it is, what the task is, and until when.":
     "Setiap penolakan menyebutkan blok mana yang sedang berlaku, apa tugasnya, dan sampai kapan.",
   "Getting out of a block takes a deliberate choice, and the app always tells you where you stand.":
-    "Keluar dari blok butuh keputusan yang disengaja, dan aplikasinya selalu memberi tahu posisi Anda saat itu.",
+    "Keluar dari blok butuh keputusan yang disengaja, dan aplikasinya selalu memberi tahu kondisi Anda saat itu.",
   "The emergency exit dialog counting down before a locked block can end":
     "Dialog jalan keluar darurat yang menghitung mundur sebelum blok yang terkunci bisa diakhiri",
   "The emergency exit, waiting out its delay. Sample data.":

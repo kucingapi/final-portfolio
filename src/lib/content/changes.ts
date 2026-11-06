@@ -26,14 +26,14 @@ export function describePath(root: unknown, pointer: string): string {
   const parts = pointer.split("/").slice(1);
   const out: string[] = [];
   let node = root;
-  for (const raw of parts) {
+  for (const [i, raw] of parts.entries()) {
     const k = raw.replaceAll("~1", "/").replaceAll("~0", "~");
     const next = node && typeof node === "object" ? (node as Record<string, unknown>)[k] : undefined;
     if (Array.isArray(node) && /^\d+$/.test(k)) {
       const item = next && typeof next === "object" ? (next as Record<string, unknown>) : null;
       const name = item && ITEM_KEYS.map((key) => item[key]).find((v) => typeof v === "string" && v.trim());
       out.push(typeof name === "string" ? name : `#${Number(k) + 1}`);
-    } else if (k !== "-") out.push(/\s/.test(k) ? k : words(k)); // a key with spaces is text (the Bahasa dictionary's)
+    } else if (k !== "-") out.push(parts[i - 1] === "strings" ? k : words(k)); // the Bahasa dictionary's keys are English text
     node = next;
   }
   return out.join(" › ") || "Everything";

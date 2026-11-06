@@ -9,7 +9,7 @@ import type { LinkStats, ShortLink } from "@/lib/dashboard/links";
 import { useApi } from "./api";
 
 export type LinkRow = ShortLink & { stats: LinkStats };
-export type CvRow = { code: string; label: string; createdAt: string; updatedAt: string; activity: LinkActivity };
+export type CvRow = { code: string; label: string; lang?: "en" | "id"; createdAt: string; updatedAt: string; activity: LinkActivity };
 export type { ActivityEvent };
 
 type Data = {
@@ -42,6 +42,9 @@ export function useDashboard() {
   return data;
 }
 
+/** A tailored link's path, in the language it was made in. */
+export const cvPath = (code: string, lang?: string) => `${lang === "id" ? "/id" : "/"}?v=${code}`;
+
 /** The full address of a link, as it's shared. */
-export const linkUrl = (origin: string, ref: string) =>
-  ref.startsWith("go:") ? `${origin}/go/${ref.slice(3)}` : `${origin}/?v=${ref.slice(3)}`;
+export const linkUrl = (origin: string, ref: string, lang?: string) =>
+  ref.startsWith("go:") ? `${origin}/go/${ref.slice(3)}` : `${origin}${cvPath(ref.slice(3), lang)}`;

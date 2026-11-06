@@ -16,7 +16,7 @@ export const cvId: Record<string, string> = {
   "Engineer who measures before and after: cut a lender's loan processing costs by 80%, a PDF viewer's CPU use from 100% to 10%, and a payroll team's tax prep from days to minutes. Five years of React and Next.js products for clients in the US, Germany and Indonesia.":
     "Engineer yang mengukur sebelum dan sesudah: memangkas biaya pemrosesan pinjaman sebuah pemberi pinjaman sebesar 80%, penggunaan CPU sebuah PDF viewer dari 100% ke 10%, dan persiapan pajak tim payroll dari hitungan hari menjadi menit. Lima tahun membangun produk React dan Next.js untuk klien di AS, Jerman, dan Indonesia.",
   "Full-stack engineer comfortable across web, Android and desktop: Next.js and React on the front, Python, Supabase and PostgreSQL behind it, Kotlin on phones and Tauri on the desktop. I plan first, brief AI tools precisely, then build, test and measure.":
-    "Full-stack engineer yang nyaman di web, Android, dan desktop: Next.js dan React di depan, Python, Supabase, dan PostgreSQL di belakangnya, Kotlin di ponsel, dan Tauri di desktop. Saya merencanakan dulu, memberi arahan yang presisi ke tool AI, lalu membangun, menguji, dan mengukur.",
+    "Full-stack engineer yang nyaman di web, Android, dan desktop: Next.js dan React di frontend, Python, Supabase, dan PostgreSQL di backend, Kotlin di ponsel, dan Tauri di desktop. Saya merencanakan dulu, memberi arahan yang presisi ke tool AI, lalu membangun, menguji, dan mengukur.",
   "New York, United States (remote)":
     "New York, Amerika Serikat (remote)",
   "Founding Frontend Engineer":
@@ -34,7 +34,7 @@ export const cvId: Record<string, string> = {
   "Led the design-system consolidation across the app: replaced hundreds of one-off colours, sizes and status styles (33 status-to-colour maps down to one) with shared tokens and components, guarded by a lint rule that blocks new one-offs.":
     "Memimpin konsolidasi design system di seluruh aplikasi: mengganti ratusan warna, ukuran, dan style status sekali pakai (33 pemetaan status ke warna menjadi satu) dengan token dan komponen bersama, dijaga lint rule yang memblokir style sekali pakai yang baru.",
   "Rebuilt search, filtering and sorting around one shared filter bar and instant client-side search; filter use rose from about 10% to about 70% of users.":
-    "Membangun ulang pencarian, filter, dan sorting di sekitar satu filter bar bersama dan pencarian instan di sisi klien; penggunaan filter naik dari sekitar 10% ke sekitar 70% pengguna.",
+    "Membangun ulang pencarian, filter, dan sorting dengan satu filter bar bersama dan pencarian instan di sisi klien; penggunaan filter naik dari sekitar 10% ke sekitar 70% pengguna.",
   "Shipped AI-written run names and summaries drawn from each document's contents, fixing the top complaint in client interviews: finding the right application or invoice at a glance.":
     "Merilis nama dan ringkasan run yang ditulis AI dari isi setiap dokumen, menjawab keluhan teratas dalam wawancara klien: menemukan pengajuan atau invoice yang tepat dalam sekali lihat.",
   "Built the Usage dashboard and credit-limit warnings, so client admins see usage, plan and remaining credits, and runs stop before a client overspends.":
@@ -42,11 +42,11 @@ export const cvId: Record<string, string> = {
   "Delivered a client review workbench in six days to keep a prospect from choosing a competitor; the client tested it on schedule.":
     "Menyelesaikan workbench review untuk klien dalam enam hari agar calon klien tidak beralih ke kompetitor; klien mengujinya sesuai jadwal.",
   "Defined the product analytics for every main page in PostHog and used it to steer design: data showing 84% of document opens start from the Runs table turned the Home redesign into a doorway to each workflow.":
-    "Menyusun product analytics untuk setiap halaman utama di PostHog dan memakainya untuk mengarahkan desain: data yang menunjukkan 84% dokumen dibuka dari tabel Runs mengubah redesain Home menjadi pintu masuk ke setiap workflow.",
+    "Menyusun product analytics untuk setiap halaman utama di PostHog dan memakainya untuk mengarahkan desain: data yang menunjukkan 84% pembukaan dokumen berawal dari tabel Runs mengubah redesain Home menjadi pintu masuk ke setiap workflow.",
   "Raised the team's engineering bar with AI tooling: ran parallel AI coding agents behind review checks, wrote reusable workflows for code review, releases and bug triage, and was one of the team's main frontend reviewers.":
-    "Menaikkan standar engineering tim dengan tooling AI: menjalankan AI coding agent secara paralel di balik pengecekan review, menulis workflow yang bisa dipakai ulang untuk code review, rilis, dan triase bug, serta menjadi salah satu reviewer frontend utama tim.",
+    "Menaikkan standar engineering tim dengan tooling AI: menjalankan beberapa AI coding agent secara paralel yang hasilnya wajib lolos pengecekan review, menulis workflow yang bisa dipakai ulang untuk code review, rilis, dan triase bug, serta menjadi salah satu reviewer frontend utama tim.",
   "Wrote the Python/FastAPI backend work a feature needed instead of waiting on it, shipping features end to end.":
-    "Mengerjakan sendiri bagian backend Python/FastAPI yang dibutuhkan sebuah fitur alih-alih menunggu, sehingga fitur bisa dirilis dari ujung ke ujung.",
+    "Mengerjakan sendiri bagian backend Python/FastAPI yang dibutuhkan sebuah fitur alih-alih menunggu, sehingga fitur bisa dirilis utuh dari frontend sampai backend.",
   "Set marketing up to edit the website in Sanity without an engineer, with a handbook they run it from.":
     "Menyiapkan tim marketing agar bisa mengedit website di Sanity tanpa engineer, lengkap dengan buku panduan yang mereka pakai.",
   "Built the demo environment Multimodal uses to show its AI products to prospective clients.":
@@ -126,7 +126,7 @@ export const cvId: Record<string, string> = {
   "Side project":
     "Proyek pribadi",
   "Designed and built the offline desktop app a neighbourhood waste bank runs on, cutting its twice-yearly payout from weeks of going page by page through spreadsheets, with prices changing every collection, to seconds.":
-    "Merancang dan membangun aplikasi desktop offline yang menjadi andalan sebuah bank sampah lingkungan, memangkas pencairan tabungan nasabah dua kali setahun dari berminggu-minggu menelusuri spreadsheet halaman demi halaman, dengan harga yang berubah di setiap penimbangan, menjadi hitungan detik.",
+    "Merancang dan membangun aplikasi desktop offline yang menjadi andalan sebuah bank sampah lingkungan: pencairan tabungan nasabah dua kali setahun, yang dulu butuh berminggu-minggu menelusuri spreadsheet halaman demi halaman dengan harga yang berubah di setiap penimbangan, kini selesai dalam hitungan detik.",
   "7.4+ tonnes of waste weighed in through it from 152 residents so far.":
     "7,4+ ton sampah sudah ditimbang lewat aplikasi ini dari 152 warga sejauh ini.",
   "Fast enough to keep pace with a queue of residents at the scale, and updates itself with signed releases.":

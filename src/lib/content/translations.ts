@@ -15,19 +15,25 @@ import { getState, publishedValue, saveDraft, type Author, type DocState } from 
 export type TranslationRow = { doc: SourceDocId; path: string; where: string; en: string; id?: string };
 
 /**
- * Every string of the English documents (the draft where there is one, so a new line can be translated
- * before it is published), each once, in the site's order, with its translation.
+ * Every string of the English documents, each once, in the site's order, with its translation: the draft
+ * where there is one, so a new line can be translated before it is published, and then any line of the
+ * published copy the draft rewrites, which /id keeps showing until the draft is published.
  */
 export async function translationRows(): Promise<{ state: DocState<"bahasa">; rows: TranslationRow[] }> {
-  const [state, ...sources] = await Promise.all([getState("bahasa"), ...SOURCE_DOCS.map((d) => getState(d))]);
+  const [state, ...sources] = await Promise.all([
+    getState("bahasa"),
+    ...SOURCE_DOCS.map(async (d) => [(await getState(d)).value, await publishedValue(d)] as const),
+  ]);
   const dict = state.value.strings;
   const seen = new Set<string>();
   const rows: TranslationRow[] = [];
   SOURCE_DOCS.forEach((doc, i) => {
-    for (const s of sourceStrings(sources[i].value)) {
-      if (seen.has(s.text)) continue;
-      seen.add(s.text);
-      rows.push({ doc, path: s.path, where: describePath(sources[i].value, s.path), en: s.text, id: dict[s.text] });
+    for (const value of sources[i]) {
+      for (const s of sourceStrings(value)) {
+        if (seen.has(s.text)) continue;
+        seen.add(s.text);
+        rows.push({ doc, path: s.path, where: describePath(value, s.path), en: s.text, id: dict[s.text] });
+      }
     }
   });
   return { state, rows };

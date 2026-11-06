@@ -2,7 +2,7 @@ import { renderCvPdf } from "@/lib/cv/pdf";
 import { after } from "next/server";
 import { pdfLimited } from "@/lib/rate";
 import { fromTester, getVariant, recordActivity } from "@/lib/cv/store";
-import { cvIn, masterCvIn, requestedLang } from "@/lib/cv/localized";
+import { cvPdfIn, masterCvIn, requestedLang } from "@/lib/cv/localized";
 import { reportDownload } from "@/lib/dashboard/visitor";
 
 /**
@@ -22,7 +22,7 @@ export async function GET(request: Request) {
   const all = process.env.NODE_ENV === "development" && params.get("all");
   const origin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || url.origin;
   const lang = requestedLang(params.get("lang"), row?.variant);
-  const { pdf, pages } = await renderCvPdf(all ? await masterCvIn(lang) : await cvIn(lang, row?.variant, row?.code), origin);
+  const { pdf, pages } = all ? await renderCvPdf(await masterCvIn(lang), origin) : await cvPdfIn(lang, row?.variant, row?.code, origin);
   const disposition = params.get("download") ? "attachment" : "inline";
   return new Response(pdf, {
     headers: {

@@ -5,7 +5,7 @@ import { useRef, useState } from "react";
 import { gsap, useGSAP, ScrollTrigger, prefersReducedMotion } from "@/lib/gsap";
 import { designUnit } from "@/lib/motion";
 import type { Mode, Testimonial } from "@/content/site";
-import { useUi } from "@/lib/i18n/client";
+import { useLang, useUi } from "@/lib/i18n/client";
 
 /** Seconds a card stays in front before autoplay moves on. */
 const DWELL = 6;
@@ -51,6 +51,8 @@ export function TestimonialDeck({ testimonials, mode }: { testimonials: Testimon
   const [front, setFront] = useState(0);
   const count = testimonials.length;
   const words = useUi().testimonials;
+  // Quotes are never translated (they stay as they were said), so on a Bahasa page they are marked English.
+  const quoteLang = useLang() === "en" ? undefined : "en";
 
   useGSAP(
     (_, contextSafe) => {
@@ -225,7 +227,7 @@ export function TestimonialDeck({ testimonials, mode }: { testimonials: Testimon
             }`}
           >
             <div data-quote className={`flex h-full flex-col justify-between gap-24 px-41 pt-32 pb-30 max-md:gap-32 max-md:p-24 ${i ? "invisible" : ""}`}>
-              <blockquote className={`${quoteSize(t.quote)} font-semibold text-justify text-white max-md:text-left`}>{t.quote}</blockquote>
+              <blockquote lang={quoteLang} className={`${quoteSize(t.quote)} font-semibold text-justify text-white max-md:text-left`}>{t.quote}</blockquote>
               <figcaption className="flex items-center gap-15">
                 {t.avatar ? (
                   <Image

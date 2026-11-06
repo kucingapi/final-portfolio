@@ -14,7 +14,7 @@ import { renderCvPdf } from "@/lib/cv/pdf";
 import { deleteVariant, getActivity, getVariant, listVariants, saveVariant, type StoredVariant } from "@/lib/cv/store";
 import { variantSchema } from "@/lib/cv/schema";
 import { checkVariant, cvToText, normalizeVariant, type Variant } from "@/lib/cv/variant";
-import { cvIn, namesIn } from "@/lib/cv/localized";
+import { cvIn, cvPdfIn, namesIn, otherLang } from "@/lib/cv/localized";
 import { translationRows, saveTranslations } from "@/lib/content/translations";
 import { LANGS, localePath, type Lang } from "@/lib/i18n/lang";
 import { JOB_STATUSES, JobError, createJob, listJobs, recordApplication, updateJob, withTotals } from "@/lib/dashboard/jobs";
@@ -32,7 +32,7 @@ const GUIDE = `How to tailor:
 - Skills sit at the top: order the groups ("skills") and the items in each ("skillItems") so the job's tools come first, and order each entry's "Tech:" line ("stacks") the same way.
 - Write a "summary" for the job that covers every requirement the CV can back up, in the job's own words where true.
 - Four bullets per entry at most; five only for the lead role when every line is strong.
-- The CV must be exactly 2 pages: preview_cv reports the page count; trim bullets or entries until it is 2.
+- The CV must be exactly 2 pages: preview_cv reports the page count; trim bullets or entries until it is 2. It also reports the other language (a visitor who switches downloads that one), which drops its least relevant lines on its own to fit; trim further if it would drop a line that matters.
 - Only pick, order and choose between existing lines (entry ids, bullet ids, allowed titles, skill group ids and items, stack items). Never invent facts; free text is limited to "headline" and "summary", and those must stay true to the master CV.
 - "projects" orders the site's projects for this visitor, most relevant first. Every project has a device render, and the first four lead: the home page's project grid and the large rows of the projects page. The first three make the portfolio PDF deck. "mode" sets which way the site opens (fulltime for employers, freelance for clients).
 - "stats" gives a project another headline number, on the projects page and in the deck: the chapter whose figure answers the job's top requirement (only chapters with a figure). "chapters" picks the deck's slides for a project: up to three chapter ids, in order, the ones that prove what the job asks for.
@@ -98,9 +98,26 @@ async function preview(given: Variant, origin: string) {
   const variant = await normalized(given);
   const [content, projects] = await Promise.all([getCvContent(), getProjects()]);
   const errors = checkVariant(content, variant, projects);
-  const cv = await cvIn(variant.lang ?? "en", variant);
-  const { pages } = await renderCvPdf(cv, origin);
-  return { variant, errors, pages, fitsTwoPages: pages === 2, text: cvToText(cv), site: await sitePreview(variant) };
+  const lang = variant.lang ?? "en";
+  const cv = await cvIn(lang, variant);
+  const [{ pages }, other] = await Promise.all([renderCvPdf(cv, origin), cvPdfIn(otherLang(lang), variant, undefined, origin)]);
+  return {
+    variant,
+    errors,
+    pages,
+    fitsTwoPages: pages === 2,
+    // Visitors on the other language's pages download it in that language.
+    otherLanguage: {
+      lang: other.cv.lang,
+      pages: other.pages,
+      linesLeftOut: other.cut,
+      note: other.cut
+        ? `Its PDF leaves out ${other.cut} line(s) (the last of the longest entries) to stay at 2 pages; pick fewer lines to choose which go.`
+        : undefined,
+    },
+    text: cvToText(cv),
+    site: await sitePreview(variant),
+  };
 }
 
 function buildServer(origin: string) {
