@@ -5,6 +5,7 @@ import { Chip } from "@/components/ui";
 import { TransitionLink } from "@/components/transition/PageTransition";
 import { useLead } from "@/components/cv/Variant";
 import { ScrollTrigger } from "@/lib/gsap";
+import { useUi } from "@/lib/i18n/client";
 import type { Art, Project } from "@/content/projects";
 import { ProjectArt } from "./ProjectArt";
 import { isPortrait, placeArt } from "./place";
@@ -47,6 +48,7 @@ function fitSlots(lead: GridProject[]): GridProject[] {
  */
 export function LeadGrid({ projects }: { projects: GridProject[] }) {
   const { lead } = useLead(projects);
+  const t = useUi().project;
   const cards = fitSlots(lead);
   const key = cards.map((p) => p.slug).join(" ");
 
@@ -75,7 +77,7 @@ export function LeadGrid({ projects }: { projects: GridProject[] }) {
           >
             <TransitionLink
               href={`/projects/${project.slug}`}
-              aria-label={`${project.title}, ${project.tag}: read the case study`}
+              aria-label={t.cardLabel(project.title, project.tag)}
               className={`group absolute inset-0 block overflow-hidden bg-midnight-950 ${slot.radius} max-md:rounded-lg`}
             >
               <div className="absolute top-0 left-0 h-[calc(var(--s)*var(--h))] w-[calc(var(--s)*var(--w))] origin-top-left max-md:scale-(--k)">

@@ -7,6 +7,14 @@ import { MoreDetail } from "@/components/sections/MoreDetail";
 import { Testimonials } from "@/components/sections/Testimonials";
 import { LetsTalk } from "@/components/sections/LetsTalk";
 import { Footer } from "@/components/sections/Footer";
+import type { Metadata } from "next";
+import { alternates } from "@/lib/i18n/meta";
+import { getLang } from "@/lib/i18n/server";
+
+/** The title and description come from the layout; the home page adds its address in each language. */
+export async function generateMetadata(): Promise<Metadata> {
+  return { alternates: alternates(await getLang(), "/") };
+}
 
 export default function Home() {
   return (

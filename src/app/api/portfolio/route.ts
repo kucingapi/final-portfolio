@@ -2,14 +2,15 @@ import { renderPortfolioPdf } from "@/lib/portfolio/pdf";
 import { after } from "next/server";
 import { pdfLimited } from "@/lib/rate";
 import { fromTester, getVariant, recordActivity } from "@/lib/cv/store";
-import { resolveCv } from "@/lib/cv/variant";
+import { cvIn, requestedLang } from "@/lib/cv/localized";
 import { reportDownload } from "@/lib/dashboard/visitor";
-import { getCvContent, getProjects } from "@/lib/content/read";
+import { getProjects } from "@/lib/content/read";
 
 /**
  * The portfolio as a PDF deck: three projects, the first three in the variant's order. `?v=<code>`
  * tailors it (an unknown code falls back to the default); `?download=1` saves it instead of opening it.
  * `?project=<slug>` gives that one project's slides alone, with no site address or links, for Upwork.
+ * `?lang=id` gives it in Bahasa Indonesia; by default it is in the variant's language.
  */
 export async function GET(request: Request) {
   const limited = await pdfLimited(request);
@@ -22,7 +23,7 @@ export async function GET(request: Request) {
   const project = slug && (await getProjects()).some((p) => p.slug === slug) ? slug : undefined;
   const origin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || url.origin;
   const { pdf, pages, expected } = await renderPortfolioPdf({
-    cv: resolveCv(await getCvContent(), row?.variant, row?.code),
+    cv: await cvIn(requestedLang(url.searchParams.get("lang"), row?.variant), row?.variant, row?.code),
     variant: row?.variant,
     origin,
     code: row?.code,

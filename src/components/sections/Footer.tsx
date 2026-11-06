@@ -3,16 +3,20 @@ import { SectionMotion } from "@/components/motion/SectionMotion";
 import { Logo } from "@/components/Navbar";
 import { mailto } from "@/content/site";
 import { getSiteContent } from "@/lib/content/read";
+import { getLang } from "@/lib/i18n/server";
+import { ui } from "@/lib/i18n/ui";
 
 /** Footer (Figma 270:3045). */
 export async function Footer() {
-  const { site } = await getSiteContent();
+  const lang = await getLang();
+  const t = ui(lang).footer;
+  const { site } = await getSiteContent(lang);
   const mailHref = mailto(site.email);
   const ICONS = [
     { key: "github", label: "GitHub", src: "/figma/icons/github.svg", href: site.social.github },
     { key: "linkedin", label: "LinkedIn", src: "/figma/icons/linkedin.svg", href: site.social.linkedin },
     { key: "instagram", label: "Instagram", src: "/figma/icons/instagram.svg", href: site.social.instagram },
-    { key: "mail", label: "Email", src: "/figma/icons/mail.svg", href: mailHref },
+    { key: "mail", label: t.email, src: "/figma/icons/mail.svg", href: mailHref },
   ];
   return (
     <SectionMotion preset="footer">
@@ -23,7 +27,7 @@ export async function Footer() {
               <Logo />
             </div>
             <div className="mt-13 ml-3 flex flex-col gap-11 text-body text-white max-md:mt-20">
-              <p data-footer-item>Handcrafted by {site.name}</p>
+              <p data-footer-item>{t.handcrafted(site.name)}</p>
               <p data-footer-item>{site.location}</p>
               <a data-footer-item href={mailHref} className="hover:underline">
                 {site.email}

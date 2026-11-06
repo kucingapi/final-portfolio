@@ -7,6 +7,8 @@ import { getProjects, getSiteContent } from "@/lib/content/read";
 import type { Chapter, Project, SiteContent } from "@/lib/content/schema";
 import { statOf } from "@/content/projects";
 import type { ResolvedCv, Variant } from "@/lib/cv/variant";
+import { localePath } from "@/lib/i18n/lang";
+import { UI, type Ui } from "@/lib/i18n/ui";
 import { pdfImage, type PdfImage } from "./images";
 
 /**
@@ -160,10 +162,10 @@ function Picture({ img, w, h, radius = 12 }: { img: PdfImage; w: number; h: numb
   );
 }
 
-function Footer({ project, host, name }: { project?: string; host: string; name: string }) {
+function Footer({ project, host, name, word }: { project?: string; host: string; name: string; word: string }) {
   return (
     <View style={s.footer}>
-      <T style={s.footerText}>{`${name} · Portfolio${project ? ` · ${project}` : ""}`}</T>
+      <T style={s.footerText}>{`${name} · ${word}${project ? ` · ${project}` : ""}`}</T>
       {host && <T style={s.footerText}>{host}</T>}
     </View>
   );
@@ -187,7 +189,7 @@ function Slide({
   return (
     <Page size={[W, H]} style={brand ? [s.page, s.brandPage] : s.page} id={id}>
       <View style={s.body}>{children}</View>
-      {footer ? <Footer project={project} host={links.host} name={links.owner.name} /> : <View style={{ height: 24 }} />}
+      {footer ? <Footer project={project} host={links.host} name={links.owner.name} word={links.t.footer} /> : <View style={{ height: 24 }} />}
     </Page>
   );
 }
@@ -229,6 +231,8 @@ type Links = {
   standalone?: boolean;
   /** Who the deck is by, from the site's copy. */
   owner: { name: string; about: string; social: SiteContent["site"]["social"] };
+  /** The deck's own words, in its language. */
+  t: Ui["deck"];
 };
 
 function Cover({ cv, photo, picks, links }: { cv: ResolvedCv; photo: PdfImage | null; picks: Project[]; links: Links }) {
@@ -272,7 +276,7 @@ function Cover({ cv, photo, picks, links }: { cv: ResolvedCv; photo: PdfImage | 
       </View>
 
       <View style={{ width: 470, flexGrow: 1, justifyContent: "space-between" }}>
-        <T style={s.label}>Portfolio · {new Date().getFullYear()}</T>
+        <T style={s.label}>{links.t.cover(new Date().getFullYear())}</T>
         <View>
           <T
             style={{
@@ -286,7 +290,7 @@ function Cover({ cv, photo, picks, links }: { cv: ResolvedCv; photo: PdfImage | 
           </T>
           <Heading size={58}>{cv.name}</Heading>
           <T style={[s.lead, { marginTop: 22, width: 400 }]}>
-            Three projects, told by what changed: the problem, what I built, and what it did.
+            {links.t.coverLead}
           </T>
           <View style={{ flexDirection: "row", flexWrap: "wrap", marginTop: 16 }}>
             {picks.map((p) => (
@@ -324,9 +328,9 @@ function About({ cv, links }: { cv: ResolvedCv; links: Links }) {
     <Slide links={links}>
       <View style={{ flexDirection: "row", gap: 48, flexGrow: 1 }}>
         <View style={{ width: 430 }}>
-          <T style={s.label}>About me</T>
+          <T style={s.label}>{links.t.about}</T>
           <View style={{ marginTop: 10 }}>
-            <Heading size={36}>Hi, I’m Novel</Heading>
+            <Heading size={36}>{links.t.hello}</Heading>
           </View>
           <T style={[s.lead, { marginTop: 18 }]}>{cv.summary ?? links.owner.about}</T>
           <T style={[s.para, { marginTop: 14 }]}>{cv.location}.</T>
@@ -349,7 +353,7 @@ function About({ cv, links }: { cv: ResolvedCv; links: Links }) {
             padding: 24,
           }}
         >
-          <T style={s.label}>Skills</T>
+          <T style={s.label}>{links.t.skills}</T>
           {cv.skills.map((g) => (
             <View key={g.id} style={{ marginTop: 12 }}>
               <T style={{ fontSize: 10.5, fontWeight: 600, color: C.text }}>{g.label}</T>
@@ -365,9 +369,9 @@ function About({ cv, links }: { cv: ResolvedCv; links: Links }) {
 function Contents({ picks, links }: { picks: Project[]; links: Links }) {
   return (
     <Slide links={links}>
-      <T style={s.label}>Selected work</T>
+      <T style={s.label}>{links.t.selected}</T>
       <View style={{ marginTop: 10 }}>
-        <Heading size={36}>Three projects</Heading>
+        <Heading size={36}>{links.t.three}</Heading>
       </View>
       <View style={{ flexDirection: "row", gap: 16, marginTop: 30, flexGrow: 1 }}>
         {picks.map((p, i) => {
@@ -423,10 +427,10 @@ function Contents({ picks, links }: { picks: Project[]; links: Links }) {
 function Opener({ p, n, img, links }: { p: Project; n: number; img: PdfImage | null; links: Links }) {
   const stat = splitStat(p.stat.value);
   const meta = [
-    { k: "Client", v: p.client },
-    { k: "Role", v: p.role },
-    { k: "When", v: p.period },
-    { k: "What", v: `${p.kind}, ${p.platform.toLowerCase()}` },
+    { k: links.t.client, v: p.client },
+    { k: links.t.role, v: p.role },
+    { k: links.t.when, v: p.period },
+    { k: links.t.what, v: `${p.kind}, ${p.platform.toLowerCase()}` },
   ];
   return (
     <Slide links={links} brand project={p.title} id={p.slug}>
@@ -434,7 +438,7 @@ function Opener({ p, n, img, links }: { p: Project; n: number; img: PdfImage | n
         <View style={{ width: 400, justifyContent: "space-between" }}>
           <View>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <T style={[s.label, { color: C.soft }]}>Case study {String(n).padStart(2, "0")}</T>
+              <T style={[s.label, { color: C.soft }]}>{links.t.caseStudy(String(n).padStart(2, "0"))}</T>
               {p.status && (
                 <T
                   style={[
@@ -504,7 +508,7 @@ function Opener({ p, n, img, links }: { p: Project; n: number; img: PdfImage | n
             textDecoration: "none",
           }}
         >
-          <T>Read the full case study on the site ›</T>
+          <T>{links.t.readFull}</T>
         </Link>
       )}
     </Slide>
@@ -516,14 +520,14 @@ function Overview({ p, links }: { p: Project; links: Links }) {
     <Slide links={links} project={p.title}>
       <View style={{ flexDirection: "row", gap: 48, flexGrow: 1 }}>
         <View style={{ flex: 1 }}>
-          <Heading size={26}>The project</Heading>
+          <Heading size={26}>{links.t.project}</Heading>
           {p.intro.map((t, i) => (
             <T key={i} style={[s.para, i === 0 ? { marginTop: 14 } : {}]}>
               {t}
             </T>
           ))}
           {p.status && <T style={[s.para, { color: C.muted }]}>{p.status.note}</T>}
-          <T style={[s.label, { marginTop: 20 }]}>Built with</T>
+          <T style={[s.label, { marginTop: 20 }]}>{links.t.builtWith}</T>
           <View style={{ flexDirection: "row", flexWrap: "wrap", marginTop: 8 }}>
             {p.stack.map((x) => (
               <T key={x} style={s.chip}>
@@ -533,7 +537,7 @@ function Overview({ p, links }: { p: Project; links: Links }) {
           </View>
         </View>
         <View style={{ flex: 1 }}>
-          <Heading size={26}>My part</Heading>
+          <Heading size={26}>{links.t.myPart}</Heading>
           {p.part.map((t, i) => (
             <T key={i} style={[s.para, i === 0 ? { marginTop: 14 } : {}]}>
               {t}
@@ -548,12 +552,12 @@ function Overview({ p, links }: { p: Project; links: Links }) {
                 paddingLeft: 12,
               }}
             >
-              <T style={s.label}>How it was built</T>
+              <T style={s.label}>{links.t.method}</T>
               <T style={{ marginTop: 4, color: C.soft, fontSize: 10.5 }}>{p.method}</T>
             </View>
           )}
           <View style={{ marginTop: 16 }}>
-            {(links.standalone ? [] : [{ label: "The full case study", href: links.project(p.slug) }, ...(p.links ?? [])]).map((l) => (
+            {(links.standalone ? [] : [{ label: links.t.fullCase, href: links.project(p.slug) }, ...(p.links ?? [])]).map((l) => (
               <Link
                 key={l.href}
                 src={l.href}
@@ -581,9 +585,7 @@ function ChapterSlide({ p, c, n, of, img, links }: { p: Project; c: Chapter; n: 
     <Slide links={links} project={p.title}>
       <View style={{ flexDirection: "row", gap: 40, flexGrow: 1 }}>
         <View style={{ width: 420 }}>
-          <T style={s.label}>
-            {p.title} · {n} of {of}
-          </T>
+          <T style={s.label}>{links.t.chapter(p.title, n, of)}</T>
           <T
             style={{
               fontSize: 24,
@@ -594,9 +596,9 @@ function ChapterSlide({ p, c, n, of, img, links }: { p: Project; c: Chapter; n: 
           >
             {c.title}
           </T>
-          <T style={[s.label, { marginTop: 16, color: C.accent }]}>The problem</T>
+          <T style={[s.label, { marginTop: 16, color: C.accent }]}>{links.t.problem}</T>
           <T style={{ marginTop: 3, color: C.soft, fontSize: 11 }}>{c.problem}</T>
-          <T style={[s.label, { marginTop: 12, color: C.accent }]}>What I did</T>
+          <T style={[s.label, { marginTop: 12, color: C.accent }]}>{links.t.did}</T>
           {c.did.map((d, i) => (
             <View key={i} style={{ flexDirection: "row", marginTop: 3 }}>
               <T style={{ width: 12, color: C.accent, fontSize: 11 }}>•</T>
@@ -612,7 +614,7 @@ function ChapterSlide({ p, c, n, of, img, links }: { p: Project; c: Chapter; n: 
                 paddingLeft: 10,
               }}
             >
-              <T style={[s.label, { color: C.accent }]}>Result</T>
+              <T style={[s.label, { color: C.accent }]}>{links.t.result}</T>
               <T style={{ marginTop: 3, fontSize: 11.5, color: C.text }}>{c.result}</T>
             </View>
           )}
@@ -629,7 +631,7 @@ function ChapterSlide({ p, c, n, of, img, links }: { p: Project; c: Chapter; n: 
                 justifyContent: "center",
               }}
             >
-              <T style={[s.label, { color: C.soft }]}>Result</T>
+              <T style={[s.label, { color: C.soft }]}>{links.t.result}</T>
               <T
                 style={{
                   fontSize: 17,
@@ -724,8 +726,8 @@ function ChapterSlide({ p, c, n, of, img, links }: { p: Project; c: Chapter; n: 
 
 function Contact({ cv, links }: { cv: ResolvedCv; links: Links }) {
   const rows = [
-    { k: "Email", v: cv.email ?? "", href: cv.email ? `mailto:${cv.email}` : "" },
-    { k: "Website", v: links.host, href: links.site },
+    { k: links.t.email, v: cv.email ?? "", href: cv.email ? `mailto:${cv.email}` : "" },
+    { k: links.t.website, v: links.host, href: links.site },
     {
       k: "GitHub",
       v: links.owner.social.github.replace(/^https:\/\/(www\.)?/, ""),
@@ -736,7 +738,7 @@ function Contact({ cv, links }: { cv: ResolvedCv; links: Links }) {
       v: links.owner.social.linkedin.replace(/^https:\/\/(www\.)?/, ""),
       href: cv.contact ? links.owner.social.linkedin : "",
     },
-    { k: "Upwork", v: "Upwork profile", href: links.owner.social.upwork },
+    { k: "Upwork", v: links.t.upwork, href: links.owner.social.upwork },
   ].filter((r) => r.href);
   return (
     <Slide links={links} brand footer={false}>
@@ -749,16 +751,13 @@ function Contact({ cv, links }: { cv: ResolvedCv; links: Links }) {
         }}
       >
         <View style={{ width: 430 }}>
-          <T style={[s.label, { color: C.soft }]}>Thanks for reading</T>
+          <T style={[s.label, { color: C.soft }]}>{links.t.thanks}</T>
           <View style={{ marginTop: 10 }}>
             <Heading size={58} bar={C.night}>
-              Let’s talk
+              {links.t.talk}
             </Heading>
           </View>
-          <T style={[s.lead, { marginTop: 20, color: C.text }]}>
-            Every project here is told in full on my site, with more work besides. If one of them looks like the problem you have, write to
-            me.
-          </T>
+          <T style={[s.lead, { marginTop: 20, color: C.text }]}>{links.t.talkBody}</T>
         </View>
         <View
           style={{
@@ -805,7 +804,7 @@ type Deck = {
 
 export function PortfolioDocument({ deck }: { deck: Deck }) {
   const { cv, picks, photo, links } = deck;
-  const title = links.standalone ? `${picks[0].p.title} – ${cv.name}` : `${cv.name} – Portfolio`;
+  const title = links.standalone ? `${picks[0].p.title} – ${cv.name}` : links.t.title(cv.name);
   return (
     <Document title={title} author={cv.name} subject={cv.headline} creator={cv.name} producer={cv.name}>
       {!links.standalone && [
@@ -845,11 +844,15 @@ export async function renderPortfolioPdf({
   count?: number;
   project?: string;
 }): Promise<{ pdf: Uint8Array<ArrayBuffer>; pages: number; expected: number }> {
-  const q = code ? `?v=${code}` : "";
-  const [{ site, about }, all] = await Promise.all([getSiteContent(), getProjects()]);
+  // The deck is in the CV's language, and so are the links back to the site; in the other language than
+  // the link's own, they say so, so the site doesn't move the reader back (see VariantLoader).
+  const { lang } = cv;
+  const q = code ? `?v=${code}${lang === (variant?.lang ?? "en") ? "" : `&lang=${lang}`}` : "";
+  const [{ site, about }, all] = await Promise.all([getSiteContent(lang), getProjects(lang)]);
   const links: Links = {
-    site: `${origin}/${q}`,
-    project: (slug) => `${origin}/projects/${slug}${q}`,
+    site: `${origin}${localePath(lang, "/")}${q}`,
+    project: (slug) => `${origin}${localePath(lang, `/projects/${slug}`)}${q}`,
+    t: UI[lang].deck,
     host: project ? "" : origin.replace(/^https?:\/\//, ""),
     standalone: Boolean(project),
     owner: { name: site.name, about, social: site.social },

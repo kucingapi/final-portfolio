@@ -1,5 +1,7 @@
 import { cacheLife, cacheTag } from "next/cache";
 import { draftMode } from "next/headers";
+import type { Lang } from "@/lib/i18n/lang";
+import { translateDoc, type Dict } from "@/lib/i18n/translate";
 import type { CvContent, DocContent, DocId, Project, SiteContent } from "./schema";
 import { draftValue, publishedValue } from "./store";
 
@@ -8,36 +10,62 @@ import { draftValue, publishedValue } from "./store";
  * longest lifetime, so pages stay in the prerendered static shell until a publish expires the tag (see
  * src/app/dashboard/content-actions.ts). In Draft Mode, started from the dashboard's Preview, the
  * same reads return the draft instead.
+ *
+ * Every read takes a language. English is the document as written; another language is the same document
+ * with its words swapped for the translation's (the `bahasa` document), so it carries that tag too.
  */
 
-export const CONTENT_TAGS: Record<DocId, string> = { site: "content:site", cv: "content:cv", projects: "content:projects" };
+export const CONTENT_TAGS: Record<DocId, string> = {
+  site: "content:site",
+  cv: "content:cv",
+  projects: "content:projects",
+  bahasa: "content:bahasa",
+};
 
 async function read<D extends DocId>(doc: D): Promise<DocContent[D]> {
   return (await draftMode()).isEnabled ? draftValue(doc) : publishedValue(doc);
 }
 
-export async function getSiteContent(): Promise<SiteContent> {
+/** English text → the language's words. Empty for English. */
+export async function getTranslations(lang: Lang): Promise<Dict> {
   "use cache";
-  cacheTag(CONTENT_TAGS.site);
+  // Before returning, even for English: a cached read with no lifetime of its own would give the page
+  // the default one (15 minutes) and expire the static shell long before a publish does.
   cacheLife("max");
-  return read("site");
+  if (lang === "en") return {};
+  cacheTag(CONTENT_TAGS.bahasa);
+  return (await read("bahasa")).strings;
 }
 
-export async function getCvContent(): Promise<CvContent> {
+async function inLang<T>(value: T, lang: Lang): Promise<T> {
+  return lang === "en" ? value : translateDoc(value, await getTranslations(lang), lang);
+}
+
+export async function getSiteContent(lang: Lang = "en"): Promise<SiteContent> {
+  "use cache";
+  cacheTag(CONTENT_TAGS.site);
+  if (lang !== "en") cacheTag(CONTENT_TAGS.bahasa);
+  cacheLife("max");
+  return inLang(await read("site"), lang);
+}
+
+export async function getCvContent(lang: Lang = "en"): Promise<CvContent> {
   "use cache";
   cacheTag(CONTENT_TAGS.cv);
+  if (lang !== "en") cacheTag(CONTENT_TAGS.bahasa);
   cacheLife("max");
-  return read("cv");
+  return inLang(await read("cv"), lang);
 }
 
 /** Every project, in the order the site lists them. */
-export async function getProjects(): Promise<Project[]> {
+export async function getProjects(lang: Lang = "en"): Promise<Project[]> {
   "use cache";
   cacheTag(CONTENT_TAGS.projects);
+  if (lang !== "en") cacheTag(CONTENT_TAGS.bahasa);
   cacheLife("max");
-  return (await read("projects")).projects;
+  return inLang((await read("projects")).projects, lang);
 }
 
-export async function getProject(slug: string): Promise<Project | undefined> {
-  return (await getProjects()).find((p) => p.slug === slug);
+export async function getProject(slug: string, lang: Lang = "en"): Promise<Project | undefined> {
+  return (await getProjects(lang)).find((p) => p.slug === slug);
 }

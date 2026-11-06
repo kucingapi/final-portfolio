@@ -3,6 +3,9 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   cacheComponents: true,
+  // The pages live under app/[lang], one root layout per language, so addresses no route answers get
+  // app/global-not-found.tsx.
+  experimental: { globalNotFound: true },
   // Safe everywhere: no MIME sniffing, no full URLs (which can carry a ?v= code) sent to other sites, and
   // no camera, microphone or location for any page. The dashboard may never be framed, and sends no
   // referrer at all, as its setup links carry a one-time token.
@@ -28,16 +31,27 @@ const nextConfig: NextConfig = {
       { source: "/img/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }] },
     ];
   },
-  // The Experiences page became Career.
   async redirects() {
-    return [{ source: "/experiences", destination: "/career", permanent: true }];
+    return [
+      // The Experiences page became Career.
+      { source: "/experiences", destination: "/career", permanent: true },
+      { source: "/id/experiences", destination: "/id/career", permanent: true },
+      // English has no prefix of its own; /en/… is only the internal address the rewrite below serves.
+      { source: "/en", destination: "/", permanent: false },
+      { source: "/en/:path*", destination: "/:path*", permanent: false },
+    ];
   },
-  // PostHog through this site (src/lib/analytics.ts), so ad blockers don't drop it. Assets first.
   async rewrites() {
     return [
+      // PostHog through this site (src/lib/analytics.ts), so ad blockers don't drop it. Assets first.
       { source: "/relay/static/:path*", destination: "https://eu-assets.i.posthog.com/static/:path*" },
       { source: "/relay/array/:path*", destination: "https://eu-assets.i.posthog.com/array/:path*" },
       { source: "/relay/:path*", destination: "https://eu.i.posthog.com/:path*" },
+      // The site's pages live under app/[lang]: Bahasa Indonesia at /id/…, English at the plain addresses,
+      // served from /en/…. These run after files and fixed routes (public/, the dashboard, API routes), so
+      // only page addresses reach them; the dynamic routes outside [lang] are named so they keep theirs.
+      { source: "/", destination: "/en" },
+      { source: "/:path((?!(?:en|id|api|go|relay|_next)(?:/|$)).*)", destination: "/en/:path" },
     ];
   },
   // PostHog's API paths end in a slash; redirecting them would break the proxy.

@@ -307,7 +307,7 @@ function CvDetail({ cv }: { cv: CvRow }) {
         <SheetDescription>Tailored CV link, made {date(cv.createdAt)}</SheetDescription>
       </SheetHeader>
       <SheetBody>
-        <Address url={linkUrl(origin, `cv:${cv.code}`)} title="CV" />
+        <Address url={linkUrl(origin, `cv:${cv.code}`, cv.lang)} title="CV" />
         <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-border bg-border">
           {facts.map((f) => (
             <div key={f.label} className="flex flex-col gap-1 bg-popover px-4 py-3">

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useSyncExternalStore, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { gsap, prefersReducedMotion } from "@/lib/gsap";
+import { useUi } from "@/lib/i18n/client";
 
 const noop = () => () => {};
 
@@ -17,6 +18,7 @@ export function CareerCursor({ children }: { children: ReactNode }) {
   const root = useRef<HTMLDivElement>(null);
   const label = useRef<HTMLSpanElement>(null);
   const isClient = useSyncExternalStore(noop, () => true, () => false);
+  const text = useUi().career.cursor;
 
   useEffect(() => {
     const el = root.current;
@@ -70,7 +72,7 @@ export function CareerCursor({ children }: { children: ReactNode }) {
             aria-hidden
             className="pointer-events-none invisible fixed top-0 left-0 z-50 inline-flex items-center gap-[calc(var(--s)*6)] rounded-full bg-midnight-50 px-[calc(var(--s)*14)] py-[calc(var(--s)*7)] font-inter text-[max(12px,calc(var(--s)*14))] font-semibold whitespace-nowrap text-midnight-950 shadow-[0_calc(var(--s)*6)_calc(var(--s)*16)_rgb(1_3_38/0.3)] max-md:hidden"
           >
-            View case study
+            {text}
             <svg viewBox="0 0 24 24" fill="none" aria-hidden className="size-[calc(var(--s)*14)]">
               <path d="M7 17 17 7M9 7h8v8" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" />
             </svg>

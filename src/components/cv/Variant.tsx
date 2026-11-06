@@ -5,12 +5,14 @@ import { useMode } from "@/components/mode/Mode";
 import { leading } from "@/content/projects";
 import { isTester, track } from "@/lib/analytics";
 import type { PublicVariant } from "@/lib/cv/variant";
+import { useLang } from "@/lib/i18n/client";
+import { DEFAULT_LANG, localePath, splitLang } from "@/lib/i18n/lang";
 
 /**
  * Tailored links. A link carries only an opaque code (`/?v=k7qx2pmd`); on arrival the code leaves the
  * address bar at once, its variant is fetched, and it is kept in localStorage so the rest of the visit
  * (and later visits) stay tailored without anything showing in the URL. The variant orders the
- * projects, picks the CV's lines and can set the site's mode.
+ * projects, picks the CV's lines and can set the site's mode and language.
  */
 
 const PARAM = "v";
@@ -75,9 +77,13 @@ export function useVariantStat(slug: string): string | undefined {
   return useVariant().current?.variant.stats?.[slug];
 }
 
-/** Picks up `?v=` once per page load. Lives inside ModeProvider so a variant can set the mode. */
+/**
+ * Picks up `?v=` once per page load. Lives inside ModeProvider so a variant can set the mode. A variant in
+ * the other language opens the same page in its language; after that the visitor's own switch decides.
+ */
 export function VariantLoader() {
   const { setMode } = useMode();
+  const lang = useLang();
 
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -89,13 +95,28 @@ export function VariantLoader() {
     }
     const code = url.searchParams.get(PARAM);
     if (!code) return;
-    url.searchParams.delete(PARAM);
+    // `lang` pins the page's language: a CV or deck in the other language links back with it, and so
+    // does the move below. `moved` marks that move, whose open was counted on the page it left.
+    const pinned = url.searchParams.has("lang");
+    const moved = url.searchParams.has("moved");
+    for (const key of [PARAM, "lang", "moved"]) url.searchParams.delete(key);
     window.history.replaceState(window.history.state, "", url);
     const before = read().current;
-    fetch(`/api/v/${encodeURIComponent(code)}`)
+    fetch(`/api/v/${encodeURIComponent(code)}${moved ? "?moved=1" : ""}`)
       .then((r) => (r.ok ? (r.json() as Promise<PublicVariant>) : null))
       .then((found) => {
-        track("tailored_link_opened", { v_code: code, found: Boolean(found) });
+        const wanted = found?.variant.lang ?? DEFAULT_LANG;
+        if (found && wanted !== lang && !pinned) {
+          // The link is in the other language: open the same page there, code and all, so it is tailored
+          // (and tagged for analytics) without relying on storage. Counted here, tracked there.
+          const there = new URL(localePath(wanted, splitLang(url.pathname).path) + url.search + url.hash, url.origin);
+          there.searchParams.set(PARAM, code);
+          there.searchParams.set("lang", wanted);
+          there.searchParams.set("moved", "1");
+          window.location.replace(there);
+          return;
+        }
+        track("tailored_link_opened", { v_code: code, found: Boolean(found), lang });
         write({ current: found ?? before, loading: false });
         if (found?.variant.mode) setMode(found.variant.mode, { quiet: true });
       })

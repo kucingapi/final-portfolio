@@ -27,6 +27,7 @@ export const CV_TAGS = [
 /** Leadership lives inside Education (the student organisations) and Awards, which keeps the CV compact. */
 export const CV_SECTIONS = ["skills", "experience", "projects", "education", "awards"] as const;
 export const CV_ENTRY_SECTIONS = ["experience", "projects", "education", "awards"] as const;
+/** The CV's section headings in English; src/lib/i18n/ui.ts has them in every language. */
 export const SECTION_TITLES: Record<(typeof CV_SECTIONS)[number], string> = {
   experience: "Experience",
   projects: "Projects",
@@ -357,12 +358,25 @@ export const projectsSchema = z
     });
   });
 
+/* ── Bahasa Indonesia ─────────────────────────────────────────────────── */
+
+/**
+ * The Bahasa Indonesia words for the three documents above, keyed by their English text (see
+ * src/lib/i18n/translate.ts). A line with no translation shows in English; dates translate themselves.
+ */
+export const bahasaSchema = z.object({
+  strings: z
+    .record(z.string().min(1), z.string().trim().min(1, required))
+    .meta({ description: "English text → Bahasa Indonesia. Ids, links, images and tool names always follow English." }),
+});
+
 /* ── Documents ────────────────────────────────────────────────────────── */
 
 export const CONTENT_DOCS = {
   site: { label: "Site", schema: siteSchema },
   cv: { label: "CV", schema: cvSchema },
   projects: { label: "Projects", schema: projectsSchema },
+  bahasa: { label: "Bahasa", schema: bahasaSchema },
 } as const;
 export type DocId = keyof typeof CONTENT_DOCS;
 export const DOC_IDS = Object.keys(CONTENT_DOCS) as DocId[];
@@ -371,7 +385,11 @@ export const isDocId = (v: unknown): v is DocId => typeof v === "string" && v in
 export type SiteContent = z.infer<typeof siteSchema>;
 export type CvContent = z.infer<typeof cvSchema>;
 export type ProjectsContent = z.infer<typeof projectsSchema>;
-export type DocContent = { site: SiteContent; cv: CvContent; projects: ProjectsContent };
+export type BahasaContent = z.infer<typeof bahasaSchema>;
+export type DocContent = { site: SiteContent; cv: CvContent; projects: ProjectsContent; bahasa: BahasaContent };
+/** The documents a translation covers, in the order the site's pages use them. */
+export const SOURCE_DOCS = ["site", "cv", "projects"] as const;
+export type SourceDocId = (typeof SOURCE_DOCS)[number];
 
 export type Mode = (typeof MODES)[number];
 export type CareerRole = z.infer<typeof careerRoleSchema>;

@@ -2,8 +2,9 @@
 
 import { useVariant } from "./Variant";
 import { Downloads } from "./Downloads";
-import { resolveCv, type ResolvedEntry } from "@/lib/cv/variant";
+import { localizeVariant, resolveCv, type ResolvedEntry } from "@/lib/cv/variant";
 import type { CvContent } from "@/lib/content/schema";
+import { useLang, useNames, useUi } from "@/lib/i18n/client";
 
 /**
  * The CV as a sheet of paper on the page: the same lines, order and layout as the PDF, tailored when
@@ -12,6 +13,7 @@ import type { CvContent } from "@/lib/content/schema";
  */
 
 function Entry({ e }: { e: ResolvedEntry }) {
+  const t = useUi().cv;
   return (
     <div className="flex flex-col gap-4">
       <p className="font-bold">
@@ -21,7 +23,7 @@ function Entry({ e }: { e: ResolvedEntry }) {
           <>
             {" | "}
             <a href={e.proof} target="_blank" rel="noreferrer" className="font-normal text-[#444] underline underline-offset-2 hover:text-[#111]">
-              Certificate
+              {t.certificate}
             </a>
           </>
         )}
@@ -43,27 +45,32 @@ function Entry({ e }: { e: ResolvedEntry }) {
       )}
       {e.stack && e.stack.length > 0 && (
         <p className="pl-20">
-          <strong>Tech:</strong> {e.stack.join(", ")}
+          <strong>{t.tech}</strong> {e.stack.join(", ")}
         </p>
       )}
     </div>
   );
 }
 
-/** `content` is the master CV as published; the variant picks from it here, in the browser. */
+/**
+ * `content` is the master CV as published, in the page's language; the variant picks from it here, in the
+ * browser, once its English titles and skills are put in that language.
+ */
 export function CvSheet({ content }: { content: CvContent }) {
   const { current, loading } = useVariant();
-  const cv = resolveCv(content, current?.variant, current?.code);
+  const lang = useLang();
+  const t = useUi().cv;
+  const cv = resolveCv(content, localizeVariant(current?.variant, lang, useNames()), current?.code, lang);
 
   return (
     <div className="flex flex-col gap-32 max-md:gap-20">
       <div className="flex items-center justify-between gap-24 max-md:flex-col max-md:items-start">
-        <p className="text-lead text-midnight-100">Two pages as a PDF, with every word readable by applicant tracking systems, and a portfolio deck of three projects.</p>
+        <p className="text-lead text-midnight-100">{t.intro}</p>
         <Downloads className="shrink-0" />
       </div>
 
       <article
-        aria-label={`${cv.name}, CV`}
+        aria-label={t.label(cv.name)}
         aria-busy={loading}
         className={`rounded-xs bg-white px-72 py-64 font-[Arial,Helvetica,sans-serif] text-[max(13px,calc(var(--s)*15))] leading-[1.4] text-[#111] shadow-[0_calc(var(--s)*30)_calc(var(--s)*60)_rgb(1_3_38/0.45)] transition-opacity duration-300 max-md:px-20 max-md:py-28 ${
           loading ? "opacity-0" : "opacity-100"

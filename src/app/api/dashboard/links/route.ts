@@ -21,6 +21,7 @@ export async function GET(request: Request) {
       cv: variants.map((v, i) => ({
         code: v.code,
         label: v.label,
+        lang: v.variant.lang ?? "en",
         createdAt: v.createdAt,
         updatedAt: v.updatedAt,
         activity: activity[i],

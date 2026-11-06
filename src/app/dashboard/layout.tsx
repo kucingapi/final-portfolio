@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Toaster } from "@/components/dashboard/ui/toaster";
+import { fontVariables } from "../fonts";
+import "../globals.css";
 
 /**
  * Novel's private dashboard: never indexed, never in a sitemap, and installable on his phone as an app
@@ -19,11 +21,17 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
+/** A root layout of its own: the portfolio's (app/[lang]/layout.tsx) is per language and brings the site's chrome. */
 export default function DashboardLayout({ children }: LayoutProps<"/dashboard">) {
   return (
-    <div className="dash min-h-dvh bg-background font-sans text-foreground antialiased">
-      {children}
-      <Toaster />
-    </div>
+    <html lang="en" className={`${fontVariables} antialiased`} suppressHydrationWarning>
+      {/* Browser extensions add classes to <body> before React loads; this ignores only <body>'s own attributes. */}
+      <body suppressHydrationWarning>
+        <div className="dash min-h-dvh bg-background font-sans text-foreground antialiased">
+          {children}
+          <Toaster />
+        </div>
+      </body>
+    </html>
   );
 }

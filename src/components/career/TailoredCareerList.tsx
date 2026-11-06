@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo } from "react";
 import { useVariant } from "@/components/cv/Variant";
+import { useLang, useNames } from "@/lib/i18n/client";
+import { localizeVariant } from "@/lib/cv/variant";
 import { ScrollTrigger } from "@/lib/gsap";
 import type { CareerRole } from "@/content/site";
 import { tailorRoles, type RoleLines } from "@/lib/cv/career";
@@ -26,7 +28,11 @@ export function TailoredCareerList({
   summary?: boolean;
   className?: string;
 }) {
-  const variant = useVariant().current?.variant;
+  // The variant names titles in English; on a Bahasa page, `lines` hold the Bahasa ones.
+  const raw = useVariant().current?.variant;
+  const lang = useLang();
+  const names = useNames();
+  const variant = useMemo(() => localizeVariant(raw, lang, names), [raw, lang, names]);
   const shown = useMemo(() => (variant ? tailorRoles(roles, links, lines, variant, summary) : roles), [roles, links, lines, variant, summary]);
   const key = shown.map((r) => `${r.org}|${r.period}|${r.role}|${r.points.length}`).join(" ");
 

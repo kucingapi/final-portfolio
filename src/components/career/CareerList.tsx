@@ -1,6 +1,7 @@
 import { Chip } from "@/components/ui";
 import { TransitionLink } from "@/components/transition/PageTransition";
 import type { CareerRole } from "@/content/site";
+import { useUi } from "@/lib/i18n/client";
 import { CareerCursor } from "./CareerCursor";
 
 function Arrow({ className = "" }: { className?: string }) {
@@ -29,6 +30,7 @@ export function CareerList({
   roles: CareerRole[];
   className?: string;
 }) {
+  const t = useUi().career;
   return (
     // Only rows that open a case study get the cursor label, so it always means "you can click".
     <CareerCursor>
@@ -57,7 +59,7 @@ export function CareerList({
               </p>
               {r.kind && (
                 <Chip className="mt-6 h-32 px-12 text-[max(11px,calc(var(--s)*13))]">
-                  {r.kind}
+                  {t.kinds[r.kind] ?? r.kind}
                 </Chip>
               )}
             </div>
@@ -76,7 +78,7 @@ export function CareerList({
                   // Stretched over the whole row, so anywhere on it opens the case study.
                   className="group inline-flex items-center gap-10 text-lead font-semibold text-midnight-50 after:absolute after:inset-0 after:content-['']"
                 >
-                  Read the case study
+                  {t.readCase}
                   <Arrow className="size-20 transition-transform duration-300 group-hover:translate-x-6" />
                 </TransitionLink>
               )}

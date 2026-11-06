@@ -10,22 +10,20 @@ import {
 } from "@/components/transition/PageTransition";
 import { TIME_ZONE, mailto, type Mode } from "@/content/site";
 import { ModeToggle } from "@/components/mode/Mode";
+import { LangSwitch } from "@/components/LangSwitch";
+import { useUi } from "@/lib/i18n/client";
 
 const MENU = [
-  { label: "Home", href: "/", icon: "/figma/nav/icon-home.svg" },
-  {
-    label: "Projects",
-    href: "/projects",
-    icon: "/figma/nav/icon-projects.svg",
-  },
-  { label: "Career", href: "/career", icon: "/figma/nav/icon-experiences.svg" },
-  { label: "Contact", href: "/contact", icon: "/figma/nav/icon-contact.svg" },
-];
+  { key: "home", href: "/", icon: "/figma/nav/icon-home.svg" },
+  { key: "projects", href: "/projects", icon: "/figma/nav/icon-projects.svg" },
+  { key: "career", href: "/career", icon: "/figma/nav/icon-experiences.svg" },
+  { key: "contact", href: "/contact", icon: "/figma/nav/icon-contact.svg" },
+] as const;
 
-function useJakartaTime() {
+function useJakartaTime(locale: string) {
   const [time, setTime] = useState<string | null>(null);
   useEffect(() => {
-    const fmt = new Intl.DateTimeFormat("en-US", {
+    const fmt = new Intl.DateTimeFormat(locale, {
       timeZone: TIME_ZONE,
       hour: "numeric",
       minute: "2-digit",
@@ -34,7 +32,7 @@ function useJakartaTime() {
     update();
     const id = setInterval(update, 15_000);
     return () => clearInterval(id);
-  }, []);
+  }, [locale]);
   return time;
 }
 
@@ -62,7 +60,8 @@ export function Logo({ className = "" }: { className?: string }) {
 export function Navbar({ owner, modeLabels }: { owner: { name: string; email: string }; modeLabels: Record<Mode, string> }) {
   const site = owner;
   const mailHref = mailto(owner.email);
-  const time = useJakartaTime();
+  const t = useUi();
+  const time = useJakartaTime(t.nav.clockLocale);
   const lenis = useLenis();
   const [open, setOpen] = useState(false);
   const bar = useRef<HTMLElement>(null);
@@ -223,7 +222,7 @@ export function Navbar({ owner, modeLabels }: { owner: { name: string; email: st
           <TransitionLink
             href="/"
             onClick={() => setOpen(false)}
-            aria-label={`${site.name} — home`}
+            aria-label={t.nav.homeLabel(site.name)}
             className="flex items-end gap-20 max-md:gap-12"
           >
             <Logo />
@@ -232,19 +231,20 @@ export function Navbar({ owner, modeLabels }: { owner: { name: string; email: st
               suppressHydrationWarning
             >
               <span className={time ? "" : "invisible"}>
-                {time ?? "0:00 AM"}
+                {time ?? t.nav.clockPlaceholder}
               </span>
-              <span className="max-md:hidden"> (GMT+7)</span>
+              <span className="max-md:hidden"> {t.nav.clockZone}</span>
             </span>
           </TransitionLink>
           <div className="flex items-center gap-28 max-md:gap-10">
+            <LangSwitch className="max-md:hidden" />
             <ModeToggle labels={modeLabels} />
             <button
               type="button"
               onClick={() => setOpen((o) => !o)}
               aria-expanded={open}
               aria-controls="site-menu"
-              aria-label={open ? "Close menu" : "Open menu"}
+              aria-label={open ? t.nav.closeMenu : t.nav.openMenu}
               className="relative size-110 transition-[rotate] duration-300 aria-expanded:hover:rotate-90 max-md:size-56"
             >
               {/*
@@ -273,7 +273,7 @@ export function Navbar({ owner, modeLabels }: { owner: { name: string; email: st
         ref={menu}
         id="site-menu"
         role="dialog"
-        aria-label="Site menu"
+        aria-label={t.nav.menu}
         inert={!open}
         className="invisible fixed inset-0 z-[60] overflow-hidden"
         data-node-id="314:260"
@@ -329,7 +329,7 @@ export function Navbar({ owner, modeLabels }: { owner: { name: string; email: st
                       />
                     </span>
                     <span className="text-h2 font-bold transition-transform duration-300 group-hover:translate-x-12 max-md:text-h1">
-                      {item.label}
+                      {t.nav[item.key]}
                     </span>
                   </TransitionLink>
                 </li>
@@ -340,12 +340,14 @@ export function Navbar({ owner, modeLabels }: { owner: { name: string; email: st
           <div className="absolute top-322 left-1046 origin-top-left -rotate-5 text-white max-md:top-462 max-md:left-34 max-md:rotate-0">
             {/* Animated on its own layer, so GSAP never takes over the tilt above. */}
             <div data-menu-contact>
-              <p className="text-h4 font-semibold">Get in touch</p>
+              <p className="text-h4 font-semibold">{t.nav.getInTouch}</p>
               <div className="mt-21 flex flex-col gap-11 text-lead font-semibold max-md:mt-12">
                 <a href={mailHref} className="hover:underline">
                   {site.email}
                 </a>
               </div>
+              {/* On phones the bar has no room for it, so the language switch lives here. */}
+              <LangSwitch className="mt-28 w-max md:hidden" />
             </div>
           </div>
         </div>

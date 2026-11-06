@@ -13,6 +13,7 @@ import {
 } from "@/app/dashboard/content-actions";
 import { CONTENT_DOCS, type DocId } from "@/lib/content/schema";
 import { Editor } from "./content/Editor";
+import { Translations } from "./content/Translations";
 import { ago, clock, count, date } from "./format";
 import { Button } from "./ui/button";
 import { cn } from "./ui/cn";
@@ -21,14 +22,14 @@ import { Skeleton } from "./ui/skeleton";
 import { toast } from "./ui/toaster";
 
 /**
- * The site's content, editable: projects, the master CV and the site's copy. Edits save as a draft that
- * only you see; Publish puts it on the site. Agents (over MCP) can only write drafts, so their changes
+ * The site's content, editable: projects, the master CV, the site's copy, and their Bahasa Indonesia. Edits
+ * save as a draft that only you see; Publish puts it on the site. Agents (over MCP) can only write drafts, so their changes
  * wait here for you to review and publish.
  */
 
-const ORDER: DocId[] = ["projects", "cv", "site"];
+const ORDER: DocId[] = ["projects", "cv", "site", "bahasa"];
 /** Where to look at a draft on the site. */
-const PREVIEW: Record<DocId, string> = { projects: "/projects", cv: "/cv", site: "/" };
+const PREVIEW: Record<DocId, string> = { projects: "/projects", cv: "/cv", site: "/", bahasa: "/id" };
 
 type Busy = "load" | "save" | "publish" | "discard" | "restore" | null;
 
@@ -174,16 +175,27 @@ export function ContentView() {
             onReload={reload}
           />
 
-          <Editor
-            key={`${doc}-${generation}`}
-            schema={CONTENT_DOCS[doc].schema}
-            value={value}
-            issues={issues}
-            onChange={(update) => {
-              setValue(update);
-              setDirty(true);
-            }}
-          />
+          {doc === "bahasa" ? (
+            <Translations
+              key={generation}
+              value={value}
+              onChange={(update) => {
+                setValue(update);
+                setDirty(true);
+              }}
+            />
+          ) : (
+            <Editor
+              key={`${doc}-${generation}`}
+              schema={CONTENT_DOCS[doc].schema}
+              value={value}
+              issues={issues}
+              onChange={(update) => {
+                setValue(update);
+                setDirty(true);
+              }}
+            />
+          )}
 
           <Versions loaded={loaded} busy={busy} onRestore={(rev) => (dirty ? setAsking({ restore: rev }) : restore(rev))} />
 

@@ -3,8 +3,10 @@ import { Marquee } from "@/components/motion/Marquee";
 import { SectionMotion } from "@/components/motion/SectionMotion";
 import { TransitionLink } from "@/components/transition/PageTransition";
 import { getSiteContent } from "@/lib/content/read";
+import { getLang } from "@/lib/i18n/server";
+import { ui } from "@/lib/i18n/ui";
 
-function TalkRow({ outline = false }: { outline?: boolean }) {
+function TalkRow({ word, outline = false }: { word: string; outline?: boolean }) {
   return (
     <span className={`flex ${outline ? "gap-47 pr-47" : "gap-32 pr-32"}`}>
       {Array.from({ length: 5 }, (_, i) => (
@@ -14,7 +16,7 @@ function TalkRow({ outline = false }: { outline?: boolean }) {
             outline ? "text-transparent [-webkit-text-stroke:calc(var(--s)*3)_rgb(229_240_255/0.1)]" : "text-midnight-50/10"
           }`}
         >
-          Talk
+          {word}
         </span>
       ))}
     </span>
@@ -23,10 +25,12 @@ function TalkRow({ outline = false }: { outline?: boolean }) {
 
 /** The closing call to talk, worded per mode, + the Talk wall (Figma 275:3116). */
 export async function LetsTalk() {
-  const { modes } = await getSiteContent();
+  const lang = await getLang();
+  const t = ui(lang).home.talk;
+  const { modes } = await getSiteContent(lang);
   return (
     <SectionMotion preset="talk">
-      <section aria-label="Let’s talk" data-node-id="275:3116" className="relative overflow-clip bg-midnight-950">
+      <section aria-label={t.label} data-node-id="275:3116" className="relative overflow-clip bg-midnight-950">
         <div className="relative mx-auto h-1024 w-1440 max-md:h-auto max-md:w-full max-md:pt-80 max-md:pb-40">
           {(["freelance", "fulltime"] as const).map((m) => (
             <div key={m} data-for={m} className="contents">
@@ -45,17 +49,17 @@ export async function LetsTalk() {
           <div aria-hidden className="absolute -inset-x-40 top-335 -rotate-1 max-md:relative max-md:top-auto max-md:mt-40">
             <div data-talk-row className="relative h-278 max-md:h-115">
               <Marquee duration={36} direction={1}>
-                <TalkRow />
+                <TalkRow word={t.wall} />
               </Marquee>
             </div>
             <div data-talk-row className="relative -mt-100 h-279 max-md:mt-0 max-md:h-115">
               <Marquee duration={28} direction={-1}>
-                <TalkRow outline />
+                <TalkRow word={t.wall} outline />
               </Marquee>
             </div>
             <div data-talk-row className="relative -mt-103 h-278 max-md:mt-0 max-md:h-115">
               <Marquee duration={40} direction={1}>
-                <TalkRow />
+                <TalkRow word={t.wall} />
               </Marquee>
             </div>
           </div>
@@ -67,7 +71,7 @@ export async function LetsTalk() {
                 data-magnetic="18"
                 className="flex items-center justify-center rounded-[calc(var(--s)*50)] bg-midnight-500 px-50 py-41 text-h1 font-bold text-white transition-colors hover:bg-midnight-400 max-md:px-32 max-md:py-24"
               >
-                <span className="[text-box:trim-both_cap_alphabetic]">Let’s Talk</span>
+                <span className="[text-box:trim-both_cap_alphabetic] whitespace-nowrap">{t.cta}</span>
               </TransitionLink>
             </div>
           </div>

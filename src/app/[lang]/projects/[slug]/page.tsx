@@ -10,6 +10,9 @@ import { LetsTalk } from "@/components/sections/LetsTalk";
 import { Footer } from "@/components/sections/Footer";
 import { nextProject, type Chapter, type Part } from "@/content/projects";
 import { getProject, getProjects } from "@/lib/content/read";
+import { alternates } from "@/lib/i18n/meta";
+import { getLang } from "@/lib/i18n/server";
+import { ui, type Ui } from "@/lib/i18n/ui";
 
 /*
  * Every slug is prerendered, and the page transition covers the screen until the route is ready,
@@ -21,10 +24,12 @@ export async function generateStaticParams() {
   return (await getProjects()).map((p) => ({ slug: p.slug }));
 }
 
-export async function generateMetadata({ params }: PageProps<"/projects/[slug]">): Promise<Metadata> {
-  const project = await getProject((await params).slug);
+export async function generateMetadata({ params }: PageProps<"/[lang]/projects/[slug]">): Promise<Metadata> {
+  const lang = await getLang();
+  const { slug } = await params;
+  const project = await getProject(slug, lang);
   if (!project) return {};
-  return { title: project.title, description: project.summary };
+  return { title: project.title, description: project.summary, alternates: alternates(lang, `/projects/${slug}`) };
 }
 
 const HERO = { w: 1240, h: 700 };
@@ -101,7 +106,7 @@ function PartHeader({ part, n }: { part: Part; n: number }) {
   );
 }
 
-function ChapterBlock({ chapter, flip, level }: { chapter: Chapter; flip: boolean; level: "h2" | "h3" }) {
+function ChapterBlock({ chapter, flip, level, t }: { chapter: Chapter; flip: boolean; level: "h2" | "h3"; t: Ui["project"] }) {
   const side = chapter.shot ?? chapter.figure ?? chapter.bars;
   // A chapter with nothing beside it stays left-aligned instead of alternating.
   flip = flip && Boolean(side);
@@ -113,11 +118,11 @@ function ChapterBlock({ chapter, flip, level }: { chapter: Chapter; flip: boolea
       <div className={`flex gap-80 max-md:flex-col max-md:gap-32 ${flip ? "flex-row-reverse" : ""}`}>
         <div className={`flex flex-col gap-24 text-lead leading-[1.45] text-midnight-100 ${side ? "w-520 shrink-0" : "w-760"} max-md:w-full`}>
           <p data-rise>
-            <strong className="font-semibold text-midnight-50">The problem. </strong>
+            <strong className="font-semibold text-midnight-50">{t.problem} </strong>
             {chapter.problem}
           </p>
           <div data-rise>
-            <strong className="font-semibold text-midnight-50">What I did.</strong>
+            <strong className="font-semibold text-midnight-50">{t.did}</strong>
             <ul className="mt-12 flex flex-col gap-10">
               {chapter.did.map((item) => (
                 <li key={item} className="flex gap-14">
@@ -128,7 +133,7 @@ function ChapterBlock({ chapter, flip, level }: { chapter: Chapter; flip: boolea
             </ul>
           </div>
           <p data-rise>
-            <strong className="font-semibold text-midnight-50">What changed. </strong>
+            <strong className="font-semibold text-midnight-50">{t.changed} </strong>
             {chapter.result}
           </p>
           {chapter.shot && chapter.figure && (
@@ -166,10 +171,12 @@ function ChapterBlock({ chapter, flip, level }: { chapter: Chapter; flip: boolea
   );
 }
 
-export default async function ProjectPage({ params }: PageProps<"/projects/[slug]">) {
-  const project = await getProject((await params).slug);
+export default async function ProjectPage({ params }: PageProps<"/[lang]/projects/[slug]">) {
+  const lang = await getLang();
+  const t = ui(lang).project;
+  const project = await getProject((await params).slug, lang);
   if (!project) notFound();
-  const next = nextProject(await getProjects(), project.slug);
+  const next = nextProject(await getProjects(lang), project.slug);
 
   return (
     <>
@@ -184,7 +191,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
                 className="-my-12 inline-flex items-center gap-10 py-12 text-lead font-semibold text-midnight-100 transition-colors hover:text-midnight-50"
               >
                 <Arrow className="size-24 rotate-180" />
-                All projects
+                {t.all}
               </TransitionLink>
 
               <h1 id="project-title" data-headline className="mt-32 text-h1 font-bold text-midnight-50 [text-box:trim-both_cap_alphabetic] max-md:mt-24">
@@ -201,15 +208,15 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
                   {project.summary}
                 </p>
                 <dl data-subline className="grid w-400 grid-cols-[auto_1fr] gap-x-24 gap-y-12 text-lead max-md:w-full">
-                  <dt className="text-midnight-200">Client</dt>
+                  <dt className="text-midnight-200">{t.client}</dt>
                   <dd className="font-semibold text-midnight-50">{project.client}</dd>
-                  <dt className="text-midnight-200">Role</dt>
+                  <dt className="text-midnight-200">{t.role}</dt>
                   <dd className="font-semibold text-midnight-50">{project.role}</dd>
-                  <dt className="text-midnight-200">When</dt>
+                  <dt className="text-midnight-200">{t.when}</dt>
                   <dd className="font-semibold text-midnight-50">{project.period}</dd>
                   {project.status && (
                     <>
-                      <dt className="text-midnight-200">Status</dt>
+                      <dt className="text-midnight-200">{t.status}</dt>
                       <dd className="font-semibold text-midnight-50">{project.status.note}</dd>
                     </>
                   )}
@@ -227,7 +234,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
               </div>
 
               <div className="mt-32 flex flex-wrap items-center justify-between gap-24 max-md:mt-24">
-                <ul aria-label="Stack" className="flex flex-wrap gap-10">
+                <ul aria-label={t.stack} className="flex flex-wrap gap-10">
                   {project.stack.map((item) => (
                     <li key={item} data-pop>
                       <Chip>{item}</Chip>
@@ -252,13 +259,13 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
             </div>
           </section>
 
-          <section aria-label="Overview" className="relative">
+          <section aria-label={t.overview} className="relative">
             <div aria-hidden className="absolute inset-x-0 top-0 h-201 rounded-tr-[calc(var(--s)*1000)] bg-midnight-900 max-md:h-120" />
             <div aria-hidden className="absolute inset-x-0 top-200 -bottom-1 bg-midnight-900 max-md:top-119" />
             <div className="relative mx-auto grid w-1240 grid-cols-2 gap-80 pt-110 pb-120 max-md:w-full max-md:grid-cols-1 max-md:gap-56 max-md:px-20 max-md:pt-64 max-md:pb-72">
               {[
-                { title: "What it is", body: project.intro },
-                { title: "My part", body: project.part },
+                { title: t.whatItIs, body: project.intro },
+                { title: t.myPart, body: project.part },
               ].map((col) => (
                 <div key={col.title} className="flex flex-col gap-32 max-md:gap-20">
                   <Heading as="h2" size="text-h3" barTop="0.64em" barHeight="0.6em" barLeft="-0.1em" barRight="-0.16em">
@@ -274,14 +281,14 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
             </div>
           </section>
 
-          <section aria-label="Case study" className="relative bg-midnight-900">
+          <section aria-label={t.caseStudy} className="relative bg-midnight-900">
             <div className="relative mx-auto flex w-1240 flex-col gap-160 pb-160 max-md:w-full max-md:gap-96 max-md:px-20 max-md:pb-96">
               {project.chapters.map((chapter, i) => {
                 const p = project.parts?.findIndex((part) => part.from === chapter.id) ?? -1;
                 return (
                   <Fragment key={chapter.id}>
                     {p >= 0 && <PartHeader part={project.parts![p]} n={p + 1} />}
-                    <ChapterBlock chapter={chapter} flip={i % 2 === 1} level={project.parts ? "h3" : "h2"} />
+                    <ChapterBlock chapter={chapter} flip={i % 2 === 1} level={project.parts ? "h3" : "h2"} t={t} />
                   </Fragment>
                 );
               })}
@@ -292,7 +299,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
             <section aria-labelledby="method-title" className="relative bg-midnight-950">
               <div className="relative mx-auto flex w-1240 items-start gap-80 py-120 max-md:w-full max-md:flex-col max-md:gap-24 max-md:px-20 max-md:py-80">
                 <Heading size="text-h3" barTop="0.64em" barHeight="0.6em" barLeft="-0.1em" barRight="-0.16em" className="shrink-0">
-                  <span id="method-title">How I worked</span>
+                  <span id="method-title">{t.method}</span>
                 </Heading>
                 <p data-lines className="text-h4 font-semibold text-midnight-100">
                   {project.method}
@@ -304,12 +311,12 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
           <section aria-labelledby="next-title" className="relative bg-midnight-900">
             <div className="relative mx-auto w-1240 py-120 max-md:w-full max-md:px-20 max-md:py-80">
               <Heading size="text-h3" barTop="0.64em" barHeight="0.6em" barLeft="-0.1em" barRight="-0.16em">
-                <span id="next-title">Next project</span>
+                <span id="next-title">{t.next}</span>
               </Heading>
               <div data-next className="relative mt-40 h-[calc(var(--s)*700)] max-md:mt-24 max-md:h-[calc(var(--s)*220)]">
                 <TransitionLink
                   href={`/projects/${next.slug}`}
-                  aria-label={`Next project: ${next.title}`}
+                  aria-label={t.nextLabel(next.title)}
                   className="group absolute inset-0 block overflow-hidden rounded-tl-lg bg-midnight-950 max-md:rounded-tl-md"
                 >
                   <div className="absolute top-0 left-0 h-[calc(var(--s)*700)] w-[calc(var(--s)*1240)] origin-top-left max-md:scale-[calc(390/1240)]">

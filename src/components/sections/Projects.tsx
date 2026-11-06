@@ -4,6 +4,8 @@ import { TransitionLink } from "@/components/transition/PageTransition";
 import { LeadGrid } from "@/components/projects/LeadGrid";
 import { hasArt } from "@/content/projects";
 import { getProjects } from "@/lib/content/read";
+import { getLang } from "@/lib/i18n/server";
+import { ui } from "@/lib/i18n/ui";
 
 /**
  * Where the hero meets the home slot: the lower half of the blue starburst rising out of the hero
@@ -31,7 +33,9 @@ export function SeamDecor() {
  * first. Every project with a render can take any card, so only what a card needs goes to the browser.
  */
 export async function Projects() {
-  const projects = (await getProjects()).filter(hasArt).map(({ slug, title, tag, card, hero, art }) => ({ slug, title, tag, card, hero, art }));
+  const lang = await getLang();
+  const t = ui(lang).home.projects;
+  const projects = (await getProjects(lang)).filter(hasArt).map(({ slug, title, tag, card, hero, art }) => ({ slug, title, tag, card, hero, art }));
   return (
     <SectionMotion preset="projects">
       <section id="projects" data-for="freelance" data-slot aria-labelledby="projects-title" data-node-id="193:2317" className="relative overflow-clip bg-midnight-900">
@@ -40,12 +44,12 @@ export async function Projects() {
 
           <div data-swap className="absolute top-22 left-101 max-md:relative max-md:inset-auto">
             <Heading className="" barTop="0.875em">
-              <span id="projects-title">Projects</span>
+              <span id="projects-title">{t.heading}</span>
             </Heading>
           </div>
           {/* Says what the whole body of work is, so it holds whichever four projects a link puts first. */}
           <p data-swap data-lines className="absolute top-143 left-100 w-760 text-h4 font-semibold text-midnight-100 max-md:relative max-md:inset-auto max-md:mt-12 max-md:w-full">
-            AI products at Multimodal, client work, and the apps I build on my own.
+            {t.intro}
           </p>
 
           <LeadGrid projects={projects} />
@@ -56,7 +60,7 @@ export async function Projects() {
               data-magnetic="8"
               className="inline-flex items-center gap-12 rounded-full border-2 border-midnight-50 px-28 py-10 text-lead font-semibold text-midnight-50 transition-colors hover:bg-midnight-50 hover:text-midnight-950"
             >
-              View more projects
+              {t.more}
               <svg viewBox="0 0 24 24" fill="none" aria-hidden className="size-22">
                 <path d="M4 12h15m-6-6 6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>

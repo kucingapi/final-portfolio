@@ -6,6 +6,7 @@ import { SESSION_COOKIE, validSession } from "@/lib/dashboard/auth";
 import { describeChanges, type Change } from "@/lib/content/changes";
 import { CONTENT_TAGS } from "@/lib/content/read";
 import { isDocId, type DocId } from "@/lib/content/schema";
+import { tidyBahasa, translationRows, type TranslationRow } from "@/lib/content/translations";
 import {
   ContentError,
   changes,
@@ -61,7 +62,18 @@ export async function loadContent(doc: DocId) {
 }
 
 export async function saveContent(doc: DocId, value: unknown, rev: number) {
-  return run(doc, (d) => saveDraft(d, value, rev, "dashboard"));
+  return run(doc, async (d) => saveDraft(d, d === "bahasa" ? await tidyBahasa(value) : value, rev, "dashboard"));
+}
+
+/** The English lines the Bahasa translation covers, for its editor. */
+export async function loadTranslationRows(): Promise<{ ok: true; rows: Omit<TranslationRow, "id">[] } | { ok: false; error: string }> {
+  try {
+    await guard("bahasa");
+    const { rows } = await translationRows();
+    return { ok: true, rows: rows.map(({ doc, path, where, en }) => ({ doc, path, where, en })) };
+  } catch (e) {
+    return { ok: false, error: e instanceof ContentError ? e.message : "Something went wrong. Try again." };
+  }
 }
 
 export async function publishContent(doc: DocId, rev: number) {

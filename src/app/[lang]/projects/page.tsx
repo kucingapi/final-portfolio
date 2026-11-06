@@ -17,12 +17,16 @@ import {
 } from "@/components/projects/ProjectFilter";
 import { hasArt, statOf, type Project } from "@/content/projects";
 import { getProjects } from "@/lib/content/read";
+import type { Lang } from "@/lib/i18n/lang";
+import { alternates } from "@/lib/i18n/meta";
+import { getLang } from "@/lib/i18n/server";
+import { ui, type Ui } from "@/lib/i18n/ui";
 
-export const metadata: Metadata = {
-  title: "Projects",
-  description:
-    "Case studies: AI products at Multimodal, client work, a thesis and side projects.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const lang = await getLang();
+  const t = ui(lang).meta.projects;
+  return { title: t.title, description: t.description, alternates: alternates(lang, "/projects") };
+}
 
 /** The leading rows draw the 1240×700 case-study frame and scale it down; the cards below are 600×380. */
 const HERO = { w: 1240, h: 700 };
@@ -37,8 +41,8 @@ const rowSizes = (w: number) =>
 const cardSizes = (w: number) =>
   `(max-width: 1023px) ${Math.round((w / CARD.w) * 91)}vw, (min-width: 1440px) ${Math.round(w)}px, ${Math.round(w / 14.4)}vw`;
 
-/** Everything a visitor might search for: names, client, what it is, and the tools. */
-const filterMeta = (p: Project): FilterMeta => ({
+/** Everything a visitor might search for: names, client, what it is, and the tools, in the page's words. */
+const filterMeta = (p: Project, t: Ui): FilterMeta => ({
   slug: p.slug,
   platform: p.platform,
   context: p.context,
@@ -53,6 +57,7 @@ const filterMeta = (p: Project): FilterMeta => ({
     p.summary,
     p.platform,
     p.context,
+    t.filter.contexts[p.context],
     ...p.stack,
   ].join(" "),
 });
@@ -90,23 +95,25 @@ function Meta({ project }: { project: Project }) {
 const figures = (p: Project) =>
   Object.fromEntries(p.chapters.filter((c) => c.figure).map((c) => [c.id, statOf(p, c.id)]));
 
-function ReadMore() {
+function ReadMore({ lang }: { lang: Lang }) {
   return (
     <span className="inline-flex items-center gap-10 text-lead font-semibold text-midnight-50">
-      Read the case study
+      {ui(lang).project.readCase}
       <Arrow className="size-22 transition-transform duration-300 group-hover:translate-x-8" />
     </span>
   );
 }
 
 export default async function ProjectsPage() {
-  const projects = await getProjects();
+  const lang = await getLang();
+  const t = ui(lang);
+  const projects = await getProjects(lang);
   // Every project is drawn both ways, as a large row and as a card. The four that lead for this visitor
   // (the site's first four with a render, or a tailored link's) show as rows, the rest as cards.
   return (
     <>
       <SectionMotion preset="index">
-        <ProjectFilterProvider items={projects.map(filterMeta)}>
+        <ProjectFilterProvider items={projects.map((p) => filterMeta(p, t))}>
           <main>
             <section
               aria-labelledby="projects-title"
@@ -118,15 +125,13 @@ export default async function ProjectsPage() {
                   data-headline
                   className="text-h1 font-bold text-midnight-50 [text-box:trim-both_cap_alphabetic]"
                 >
-                  Projects
+                  {t.projects.heading}
                 </h1>
                 <p
                   data-subline
                   className="mt-36 w-760 text-h4 font-semibold text-midnight-100 max-md:mt-24 max-md:w-full"
                 >
-                  Two years of AI products at Multimodal, then client work, my
-                  thesis, and the things I build on the side. Each one has its
-                  own case study.
+                  {t.projects.intro}
                 </p>
 
                 <ProjectFilterBar />
@@ -141,7 +146,7 @@ export default async function ProjectsPage() {
                     node: (
                       <TransitionLink
                         href={`/projects/${project.slug}`}
-                        aria-label={`${project.title}: read the case study`}
+                        aria-label={t.project.readCaseLabel(project.title)}
                         className="group flex items-center gap-80 max-md:flex-col max-md:items-stretch max-md:gap-24 md:group-data-[flip=true]/row:flex-row-reverse"
                       >
                         <div className="relative h-406 w-720 shrink-0 overflow-hidden rounded-tr-lg bg-midnight-950 group-data-[flip=true]/row:rounded-tr-none group-data-[flip=true]/row:rounded-tl-lg max-md:h-[calc(var(--s)*220)] max-md:w-full">
@@ -163,7 +168,7 @@ export default async function ProjectsPage() {
                           </p>
                           <ProjectStat slug={project.slug} stat={project.stat} figures={figures(project)} />
                           <span className="mt-8">
-                            <ReadMore />
+                            <ReadMore lang={lang} />
                           </span>
                         </div>
                       </TransitionLink>
@@ -195,14 +200,13 @@ export default async function ProjectsPage() {
                   barLeft="-0.1em"
                   barRight="-0.16em"
                 >
-                  <span id="more-title">More work</span>
+                  <span id="more-title">{t.projects.more}</span>
                 </Heading>
                 <p
                   data-lines
                   className="mt-24 w-760 text-h4 font-semibold text-midnight-100 max-md:w-full"
                 >
-                  Everything else I have built, each with its own case
-                  study.
+                  {t.projects.moreIntro}
                 </p>
 
                 <FilterList
@@ -214,7 +218,7 @@ export default async function ProjectsPage() {
                     node: (
                       <TransitionLink
                         href={`/projects/${project.slug}`}
-                        aria-label={`${project.title}: read the case study`}
+                        aria-label={t.project.readCaseLabel(project.title)}
                         className="group flex flex-col gap-24 max-md:gap-20"
                       >
                         <div className="relative h-380 w-600 overflow-hidden rounded-tr-lg group-data-[flip=true]/row:rounded-tr-none group-data-[flip=true]/row:rounded-tl-lg max-md:h-[calc(var(--s)*247)] max-md:w-full">
@@ -241,7 +245,7 @@ export default async function ProjectsPage() {
                             {project.summary}
                           </p>
                           <span className="mt-6">
-                            <ReadMore />
+                            <ReadMore lang={lang} />
                           </span>
                         </div>
                       </TransitionLink>
