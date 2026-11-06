@@ -1,16 +1,18 @@
 "use client";
 
 import { useEffect, useSyncExternalStore } from "react";
-import { useMode } from "@/components/mode/Mode";
+import { MODE_KEY, useMode } from "@/components/mode/Mode";
 import { leading } from "@/content/projects";
 import { isTester, track } from "@/lib/analytics";
 import type { PublicVariant } from "@/lib/cv/variant";
+import { useLang } from "@/lib/i18n/client";
+import { DEFAULT_LANG, localePath, splitLang } from "@/lib/i18n/lang";
 
 /**
  * Tailored links. A link carries only an opaque code (`/?v=k7qx2pmd`); on arrival the code leaves the
  * address bar at once, its variant is fetched, and it is kept in localStorage so the rest of the visit
  * (and later visits) stay tailored without anything showing in the URL. The variant orders the
- * projects, picks the CV's lines and can set the site's mode.
+ * projects, picks the CV's lines and can set the site's mode and language.
  */
 
 const PARAM = "v";
@@ -75,9 +77,13 @@ export function useVariantStat(slug: string): string | undefined {
   return useVariant().current?.variant.stats?.[slug];
 }
 
-/** Picks up `?v=` once per page load. Lives inside ModeProvider so a variant can set the mode. */
+/**
+ * Picks up `?v=` once per page load. Lives inside ModeProvider so a variant can set the mode. A variant in
+ * the other language opens the same page in its language; after that the visitor's own switch decides.
+ */
 export function VariantLoader() {
   const { setMode } = useMode();
+  const lang = useLang();
 
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -96,6 +102,17 @@ export function VariantLoader() {
       .then((r) => (r.ok ? (r.json() as Promise<PublicVariant>) : null))
       .then((found) => {
         track("tailored_link_opened", { v_code: code, found: Boolean(found) });
+        const wanted = found?.variant.lang ?? DEFAULT_LANG;
+        if (found && wanted !== lang) {
+          // Saved first, so the page in the other language opens tailored, with the mode it asks for.
+          write({ current: found, loading: true });
+          try {
+            if (found.variant.mode) localStorage.setItem(MODE_KEY, found.variant.mode);
+          } catch {}
+          const here = new URL(window.location.href);
+          window.location.replace(localePath(wanted, splitLang(here.pathname).path) + here.search + here.hash);
+          return;
+        }
         write({ current: found ?? before, loading: false });
         if (found?.variant.mode) setMode(found.variant.mode, { quiet: true });
       })

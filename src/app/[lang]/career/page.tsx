@@ -8,20 +8,36 @@ import { TailoredCareerList } from "@/components/career/TailoredCareerList";
 import { RESUME_URL, mailto } from "@/content/site";
 import { getCvContent, getSiteContent } from "@/lib/content/read";
 import { linkRoles, roleLines } from "@/lib/cv/career";
+import { localePath } from "@/lib/i18n/lang";
+import { alternates } from "@/lib/i18n/meta";
+import { getLang } from "@/lib/i18n/server";
+import { ui } from "@/lib/i18n/ui";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { site } = await getSiteContent();
-  return { title: "Career", description: `The career of ${site.name}: roles, education and leadership.` };
+  const lang = await getLang();
+  const { site } = await getSiteContent(lang);
+  const t = ui(lang).meta.career;
+  return { title: t.title, description: t.description(site.name), alternates: alternates(lang, "/career") };
 }
 
 const round = "relative block size-100 shrink-0 rounded-full bg-midnight-500 transition-colors max-md:size-64";
 
 /** Career page (Figma 317:462, "Experiences"). */
 export default async function CareerPage() {
-  const [{ site, about, careerDetail }, cv] = await Promise.all([getSiteContent(), getCvContent()]);
-  // A tailored link shows each role as its CV does: the same title, its lines, in the CV's order.
-  const all = careerDetail.flatMap((g) => g.roles);
-  const allLinks = linkRoles(all, cv);
+  const lang = await getLang();
+  const t = ui(lang).career.page;
+  const [{ site, about, careerDetail }, cv, en, cvEn] = await Promise.all([
+    getSiteContent(lang),
+    getCvContent(lang),
+    getSiteContent(),
+    getCvContent(),
+  ]);
+  // A tailored link shows each role as its CV does: the same title, its lines, in the CV's order. Roles
+  // are matched to CV entries in English; a translation keeps every list in the same order.
+  const allLinks = linkRoles(
+    en.careerDetail.flatMap((g) => g.roles),
+    cvEn,
+  );
   const lines = roleLines(cv, allLinks);
   const starts = careerDetail.map((_, i) => careerDetail.slice(0, i).reduce((n, g) => n + g.roles.length, 0));
   const LINKS = [
@@ -42,7 +58,7 @@ export default async function CareerPage() {
                 </h1>
                 <p className="flex flex-col text-h2 font-semibold">
                   <span data-subline>{site.role}</span>
-                  <span data-subline>Freelance &amp; Full-time</span>
+                  <span data-subline>{t.subtitle}</span>
                 </p>
               </div>
 
@@ -50,12 +66,12 @@ export default async function CareerPage() {
                 <a
                   data-pop
                   data-magnetic="8"
-                  href={RESUME_URL}
+                  href={localePath(lang, RESUME_URL)}
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex items-center rounded-full border-2 border-midnight-50 px-32 py-12 text-h4 font-semibold text-midnight-50 transition-colors hover:bg-midnight-50 hover:text-midnight-950"
                 >
-                  Resume
+                  {t.resume}
                 </a>
               </div>
 
@@ -93,7 +109,7 @@ export default async function CareerPage() {
                   {/* 520 design px wide on every screen: wider than its frame on phones. */}
                   <Picture
                     src="/figma/about/portrait.webp"
-                    alt="Portrait of Novel Bafagih"
+                    alt={t.portrait}
                     width={520}
                     height={520}
                     preload
@@ -113,7 +129,7 @@ export default async function CareerPage() {
             </div>
           </section>
 
-          <section aria-label="Career history" className="relative">
+          <section aria-label={t.history} className="relative">
             <div data-curve aria-hidden className="absolute inset-x-0 top-0 h-201 rounded-tr-[calc(var(--s)*1000)] bg-midnight-900 max-md:h-120" />
             <div aria-hidden className="absolute inset-x-0 top-200 -bottom-1 bg-midnight-900 max-md:top-119" />
             <div className="relative mx-auto w-1240 pt-170 pb-200 max-md:w-full max-md:px-20 max-md:pt-110 max-md:pb-96">

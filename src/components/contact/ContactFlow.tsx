@@ -9,20 +9,22 @@ import { onPageReveal, TransitionLink } from "@/components/transition/PageTransi
 import { ArrowIcon } from "@/components/ui";
 import { ServiceArt } from "./ServiceArt";
 import { mailto, services, type Service } from "@/content/site";
+import { useUi } from "@/lib/i18n/client";
 
 type Step = "service" | "details" | "sent";
 type Status = { state: "idle" | "sending" | "error"; message?: string };
 
 const FIELDS = [
-  { name: "name", label: "What is your full name? *", placeholder: "Name", type: "text", autoComplete: "name", required: true },
-  { name: "email", label: "What is your active/work email address? *", placeholder: "Email", type: "email", autoComplete: "email", required: true },
-  { name: "phone", label: "What is your phone number? (optional)", placeholder: "Phone Number", type: "tel", autoComplete: "tel", required: false },
+  { name: "name", type: "text", autoComplete: "name", required: true },
+  { name: "email", type: "email", autoComplete: "email", required: true },
+  { name: "phone", type: "tel", autoComplete: "tel", required: false },
 ] as const;
 
 /** Two-step contact flow: Figma "Chose Service" (281:3615) → "Information Detail" (281:3763). */
 /** `email` is the site's address, shown as the fallback when the form can't send. */
 export function ContactFlow({ email }: { email: string }) {
   const mailHref = mailto(email);
+  const t = useUi().contact;
   const root = useRef<HTMLDivElement>(null);
   const [step, setStep] = useState<Step>("service");
   const [service, setService] = useState<Service | null>(null);
@@ -103,13 +105,13 @@ export function ContactFlow({ email }: { email: string }) {
         body: JSON.stringify({ ...data, service }),
       });
       const body = (await res.json().catch(() => ({}))) as { error?: string };
-      if (!res.ok) throw new Error(body.error ?? "Something went wrong.");
+      if (!res.ok) throw new Error(t.refused[res.status] ?? (Object.keys(t.refused).length ? t.failed : body.error) ?? t.failed);
       track("contact_submitted", { service });
       setSentName(data.name.split(" ")[0]);
       setStatus({ state: "idle" });
       go("sent");
     } catch (err) {
-      setStatus({ state: "error", message: err instanceof Error ? err.message : "Something went wrong." });
+      setStatus({ state: "error", message: err instanceof Error && err.message ? err.message : t.failed });
     }
   }
 
@@ -118,16 +120,16 @@ export function ContactFlow({ email }: { email: string }) {
       {step === "service" && (
         <div data-step className="relative h-1024 max-md:h-auto max-md:px-20 max-md:pt-100 max-md:pb-60">
           <h1 data-step-title className="absolute top-109 left-100 text-h1 font-bold text-midnight-50 [text-box:trim-both_cap_alphabetic] max-md:static">
-            Service
+            {t.service}
           </h1>
           <p data-step-sub className="absolute top-187 left-106 text-h4 font-semibold text-midnight-50 max-md:static max-md:mt-16">
-            Select a service that we are going to talk about
+            {t.serviceIntro}
           </p>
 
           <div
             ref={choices}
             role="radiogroup"
-            aria-label="Service"
+            aria-label={t.service}
             aria-describedby={needService ? "service-hint" : undefined}
             className="absolute top-327 left-99 flex w-1239 flex-col gap-39 max-md:static max-md:mt-32 max-md:w-full max-md:gap-16"
           >
@@ -151,7 +153,7 @@ export function ContactFlow({ email }: { email: string }) {
                         <ServiceArt service={s} />
                       </span>
                       <span className="absolute top-15 left-1/2 -translate-x-1/2 font-display text-[calc(var(--s)*100)] leading-[1.2] font-semibold tracking-[-0.005em] text-midnight-50">
-                        {s}
+                        {t.services[s] ?? s}
                       </span>
                     </span>
                   </button>
@@ -167,7 +169,7 @@ export function ContactFlow({ email }: { email: string }) {
                 service === "Others" ? "outline-[calc(var(--s)*6)] outline-midnight-50 outline-solid" : ""
               } ${service && service !== "Others" ? "opacity-50" : ""}`}
             >
-              Others
+              {t.services.Others}
             </button>
           </div>
 
@@ -177,7 +179,7 @@ export function ContactFlow({ email }: { email: string }) {
               data-pop
               data-magnetic
               onClick={next}
-              aria-label="Next step"
+              aria-label={t.next}
               className="flex size-96 items-center justify-center rounded-[calc(var(--s)*24.67)] bg-midnight-500 transition-colors hover:bg-midnight-400"
             >
               <ArrowIcon className="size-72" />
@@ -187,7 +189,7 @@ export function ContactFlow({ email }: { email: string }) {
               aria-live="polite"
               className={`font-display text-lead whitespace-nowrap transition-colors ${needService ? "text-midnight-50" : "text-midnight-100"}`}
             >
-              {needService ? "Pick a service first" : "1 / 2"}
+              {needService ? t.pickFirst : "1 / 2"}
             </span>
           </div>
         </div>
@@ -200,21 +202,21 @@ export function ContactFlow({ email }: { email: string }) {
               type="button"
               data-pop
               onClick={() => go("service")}
-              aria-label="Back to service selection"
+              aria-label={t.back}
               className="flex size-48 items-center justify-center rounded-full bg-midnight-400 transition-transform hover:-translate-x-4"
             >
               <Image src="/figma/icons/arrow-right-small.svg" alt="" width={36} height={36} unoptimized className="size-36 rotate-180" />
             </button>
             <span data-step-sub className="font-display text-lead text-midnight-100">
-              2 / 2 · {service}
+              2 / 2 · {service && (t.services[service] ?? service)}
             </span>
           </div>
 
           <h1 data-step-title className="absolute top-267 left-100 text-h1 font-bold text-midnight-50 [text-box:trim-both_cap_alphabetic] max-md:static max-md:mt-40">
-            Final Step
+            {t.finalStep}
           </h1>
           <p data-step-sub className="absolute top-345 left-100 text-h4 font-semibold text-midnight-50 max-md:static max-md:mt-16">
-            Fill out your informations
+            {t.finalIntro}
           </p>
 
           <form
@@ -225,14 +227,14 @@ export function ContactFlow({ email }: { email: string }) {
             <div className="flex w-708 flex-col gap-48 max-md:w-full max-md:gap-28">
               {FIELDS.map((f) => (
                 <label key={f.name} data-field className="group flex flex-col gap-24 max-md:gap-8">
-                  <span className="pl-3 text-lead font-semibold text-midnight-50">{f.label}</span>
+                  <span className="pl-3 text-lead font-semibold text-midnight-50">{t.fields[f.name].label}</span>
                   <span className="relative block">
                     <input
                       name={f.name}
                       type={f.type}
                       required={f.required}
                       autoComplete={f.autoComplete}
-                      placeholder={f.placeholder}
+                      placeholder={t.fields[f.name].placeholder}
                       className="peer h-138 w-full bg-transparent pl-14 text-h2 font-semibold text-midnight-50 placeholder:text-placeholder focus:outline-none max-md:h-64"
                     />
                     <span aria-hidden className="absolute inset-x-0 bottom-0 h-[calc(var(--s)*2)] bg-midnight-100" />
@@ -244,12 +246,12 @@ export function ContactFlow({ email }: { email: string }) {
                 </label>
               ))}
               <label data-field className="flex flex-col gap-24 max-md:gap-8">
-                <span className="pl-3 text-lead font-semibold text-midnight-50">What can I help you with?</span>
+                <span className="pl-3 text-lead font-semibold text-midnight-50">{t.message.label}</span>
                 <span className="relative block">
                   <textarea
                     name="message"
                     rows={3}
-                    placeholder="Tell me about the project, role or problem you have in mind"
+                    placeholder={t.message.placeholder}
                     data-lenis-prevent
                     className="peer block min-h-162 w-full resize-none bg-transparent text-h4 font-semibold text-midnight-50 placeholder:text-placeholder focus:outline-none max-md:min-h-120"
                   />
@@ -264,7 +266,7 @@ export function ContactFlow({ email }: { email: string }) {
               <input type="text" name="company" tabIndex={-1} autoComplete="off" aria-hidden className="hidden" />
               {status.state === "error" && (
                 <p role="alert" className="text-lead font-semibold text-midnight-200">
-                  {status.message} You can also email me at{" "}
+                  {status.message} {t.orEmail}{" "}
                   <a href={mailHref} className="underline">
                     {email}
                   </a>
@@ -277,7 +279,7 @@ export function ContactFlow({ email }: { email: string }) {
               type="submit"
               data-pop
               disabled={status.state === "sending"}
-              aria-label="Send message"
+              aria-label={t.send}
               className="group flex w-476 items-center justify-center self-stretch overflow-hidden rounded-2xl bg-midnight-700 transition-colors hover:bg-midnight-500 disabled:opacity-60 max-md:h-120 max-md:w-full"
             >
               <Image
@@ -297,10 +299,10 @@ export function ContactFlow({ email }: { email: string }) {
         <div data-step className="flex min-h-svh flex-col items-start justify-center px-100 py-160 max-md:px-20">
           {/* The visitor's name: kept out of session recordings (on the h1, as SplitText rebuilds its children). */}
           <h1 data-step-title data-ph-mask className="ph-no-capture text-h1 font-bold text-midnight-50">
-            Thanks{sentName ? `, ${sentName}` : ""}!
+            {t.thanks(sentName)}
           </h1>
           <p data-step-sub className="mt-24 max-w-900 text-h4 font-semibold text-midnight-100">
-            Your message is on its way. I’ll get back to you within a couple of days.
+            {t.sent}
           </p>
           <TransitionLink
             href="/"
@@ -308,7 +310,7 @@ export function ContactFlow({ email }: { email: string }) {
             data-magnetic
             className="mt-48 inline-flex items-center gap-16 rounded-full bg-midnight-500 py-16 pr-24 pl-32 text-h4 font-semibold text-white transition-colors hover:bg-midnight-400"
           >
-            Back home <ArrowIcon className="size-48" />
+            {t.home} <ArrowIcon className="size-48" />
           </TransitionLink>
         </div>
       )}

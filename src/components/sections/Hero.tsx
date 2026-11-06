@@ -4,6 +4,8 @@ import { Chip, Deco } from "@/components/ui";
 import { SectionMotion } from "@/components/motion/SectionMotion";
 import { ByMode } from "@/components/mode/Mode";
 import { getSiteContent } from "@/lib/content/read";
+import { getLang } from "@/lib/i18n/server";
+import { ui } from "@/lib/i18n/ui";
 
 /**
  * Hero (Figma 186:1436). Desktop positions are Figma canvas px on the 1440 frame;
@@ -11,10 +13,12 @@ import { getSiteContent } from "@/lib/content/read";
  * scaled as one piece on phones.
  */
 export async function Hero() {
-  const { modes } = await getSiteContent();
+  const lang = await getLang();
+  const { modes } = await getSiteContent(lang);
+  const t = ui(lang).hero;
   return (
     <SectionMotion preset="hero">
-      <section aria-label="Intro" data-node-id="186:1436" className="relative overflow-clip bg-midnight-950">
+      <section aria-label={t.label} data-node-id="186:1436" className="relative overflow-clip bg-midnight-950">
         <div className="relative mx-auto h-1024 w-1440 max-md:h-900 max-md:w-full">
           {/* Big looping line, top right (186:1437) */}
           <div aria-hidden data-line className="pointer-events-none absolute -top-165 left-706 flex h-712 w-907 items-center justify-center max-md:-top-120 max-md:left-170 max-md:scale-50 max-md:origin-top-left">
@@ -69,7 +73,7 @@ export async function Hero() {
                 {/* Drawn at 1.35× its box (scale-[1.35]); the sizes ask for that. */}
                 <Picture
                   src="/figma/hero/photo-main.webp"
-                  alt="Novel speaking with a microphone"
+                  alt={t.photoMain}
                   fill
                   preload
                   sizes="(max-width: 1023px) 67vw, (min-width: 1440px) 478px, 34vw"
@@ -85,7 +89,7 @@ export async function Hero() {
               <div data-photo data-node-id="186:1915" className="relative h-333 w-251 flex-none -rotate-[22.5deg] overflow-hidden rounded-lg border-2 border-base-200 bg-base-800">
                 <Picture
                   src="/figma/hero/photo-left.webp"
-                  alt="Novel Bafagih at an event"
+                  alt={t.photoLeft}
                   fill
                   sizes="(max-width: 1023px) 40vw, 20vw"
                   className="object-cover object-[50%_30%] opacity-60"
@@ -93,14 +97,14 @@ export async function Hero() {
               </div>
             </div>
             <div data-chip className="absolute top-596 left-118 flex h-65 w-83 items-center justify-center">
-              <Chip tone="teal" className="flex-none -rotate-[22.5deg]">Open</Chip>
+              <Chip tone="teal" className="flex-none -rotate-[22.5deg]">{t.open}</Chip>
             </div>
 
             <div data-speed="1.15" className="absolute top-294 left-325 flex h-404 w-359 items-center justify-center">
               <div data-photo data-node-id="186:1921" className="relative h-333 w-251 flex-none rotate-[22.5deg] overflow-hidden rounded-lg border-2 border-base-200 bg-base-800">
                 <Picture
                   src="/figma/hero/photo-right.webp"
-                  alt="Novel at Hase-dera temple in Kamakura"
+                  alt={t.photoRight}
                   fill
                   sizes="(max-width: 1023px) 40vw, 20vw"
                   className="object-cover object-[48%_50%] opacity-60"

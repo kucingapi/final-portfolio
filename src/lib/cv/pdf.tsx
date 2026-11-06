@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Document, Link, Page, StyleSheet, Text, View, renderToBuffer } from "@react-pdf/renderer";
 import type { ResolvedCv, ResolvedEntry } from "./variant";
+import { UI, type Ui } from "@/lib/i18n/ui";
 
 /**
  * The CV as a real text PDF, laid out like a classic ATS CV: one column, standard headings, the title
@@ -69,7 +70,7 @@ function Mark({ probe, id }: { probe?: Probe; id: string }) {
   );
 }
 
-function Entry({ e, mark, origin }: { e: ResolvedEntry; mark?: ReactNode; origin?: string }) {
+function Entry({ e, mark, origin, t }: { e: ResolvedEntry; mark?: ReactNode; origin?: string; t: Ui["cv"] }) {
   const [first, ...rest] = e.bullets;
   return (
     <View style={s.entry}>
@@ -83,7 +84,7 @@ function Entry({ e, mark, origin }: { e: ResolvedEntry; mark?: ReactNode; origin
             <Text>
               {" | "}
               <Link src={`${origin}${e.proof}`} style={s.proof}>
-                Certificate
+                {t.certificate}
               </Link>
             </Text>
           )}
@@ -103,7 +104,7 @@ function Entry({ e, mark, origin }: { e: ResolvedEntry; mark?: ReactNode; origin
       ))}
       {e.stack && e.stack.length > 0 && (
         <Text style={s.stack} wrap={false}>
-          <Text style={s.bold}>Tech: </Text>
+          <Text style={s.bold}>{t.tech} </Text>
           {e.stack.join(", ")}
         </Text>
       )}
@@ -117,7 +118,7 @@ function Entry({ e, mark, origin }: { e: ResolvedEntry; mark?: ReactNode; origin
  */
 export function CvDocument({ cv, breaks, probe, origin }: { cv: ResolvedCv; breaks?: Set<string>; probe?: Probe; origin?: string }) {
   return (
-    <Document title={`${cv.name} – CV`} author={cv.name} subject={cv.headline} creator={cv.name} producer={cv.name}>
+    <Document title={UI[cv.lang].cv.documentTitle(cv.name)} language={cv.lang} author={cv.name} subject={cv.headline} creator={cv.name} producer={cv.name}>
       <Page size="A4" style={s.page}>
         <Text style={s.name}>{cv.name}</Text>
         <Text style={s.headline}>{cv.headline}</Text>
@@ -153,7 +154,7 @@ export function CvDocument({ cv, breaks, probe, origin }: { cv: ResolvedCv; brea
                   <Text style={s.sectionTitle}>{section.title}</Text>
                 </View>
                 {section.entries.map((e, i) => (
-                  <Entry key={e.id} e={e} origin={origin} mark={i === 0 ? <Mark probe={probe} id={`entry:${section.id}`} /> : undefined} />
+                  <Entry key={e.id} e={e} origin={origin} t={UI[cv.lang].cv} mark={i === 0 ? <Mark probe={probe} id={`entry:${section.id}`} /> : undefined} />
                 ))}
               </>
             )}

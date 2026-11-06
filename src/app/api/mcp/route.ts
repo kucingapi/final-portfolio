@@ -13,7 +13,10 @@ import { linkRoles, tailorRoles, roleLines } from "@/lib/cv/career";
 import { renderCvPdf } from "@/lib/cv/pdf";
 import { deleteVariant, getActivity, getVariant, listVariants, saveVariant, type StoredVariant } from "@/lib/cv/store";
 import { variantSchema } from "@/lib/cv/schema";
-import { checkVariant, cvToText, resolveCv, type Variant } from "@/lib/cv/variant";
+import { checkVariant, cvToText, normalizeVariant, type Variant } from "@/lib/cv/variant";
+import { cvIn, namesIn } from "@/lib/cv/localized";
+import { translationRows, saveTranslations } from "@/lib/content/translations";
+import { LANGS, localePath, type Lang } from "@/lib/i18n/lang";
 import { JOB_STATUSES, JobError, createJob, listJobs, recordApplication, updateJob, withTotals } from "@/lib/dashboard/jobs";
 
 /**
@@ -35,6 +38,7 @@ const GUIDE = `How to tailor:
 - "stats" gives a project another headline number, on the projects page and in the deck: the chapter whose figure answers the job's top requirement (only chapters with a figure). "chapters" picks the deck's slides for a project: up to three chapter ids, in order, the ones that prove what the job asks for.
 - The site's career (the Career page, and the home page in Full-time mode) follows the CV: a role that stands for a CV entry ("career" in get_cv_master) shows the title you chose for that entry and the lines you picked for it, and those roles lead in the order of "entries".
 - For Upwork and other platforms that bar sharing contact details, set "contact": false. It hides the email, GitHub and LinkedIn on the CV and both PDFs.
+- For an Indonesian employer, set "lang": "id". The link then opens the site in Bahasa Indonesia (/id), and the CV and the portfolio deck come in Bahasa. Write "headline" and "summary" in Bahasa; everything else is picked by id as usual, and titles and skills may be named in English or in Bahasa (get_cv_master with lang "id" shows the Bahasa). Preview it: the 2-page limit holds in Bahasa too, and Bahasa runs longer.
 - The label is private (e.g. "Acme, Senior Frontend, 2026-11"); the visitor never sees it.`;
 
 const JOBS_GUIDE = `Tracking applications:
@@ -45,15 +49,17 @@ const CONTENT_GUIDE = `Editing the site's content:
 - Three documents: "site" (the site's copy), "cv" (the master CV that tailored CVs pick from) and "projects" (the case studies, in the order the site lists them).
 - Read with get_content first, then edit with edit_content: RFC 6902 JSON Patch operations and the rev you read. Paths are JSON Pointers into the document, e.g. /projects/2/summary or /entries/0/bullets/1/text.
 - Edits only ever change a draft. Novel reviews and publishes drafts in the dashboard (Content), so say what you changed and ask Novel to publish it.
-- Stay true to the record: improve wording, order and structure; never invent facts or numbers. Tailored links refer to ids (project slugs, CV entry and bullet ids), so leave those as they are.`;
+- Stay true to the record: improve wording, order and structure; never invent facts or numbers. Tailored links refer to ids (project slugs, CV entry and bullet ids), so leave those as they are.
+- The site also reads in Bahasa Indonesia (/id). Its words live in a fourth document, "bahasa": English text → Bahasa, for site, cv and projects alike. Read it with get_translations (missing: true lists what still shows in English) and change it with edit_translations; both work on a draft Novel publishes like the rest. A changed English line needs its translation again: the old one no longer matches and the line shows in English until then. Testimonials stay as they were said, ids, links, tool names and dates are never translated (dates turn into Bahasa month names on their own).
+- Bahasa style: speak to the reader as "Anda" and of Novel as "saya"; plain, natural Indonesian, not word for word; keep tech terms and product names in English (frontend, backend, design system, dashboard, AgentFlow); keep every number and fact exactly; no em dashes.`;
 
 const json = (data: unknown) => ({ content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }] });
 const fail = (message: string) => ({ content: [{ type: "text" as const, text: message }], isError: true });
 
-function links(origin: string, code: string) {
+function links(origin: string, code: string, lang: Lang = "en") {
   return {
-    site: `${origin}/?v=${code}`,
-    cv: `${origin}/cv?v=${code}`,
+    site: `${origin}${lang === "en" ? "/" : localePath(lang, "/")}?v=${code}`,
+    cv: `${origin}${localePath(lang, "/cv")}?v=${code}`,
     pdf: `${origin}/api/cv?v=${code}&download=1`,
     portfolio: `${origin}/api/portfolio?v=${code}&download=1`,
   };
@@ -83,12 +89,18 @@ async function sitePreview(variant: Variant) {
   };
 }
 
-async function preview(variant: Variant, origin: string) {
+/** A variant with any Bahasa titles, skills or headline named in English, as the master CV has them. */
+async function normalized(variant: Variant): Promise<Variant> {
+  return variant.lang && variant.lang !== "en" ? normalizeVariant(variant, await namesIn(variant.lang)) : variant;
+}
+
+async function preview(given: Variant, origin: string) {
+  const variant = await normalized(given);
   const [content, projects] = await Promise.all([getCvContent(), getProjects()]);
   const errors = checkVariant(content, variant, projects);
-  const cv = resolveCv(content, variant);
+  const cv = await cvIn(variant.lang ?? "en", variant);
   const { pages } = await renderCvPdf(cv, origin);
-  return { errors, pages, fitsTwoPages: pages === 2, text: cvToText(cv), site: await sitePreview(variant) };
+  return { variant, errors, pages, fitsTwoPages: pages === 2, text: cvToText(cv), site: await sitePreview(variant) };
 }
 
 function buildServer(origin: string) {
@@ -99,18 +111,27 @@ function buildServer(origin: string) {
     {
       title: "Read the master CV",
       description:
-        "Everything that can go on the CV, with ids: entries (by section) and their bullets with tags and weight (3 = strongest), allowed titles, stock headlines and summaries, skill groups, the site's projects with their chapters and figures, and the site's career roles with the CV entry each follows. Read this first.",
+        "Everything that can go on the CV, with ids: entries (by section) and their bullets with tags and weight (3 = strongest), allowed titles, stock headlines and summaries, skill groups, the site's projects with their chapters and figures, and the site's career roles with the CV entry each follows. Read this first. With lang \"id\", the words are in Bahasa Indonesia (the ids are the same).",
+      inputSchema: { lang: z.enum(LANGS).optional().describe("en (default) or id: the language to read the words in.") },
       annotations: { readOnlyHint: true },
     },
-    async () => {
-      const [cv, projects, { careerDetail }] = await Promise.all([getCvContent(), getProjects(), getSiteContent()]);
+    async ({ lang = "en" }) => {
+      const [cv, projects, { careerDetail }, cvEn, siteEn] = await Promise.all([
+        getCvContent(lang),
+        getProjects(lang),
+        getSiteContent(lang),
+        getCvContent(),
+        getSiteContent(),
+      ]);
       const roles = careerDetail.flatMap((g) => g.roles.map((r) => ({ group: g.heading, r })));
+      // Roles are matched to CV entries in English; a translation keeps every list in the same order.
       const links = linkRoles(
-        roles.map((x) => x.r),
-        cv,
+        siteEn.careerDetail.flatMap((g) => g.roles),
+        cvEn,
       );
       return json({
         guide: GUIDE,
+        lang,
         sections: CV_SECTIONS,
         tags: CV_TAGS,
         headlines: cv.header.headlines,
@@ -135,7 +156,7 @@ function buildServer(origin: string) {
           })),
         })),
         career: roles.map((x, i) => ({ group: x.group, org: x.r.org, role: x.r.role, period: x.r.period, cvEntry: links[i] ?? undefined })),
-        defaultVariant: "Leave any field out to use the default: entries with weight >= 2, their strongest bullets (4 per role, 5 for the lead one), skills first, then every section.",
+        defaultVariant: "Leave any field out to use the default: entries with weight >= 2, their strongest bullets (4 per role, 5 for the lead one; in Bahasa one fewer for the lead role and each education entry), skills first, then every section.",
       });
     },
   );
@@ -145,7 +166,7 @@ function buildServer(origin: string) {
     {
       title: "Preview a CV variant",
       description:
-        "Render a variant without saving it: the CV as text (with ids), its PDF page count, any validation errors, and what it does to the site: the four projects that lead, the deck's projects with their headline number and chapters, and the Career page's roles in order.",
+        "Render a variant without saving it: the CV as text (with ids) in the variant's language, its PDF page count, any validation errors, and what it does to the site: the four projects that lead, the deck's projects with their headline number and chapters, and the Career page's roles in order.",
       inputSchema: { variant: variantSchema },
       annotations: { readOnlyHint: true },
     },
@@ -178,12 +199,13 @@ function buildServer(origin: string) {
       const result = await preview(variant, origin);
       if (result.errors.length) return fail(`Not saved. Fix these first:\n${result.errors.join("\n")}`);
       try {
-        const row = await saveVariant({ code, claim, label, variant });
+        const row = await saveVariant({ code, claim, label, variant: result.variant });
         const recorded = job ? await recordApplication(row.code, job) : undefined;
         return json({
           code: row.code,
           label: row.label,
-          links: links(origin, row.code),
+          lang: row.variant.lang ?? "en",
+          links: links(origin, row.code, row.variant.lang),
           pages: result.pages,
           job: recorded && { id: recorded.id, company: recorded.company, title: recorded.title, status: recorded.status },
           warning: result.fitsTwoPages ? undefined : `The CV is ${result.pages} page(s); it should be 2.`,
@@ -210,7 +232,8 @@ function buildServer(origin: string) {
             label: r.label,
             updatedAt: r.updatedAt,
             activity: await getActivity(r.code),
-            links: links(origin, r.code),
+            lang: r.variant.lang ?? "en",
+            links: links(origin, r.code, r.variant.lang),
           })),
         ),
       ),
@@ -226,7 +249,9 @@ function buildServer(origin: string) {
     },
     async ({ code }) => {
       const row = await getVariant(code);
-      return row ? json({ ...row, activity: await getActivity(row.code), links: links(origin, row.code) }) : fail(`No variant with code "${code}".`);
+      return row
+        ? json({ ...row, activity: await getActivity(row.code), links: links(origin, row.code, row.variant.lang) })
+        : fail(`No variant with code "${code}".`);
     },
   );
 
@@ -279,7 +304,9 @@ function buildServer(origin: string) {
     },
   );
 
-  const doc = z.enum(["site", "cv", "projects"]).describe("site: the site's copy; cv: the master CV; projects: the case studies.");
+  const doc = z
+    .enum(["site", "cv", "projects", "bahasa"])
+    .describe("site: the site's copy; cv: the master CV; projects: the case studies; bahasa: their Bahasa Indonesia (edit it with edit_translations).");
 
   server.registerTool(
     "get_content",
@@ -355,6 +382,69 @@ function buildServer(origin: string) {
     async ({ doc }) => {
       const [state, diff] = await Promise.all([getState(doc), changes(doc)]);
       return json({ doc, rev: state.rev, draft: state.draft, ops: diff.ops, changes: describeChanges(diff.ops, diff.before, state.value) });
+    },
+  );
+
+  server.registerTool(
+    "get_translations",
+    {
+      title: "Read the Bahasa Indonesia translation",
+      description:
+        "Every English string of the site, the CV and the projects that the Bahasa site (/id) translates, each once, with where it first appears and its Bahasa (missing: it shows in English). Covers the English drafts too, so a new line can be translated before it is published. Returns the rev to pass to edit_translations.",
+      inputSchema: {
+        doc: z.enum(["site", "cv", "projects"]).optional().describe("Only the strings first seen in this document."),
+        missing: z.boolean().optional().describe("Only the strings with no translation yet."),
+      },
+      annotations: { readOnlyHint: true },
+    },
+    async ({ doc, missing }) => {
+      const { state, rows } = await translationRows();
+      const shown = rows.filter((r) => (!doc || r.doc === doc) && (!missing || !r.id));
+      return json({
+        rev: state.rev,
+        published: state.published,
+        draft: state.draft,
+        total: rows.length,
+        translated: rows.filter((r) => r.id).length,
+        strings: shown,
+      });
+    },
+  );
+
+  server.registerTool(
+    "edit_translations",
+    {
+      title: "Translate into Bahasa Indonesia (as a draft)",
+      description:
+        "Set Bahasa Indonesia for English strings of the site, the CV or the projects, by their exact English text from get_translations. An empty id removes a translation (the line shows in English). Saved as the draft of the bahasa document, which Novel reviews and publishes in the dashboard (Content → Bahasa). Pass the rev from get_translations.",
+      inputSchema: {
+        rev: z.number().int().describe("The rev get_translations returned."),
+        strings: z
+          .array(z.object({ en: z.string().min(1).describe("The English text, exactly."), id: z.string().describe("Its Bahasa Indonesia; empty to remove.") }))
+          .min(1)
+          .max(500),
+      },
+    },
+    async ({ rev, strings }) => {
+      try {
+        const { rows } = await translationRows();
+        const known = new Set(rows.map((r) => r.en));
+        const unknown = strings.filter((x) => !known.has(x.en)).map((x) => x.en);
+        if (unknown.length)
+          return fail(`Nothing saved. These are not English strings of the site, CV or projects (copy them exactly from get_translations):\n${unknown.join("\n")}`);
+        const state = await saveTranslations(Object.fromEntries(strings.map((x) => [x.en, x.id])), rev, "agent");
+        const after = await translationRows();
+        return json({
+          saved: state.draft ? "draft" : "nothing to publish: the draft now matches the live copy",
+          rev: state.rev,
+          translated: after.rows.filter((r) => r.id).length,
+          total: after.rows.length,
+          next: "Tell Novel the Bahasa draft is ready to review and publish in the dashboard, under Content → Bahasa.",
+        });
+      } catch (e) {
+        if (e instanceof ContentError) return fail([e.message, ...e.issues.map((i) => `${i.path}: ${i.message}`)].join("\n"));
+        throw e;
+      }
     },
   );
 

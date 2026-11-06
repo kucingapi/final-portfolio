@@ -15,6 +15,8 @@ import {
 } from "react";
 import { gsap, ScrollTrigger, prefersReducedMotion } from "@/lib/gsap";
 import { useLenis } from "@/components/providers/SmoothScroll";
+import { useLang } from "@/lib/i18n/client";
+import { localePath } from "@/lib/i18n/lang";
 
 /**
  * E8 — circle-expand page transition (Figma "Page Transition" 350:12239).
@@ -29,6 +31,12 @@ const TransitionContext = createContext<TransitionApi>({ navigate: () => {} });
 export const usePageTransition = () => useContext(TransitionContext);
 
 const REVEAL_EVENT = "page:reveal";
+
+/**
+ * A page address as the browser shows it. English pages are served from /en/… behind a rewrite (see
+ * next.config.ts), so the router could report either form; both mean the same page.
+ */
+const samePage = (path: string) => path.replace(/^\/en(?=\/|$)/, "") || "/";
 
 /** True while the overlay is covering the page (loader or mid-navigation). */
 const isCovered = () => document.documentElement.dataset.covered === "true";
@@ -48,7 +56,7 @@ export function onPageReveal(callback: () => void) {
 
 export function PageTransitionProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
-  const pathname = usePathname();
+  const pathname = samePage(usePathname());
   const lenis = useLenis();
   const overlay = useRef<HTMLDivElement>(null);
   const circle = useRef<HTMLDivElement>(null);
@@ -106,7 +114,7 @@ export function PageTransitionProvider({ children }: { children: ReactNode }) {
 
   // Navigation finished: the new route is rendered under the overlay.
   useEffect(() => {
-    if (pendingHref.current && pathname === new URL(pendingHref.current, location.href).pathname) {
+    if (pendingHref.current && pathname === samePage(new URL(pendingHref.current, location.href).pathname)) {
       pendingHref.current = null;
       requestAnimationFrame(() => uncover());
     }
@@ -116,7 +124,7 @@ export function PageTransitionProvider({ children }: { children: ReactNode }) {
     (href: string, from?: Point) => {
       const target = new URL(href, location.href);
       if (busy.current) return;
-      if (target.pathname === pathname) {
+      if (samePage(target.pathname) === pathname) {
         if (lenis.current) lenis.current.scrollTo(target.hash || 0);
         else window.scrollTo({ top: 0, behavior: "smooth" });
         return;
@@ -160,9 +168,13 @@ export function PageTransitionProvider({ children }: { children: ReactNode }) {
   );
 }
 
-/** Drop-in `next/link` that plays the page transition for internal routes. */
-export function TransitionLink({ href, onClick, ...props }: ComponentProps<typeof Link> & { href: string }) {
+/**
+ * Drop-in `next/link` that plays the page transition for internal routes. Site paths stay in the page's
+ * language: `/projects` on a Bahasa page goes to `/id/projects`.
+ */
+export function TransitionLink({ href: given, onClick, ...props }: ComponentProps<typeof Link> & { href: string }) {
   const { navigate } = usePageTransition();
+  const href = localePath(useLang(), given);
   const handleClick = (e: MouseEvent<HTMLAnchorElement>) => {
     onClick?.(e);
     if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;

@@ -33,7 +33,7 @@ export function describePath(root: unknown, pointer: string): string {
       const item = next && typeof next === "object" ? (next as Record<string, unknown>) : null;
       const name = item && ITEM_KEYS.map((key) => item[key]).find((v) => typeof v === "string" && v.trim());
       out.push(typeof name === "string" ? name : `#${Number(k) + 1}`);
-    } else if (k !== "-") out.push(words(k));
+    } else if (k !== "-") out.push(/\s/.test(k) ? k : words(k)); // a key with spaces is text (the Bahasa dictionary's)
     node = next;
   }
   return out.join(" › ") || "Everything";

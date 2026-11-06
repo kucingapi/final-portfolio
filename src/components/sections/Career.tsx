@@ -5,6 +5,8 @@ import { TransitionLink } from "@/components/transition/PageTransition";
 import { SeamDecor } from "@/components/sections/Projects";
 import { getCvContent, getSiteContent } from "@/lib/content/read";
 import { linkRoles, roleLines } from "@/lib/cv/career";
+import { getLang } from "@/lib/i18n/server";
+import { ui } from "@/lib/i18n/ui";
 
 function Arrow({ className = "" }: { className?: string }) {
   return (
@@ -20,9 +22,12 @@ function Arrow({ className = "" }: { className?: string }) {
  * one section changing its contents (see ModeSlot).
  */
 export async function Career() {
-  const [{ career }, cv] = await Promise.all([getSiteContent(), getCvContent()]);
+  const lang = await getLang();
+  const t = ui(lang).home.career;
+  const [{ career }, cv, en, cvEn] = await Promise.all([getSiteContent(lang), getCvContent(lang), getSiteContent(), getCvContent()]);
   // A tailored link shows each role as its CV does: the same title, its top lines, in the CV's order.
-  const links = linkRoles(career, cv);
+  // Roles are matched to CV entries in English; a translation keeps every list in the same order.
+  const links = linkRoles(en.career, cvEn);
   return (
     <SectionMotion preset="career">
       <section id="career" data-for="fulltime" data-slot aria-labelledby="career-title" className="relative overflow-clip bg-midnight-900">
@@ -31,11 +36,11 @@ export async function Career() {
 
           <div data-swap className="absolute top-22 left-101 max-md:relative max-md:inset-auto">
             <Heading barTop="0.875em">
-              <span id="career-title">Career</span>
+              <span id="career-title">{t.heading}</span>
             </Heading>
           </div>
           <p data-swap data-lines className="absolute top-143 left-100 w-760 text-h4 font-semibold text-midnight-100 max-md:relative max-md:inset-auto max-md:mt-12 max-md:w-full">
-            Two years at Multimodal, and the roles, programs and degree that led there.
+            {t.intro}
           </p>
 
           <TailoredCareerList roles={career} links={links} lines={roleLines(cv, links)} summary className="mx-100 max-md:mx-0 max-md:mt-32" />
@@ -46,7 +51,7 @@ export async function Career() {
               data-magnetic="8"
               className="inline-flex items-center gap-12 rounded-full border-2 border-midnight-50 px-28 py-10 text-lead font-semibold text-midnight-50 transition-colors hover:bg-midnight-50 hover:text-midnight-950"
             >
-              See my full career
+              {t.more}
               <Arrow className="size-22" />
             </TransitionLink>
           </div>

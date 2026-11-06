@@ -14,8 +14,9 @@ npm run build   # production build
 | What | Where |
 |---|---|
 | Copy, the master CV, projects | Edited in the dashboard (Content); the defaults are `src/content/*.ts`, the schema and store `src/lib/content/` |
+| Bahasa Indonesia | Pages under `src/app/[lang]` (English at `/…`, Bahasa at `/id/…`); the code's own labels in `src/lib/i18n/ui.ts`, the content's words in the `bahasa` document (defaults `src/content/id/*.ts`) |
 | Landing sections | `src/components/sections/*` |
-| Experiences / Contact pages | `src/app/experiences/page.tsx`, `src/components/contact/*` |
+| Pages (both languages) | `src/app/[lang]/*` (Career, Contact, CV, Projects), `src/components/contact/*` |
 | Motion per section (presets) | `src/components/motion/SectionMotion.tsx` |
 | Reusable effects (reveal, line draw, starburst, parallax, magnetic) | `src/lib/motion.ts` |
 | Page transition + first-load loader | `src/components/transition/PageTransition.tsx` |
@@ -29,6 +30,25 @@ Layouts are authored in Figma pixels. `--s` (in `globals.css`) is one design pix
 bound to it, so `w-1240`, `top-195`, `gap-39` are the Figma numbers. Desktop uses the 1440 frame (scaled to the
 viewport, capped at 1440px); below 1024px (phones and portrait tablets) it switches to a 430px phone frame, scaled up
 to the screen, with `max-md:` layouts.
+
+## Bahasa Indonesia
+
+The whole site reads in English at the plain addresses (`/projects`) and in Bahasa Indonesia under `/id`
+(`/id/projects`); the EN / ID switch is in the navbar (in the menu on phones). Every page lives once, under
+`src/app/[lang]`: `next.config.ts` serves the unprefixed English addresses from `/en/…` and sends `/en/…` back to
+them, and server components read the language with `getLang()` (`next/root-params`).
+
+- The code's own words (buttons, headings, labels, the PDFs' labels) are in `src/lib/i18n/ui.ts`, one set per language.
+- The content's words translate through a fourth document, `bahasa`: English text → Bahasa, for the site, the CV
+  and the projects alike (`src/lib/i18n/translate.ts`). English stays the source of everything else: ids, order,
+  images, numbers and links. A line whose English changes shows in English on `/id` until it is translated again,
+  instead of showing a stale translation. Dates translate on their own; testimonials stay as they were said.
+- Its defaults are `src/content/id/*.ts`; it is edited under Content → Bahasa in the dashboard, or by agents with
+  the MCP tools `get_translations` and `edit_translations`, and published like the other documents.
+- A tailored link can be made in Bahasa (`"lang": "id"`): it opens the site under `/id`, and its CV and portfolio
+  deck come in Bahasa. `/api/cv` and `/api/portfolio` take `?lang=en|id`, which the download buttons set to the
+  page's language. Variants name titles and skills in English; on a page in the other language their stock lines
+  are translated and a custom summary gives way to a stock one.
 
 ## Contact form
 
@@ -53,6 +73,8 @@ variant is kept in the visitor's localStorage, and the whole site follows it:
   stands for a CV entry (the role's `cv`, or a unique match by organisation for work roles): the title, the lines,
   and the order (`src/lib/cv/career.ts`).
 - `/cv` plus its PDF (`/api/cv`) show the tailored two-page CV, and the mode can switch.
+- Language: a variant with `"lang": "id"` opens the site in Bahasa Indonesia, with its CV and deck in Bahasa (see
+  Bahasa Indonesia above).
 - The portfolio deck (`/api/portfolio`, a 16:9 PDF built in `src/lib/portfolio/`) shows the variant's first three
   projects, with the chapters it chose for each (`chapters`) and their headline numbers.
 
@@ -67,6 +89,9 @@ The private label (who it was for) never leaves the server.
   ```bash
   claude mcp add --transport http novel-cv https://<your-domain>/api/mcp --header "Authorization: Bearer <CV_MCP_TOKEN>"
   ```
+
+  Content tools: `get_content`, `edit_content`, `content_changes`, and for the Bahasa translation
+  `get_translations` and `edit_translations`.
 
 - Each link's activity is counted in the same store: opens (with first and last time) and CV and portfolio PDF fetches.
   `list_cv_variants` and `get_cv_variant` return it. With `NEXT_PUBLIC_POSTHOG_KEY` set, PostHog also gets a
@@ -91,7 +116,8 @@ reasons behind them are in [DASHBOARD.md](DASHBOARD.md).
 - Jobs: each application with its posting, status and the links sent with it, and how often those were opened.
   Agents file a tailored link under its job when they save it (`save_cv_variant` with `job`).
 - Inbox: every contact-form message, newest first, with a notification for each and a reply-by-email link.
-- Content: the projects, the master CV and the site's copy, edited as drafts and published from the dashboard. Pages
+- Content: the projects, the master CV, the site's copy and their Bahasa Indonesia (line by line, with what is still
+  untranslated first), edited as drafts and published from the dashboard. Pages
   stay prerendered and refresh on publish. Agents can edit drafts through the MCP tools `get_content`,
   `edit_content` and `content_changes`; only the dashboard publishes. Until something is published, the site shows
   `src/content/*.ts`.

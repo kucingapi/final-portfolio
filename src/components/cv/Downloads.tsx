@@ -2,6 +2,7 @@
 
 import { useVariant } from "./Variant";
 import { track } from "@/lib/analytics";
+import { useLang, useUi } from "@/lib/i18n/client";
 
 /**
  * The CV and the portfolio deck as downloads. Both follow the visitor's tailored link when there is
@@ -20,24 +21,27 @@ const pill = "inline-flex items-center gap-12 rounded-full px-28 py-12 text-lead
 
 export function Downloads({ className = "" }: { className?: string }) {
   const { current } = useVariant();
-  const q = current ? `&v=${current.code}` : "";
+  const lang = useLang();
+  const t = useUi().cv;
+  // The PDFs come in the page's language, whatever language the link was made in.
+  const q = (current ? `&v=${current.code}` : "") + `&lang=${lang}`;
   const tailored = Boolean(current);
   return (
     <div className={`flex flex-wrap gap-16 ${className}`}>
       <a
         href={`/api/cv?download=1${q}`}
-        onClick={() => track("cv_downloaded", { tailored, from: "downloads" })}
+        onClick={() => track("cv_downloaded", { tailored, from: "downloads", lang })}
         className={`${pill} bg-midnight-50 text-midnight-950 hover:bg-white`}
       >
-        Download CV
+        {t.download}
         <DownloadIcon />
       </a>
       <a
         href={`/api/portfolio?download=1${q}`}
-        onClick={() => track("portfolio_downloaded", { tailored })}
+        onClick={() => track("portfolio_downloaded", { tailored, lang })}
         className={`${pill} border-2 border-midnight-50 text-midnight-50 hover:bg-midnight-50 hover:text-midnight-950`}
       >
-        Download portfolio
+        {t.downloadPortfolio}
         <DownloadIcon />
       </a>
     </div>

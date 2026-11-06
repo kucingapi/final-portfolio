@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import { gsap, useGSAP, ScrollTrigger, prefersReducedMotion } from "@/lib/gsap";
 import { designUnit } from "@/lib/motion";
 import type { Mode, Testimonial } from "@/content/site";
+import { useUi } from "@/lib/i18n/client";
 
 /** Seconds a card stays in front before autoplay moves on. */
 const DWELL = 6;
@@ -49,6 +50,7 @@ export function TestimonialDeck({ testimonials, mode }: { testimonials: Testimon
   const controls = useRef<{ step: (dir: 1 | -1) => void } | null>(null);
   const [front, setFront] = useState(0);
   const count = testimonials.length;
+  const words = useUi().testimonials;
 
   useGSAP(
     (_, contextSafe) => {
@@ -203,7 +205,7 @@ export function TestimonialDeck({ testimonials, mode }: { testimonials: Testimon
       data-for={mode}
       role="region"
       aria-roledescription="carousel"
-      aria-label="Testimonials"
+      aria-label={words.region}
       className="w-707 shrink-0 max-md:w-full"
     >
       <div className="grid pt-32">
@@ -213,7 +215,7 @@ export function TestimonialDeck({ testimonials, mode }: { testimonials: Testimon
             data-deck-card
             role="group"
             aria-roledescription="slide"
-            aria-label={`${i + 1} of ${count}`}
+            aria-label={words.slide(i + 1, count)}
             aria-hidden={i !== front}
             inert={i !== front}
             style={{ zIndex: count - i }}
@@ -255,7 +257,7 @@ export function TestimonialDeck({ testimonials, mode }: { testimonials: Testimon
       </div>
 
       <div data-deck-controls className="mt-40 flex items-center gap-24 max-md:mt-32 max-md:gap-16">
-        <button type="button" onClick={() => controls.current?.step(-1)} aria-label="Previous testimonial" className={`${round} hover:-translate-x-4`}>
+        <button type="button" onClick={() => controls.current?.step(-1)} aria-label={words.previous} className={`${round} hover:-translate-x-4`}>
           <Image src="/figma/icons/arrow-right-small.svg" alt="" width={36} height={36} unoptimized className="size-36 rotate-180 max-md:size-28" />
         </button>
         <div aria-hidden className="relative h-4 flex-1 overflow-hidden rounded-full bg-midnight-50/20">
@@ -264,7 +266,7 @@ export function TestimonialDeck({ testimonials, mode }: { testimonials: Testimon
         <span aria-hidden className="font-display text-lead text-midnight-100 tabular-nums">
           {String(front + 1).padStart(2, "0")} / {String(count).padStart(2, "0")}
         </span>
-        <button type="button" onClick={() => controls.current?.step(1)} aria-label="Next testimonial" className={`${round} hover:translate-x-4`}>
+        <button type="button" onClick={() => controls.current?.step(1)} aria-label={words.next} className={`${round} hover:translate-x-4`}>
           <Image src="/figma/icons/arrow-right-small.svg" alt="" width={36} height={36} unoptimized className="size-36 max-md:size-28" />
         </button>
       </div>

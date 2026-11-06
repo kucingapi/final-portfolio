@@ -3,6 +3,7 @@
 import { createContext, useContext, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { ScrollTrigger, prefersReducedMotion } from "@/lib/gsap";
 import { track } from "@/lib/analytics";
+import { useUi } from "@/lib/i18n/client";
 import type { Mode } from "@/content/site";
 
 /**
@@ -13,7 +14,9 @@ import type { Mode } from "@/content/site";
  * the flip, then `mode:enter`; it also writes `?mode=` so the address bar can be shared as is.
  */
 
-const KEY = "mode";
+/** Where the mode is saved; MODE_SCRIPT reads it before first paint. */
+export const MODE_KEY = "mode";
+const KEY = MODE_KEY;
 export const MODE_LEAVE = "mode:leave";
 export const MODE_ENTER = "mode:enter";
 const LEAVE_MS = 280;
@@ -93,9 +96,10 @@ export function ModeProvider({ children }: { children: ReactNode }) {
 /** The navbar tab: two options with a thumb that slides to the active one. */
 export function ModeToggle({ className = "", labels }: { className?: string; labels: Record<Mode, string> }) {
   const { mode, setMode } = useMode();
+  const t = useUi();
   const order: Mode[] = ["freelance", "fulltime"];
   return (
-    <div role="radiogroup" aria-label="View as" className={`relative grid grid-cols-2 rounded-full border-2 border-midnight-50/50 p-4 ${className}`}>
+    <div role="radiogroup" aria-label={t.nav.viewAs} className={`relative grid grid-cols-2 rounded-full border-2 border-midnight-50/50 p-4 ${className}`}>
       <span
         aria-hidden
         className="absolute inset-y-4 left-4 w-[calc(50%-var(--s)*4)] rounded-full bg-midnight-50 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"

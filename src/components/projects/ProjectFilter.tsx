@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useMemo, useRef, useState, type C
 import { ScrollTrigger } from "@/lib/gsap";
 import { CONTEXTS, PLATFORMS, type Context, type Platform } from "@/content/projects";
 import { useLead, useVariantOrder } from "@/components/cv/Variant";
+import { useUi } from "@/lib/i18n/client";
 
 /**
  * Search and filters for the projects index. The page stays a server component: it passes each
@@ -122,28 +123,29 @@ function Toggle({ on, onClick, children }: { on: boolean; onClick: () => void; c
 export function ProjectFilterBar() {
   const { query, platform, context, visible, total, setQuery, setPlatform, setContext, reset } = useFilter();
   const filtered = Boolean(query.trim() || platform || context);
+  const t = useUi().filter;
 
   return (
-    <div role="search" aria-label="Projects" className="mt-56 flex flex-col gap-20 max-md:mt-40">
+    <div role="search" aria-label={t.region} className="mt-56 flex flex-col gap-20 max-md:mt-40">
       <div className="flex flex-wrap items-center gap-x-28 gap-y-16">
         <label className="flex h-60 w-520 items-center gap-14 rounded-full border-2 border-midnight-50/45 bg-midnight-900/50 px-24 transition-colors focus-within:border-midnight-50 max-md:w-full">
           <svg viewBox="0 0 24 24" fill="none" aria-hidden className="size-22 shrink-0 text-midnight-200">
             <circle cx="11" cy="11" r="6.5" stroke="currentColor" strokeWidth="2" />
             <path d="m16 16 4.5 4.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </svg>
-          <span className="sr-only">Search projects</span>
+          <span className="sr-only">{t.search}</span>
           <input
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by name, tool or client"
+            placeholder={t.placeholder}
             className="min-w-0 flex-1 bg-transparent text-lead text-midnight-50 outline-none placeholder:text-midnight-200 [&::-webkit-search-cancel-button]:hidden"
           />
           {query && (
             <button
               type="button"
               onClick={() => setQuery("")}
-              aria-label="Clear search"
+              aria-label={t.clearSearch}
               className="flex size-28 shrink-0 items-center justify-center rounded-full text-midnight-200 transition-colors hover:bg-midnight-50/15 hover:text-midnight-50"
             >
               <svg viewBox="0 0 24 24" fill="none" aria-hidden className="size-16">
@@ -153,24 +155,24 @@ export function ProjectFilterBar() {
           )}
         </label>
         <p aria-live="polite" className="text-lead text-midnight-200">
-          {filtered ? `${visible.size} of ${total} projects` : `${total} projects`}
+          {t.count(visible.size, total, filtered)}
         </p>
         {filtered && (
           <button type="button" onClick={reset} className="text-lead font-semibold text-midnight-50 underline-offset-4 hover:underline">
-            Clear all
+            {t.clearAll}
           </button>
         )}
       </div>
       <div className="flex flex-wrap items-center gap-10">
         {PLATFORMS.map((p) => (
           <Toggle key={p} on={platform === p} onClick={() => setPlatform(platform === p ? null : p)}>
-            {p}
+            {t.platforms[p]}
           </Toggle>
         ))}
         <span aria-hidden className="mx-8 h-28 w-2 rounded-full bg-midnight-50/25" />
         {CONTEXTS.map((c) => (
           <Toggle key={c} on={context === c} onClick={() => setContext(context === c ? null : c)}>
-            {c}
+            {t.contexts[c]}
           </Toggle>
         ))}
       </div>
@@ -229,16 +231,17 @@ export function FilterSection({
 
 export function FilterEmpty() {
   const { visible, reset } = useFilter();
+  const t = useUi().filter;
   if (visible.size) return null;
   return (
     <div className="mt-120 flex flex-col items-start gap-24 max-md:mt-64">
-      <p className="w-760 text-h4 font-semibold text-midnight-100 max-md:w-full">No project matches that. Try another word, or clear the filters.</p>
+      <p className="w-760 text-h4 font-semibold text-midnight-100 max-md:w-full">{t.empty}</p>
       <button
         type="button"
         onClick={reset}
         className="inline-flex items-center gap-12 rounded-full border-2 border-midnight-50 px-28 py-10 text-lead font-semibold text-midnight-50 transition-colors hover:bg-midnight-50 hover:text-midnight-950"
       >
-        Clear filters
+        {t.clearFilters}
       </button>
     </div>
   );

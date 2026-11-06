@@ -1,6 +1,8 @@
 import { Chip, Heading } from "@/components/ui";
 import { SectionMotion } from "@/components/motion/SectionMotion";
 import { getSiteContent } from "@/lib/content/read";
+import { getLang } from "@/lib/i18n/server";
+import { ui } from "@/lib/i18n/ui";
 import * as wide from "@/components/philosophy/brain-pattern";
 import * as tall from "@/components/philosophy/brain-pattern-mobile";
 
@@ -32,7 +34,8 @@ function Pattern({ art, className }: { art: PatternArt; className: string }) {
 
 /** "How I work": the working philosophy, over a brain pattern that grows as the section scrolls by. */
 export async function Philosophy() {
-  const { philosophy } = await getSiteContent();
+  const lang = await getLang();
+  const { philosophy } = await getSiteContent(lang);
   return (
     <SectionMotion preset="philosophy">
       <section id="philosophy" aria-labelledby="philosophy-title" className="relative overflow-clip bg-midnight-900">
@@ -47,7 +50,7 @@ export async function Philosophy() {
           <p data-lines className="mt-32 w-980 text-h4 font-semibold text-midnight-50 max-md:mt-20 max-md:w-full">
             {philosophy.lede}
           </p>
-          <ul aria-label="What I cover" className="mt-36 flex flex-wrap gap-10 max-md:mt-24">
+          <ul aria-label={ui(lang).home.philosophyCovers} className="mt-36 flex flex-wrap gap-10 max-md:mt-24">
             {philosophy.span.map((item) => (
               <li key={item} data-span>
                 <Chip>{item}</Chip>

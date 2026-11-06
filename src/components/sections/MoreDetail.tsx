@@ -3,10 +3,13 @@ import { SectionMotion } from "@/components/motion/SectionMotion";
 import { TransitionLink } from "@/components/transition/PageTransition";
 import { Downloads } from "@/components/cv/Downloads";
 import { getSiteContent } from "@/lib/content/read";
+import { getLang } from "@/lib/i18n/server";
+import { ui } from "@/lib/i18n/ui";
 
 /** "More Detail" CTA band (Figma 245:2581). */
 export async function MoreDetail() {
-  const { modes } = await getSiteContent();
+  const lang = await getLang();
+  const { modes } = await getSiteContent(lang);
   return (
     <SectionMotion preset="detail">
       <section aria-labelledby="detail-title" data-node-id="245:2581" className="relative overflow-clip bg-midnight-900">
@@ -19,7 +22,7 @@ export async function MoreDetail() {
           <div className="absolute top-83 left-100 flex w-1240 items-center justify-between max-md:static max-md:w-full max-md:flex-col max-md:items-start max-md:gap-24">
             <div className="flex flex-col">
               <Heading size="text-h3" barTop="0.69em" barHeight="0.53em" barLeft="0" barRight="-0.1em">
-                <span id="detail-title" className="text-white">More Detail</span>
+                <span id="detail-title" className="text-white">{ui(lang).home.detail}</span>
               </Heading>
               {(["freelance", "fulltime"] as const).map((m) => (
                 <p key={m} data-for={m} data-lines className="w-813 text-h4 font-semibold text-justify text-midnight-100 max-md:w-full max-md:text-left">
