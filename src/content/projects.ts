@@ -49,6 +49,7 @@ export const projects: Project[] = [
       width: 2400,
       height: 1800,
       circle: { x: 0.752, y: 0.29, r: 0.046, drawn: true },
+      focus: { x: 0.14, y: 0.26, w: 0.72, h: 0.6 },
       alt: "AgentFlow's Runs table on a laptop",
     },
     card: { w: 813, h: 741, place: { w: 988, h: 741, x: -87, y: 0 }, mobileH: 356 },
@@ -263,6 +264,7 @@ export const projects: Project[] = [
       width: 2400,
       height: 1800,
       circle: { x: 0.598, y: 0.69, r: 0.036, drawn: true },
+      focus: { x: 0.3933, y: 0.1333, w: 0.22, h: 0.68 },
       alt: "multimodal.dev on a phone",
     },
     card: { w: 390, h: 742, place: { w: 1364, h: 1023, x: -492, y: -115 }, mobileH: 742 },
@@ -349,6 +351,7 @@ export const projects: Project[] = [
       width: 2400,
       height: 1800,
       circle: { x: 0.6175, y: 0.482, r: 0.068, drawn: false },
+      focus: { x: 0.14, y: 0.26, w: 0.72, h: 0.6 },
       alt: "The TIA landing page on a laptop",
     },
     card: { w: 390, h: 480, place: { w: 642, h: 481, x: -126, y: -1 }, mobileH: 480 },
@@ -420,6 +423,7 @@ export const projects: Project[] = [
       width: 2400,
       height: 1800,
       circle: { x: 0.79, y: 0.31, r: 0.036, drawn: true },
+      focus: { x: 0.25, y: 0.07, w: 0.53, h: 0.78 },
       alt: "The Raya Airways cargo portal's flight schedule on a laptop",
     },
     card: { w: 813, h: 480, place: { w: 1067, h: 800, x: -152, y: -40 }, mobileH: 230 },
@@ -486,6 +490,15 @@ export const projects: Project[] = [
     part: [
       "I designed and built it on my own, in my spare time, for the volunteers who run it. It is a Windows app that needs no internet, keeps everything in one SQLite file on the laptop, and updates itself.",
     ],
+    art: {
+      real: "/projects/bank-sampah-real.webp",
+      abstract: "/projects/bank-sampah-abstract.webp",
+      width: 2400,
+      height: 1800,
+      circle: { x: 0.6986, y: 0.3858, r: 0.036, drawn: true },
+      focus: { x: 0.23, y: 0.0756, w: 0.5533, h: 0.8622 },
+      alt: "The Bank Sampah overview on a laptop",
+    },
     cover: gallery("/projects/bank-sampah/overview.webp", "The Bank Sampah overview: total weight collected, money paid out, and the material mix", "The overview, running the real app on sample data."),
     chapters: [
       {
@@ -556,6 +569,15 @@ export const projects: Project[] = [
     part: [
       "I built it in March 2025: the first working version, both forms, in a day, then refinements over the next three weeks. It ships as a single .exe the payroll staff run on their own machine.",
     ],
+    art: {
+      real: "/projects/payroll-formatter-real.webp",
+      abstract: "/projects/payroll-formatter-abstract.webp",
+      width: 2400,
+      height: 1800,
+      circle: { x: 0.6057, y: 0.4259, r: 0.04, drawn: true },
+      focus: { x: 0.14, y: 0.26, w: 0.72, h: 0.6 },
+      alt: "The Payroll Formatter's window on a laptop",
+    },
     chapters: [
       {
         id: "read",
@@ -631,6 +653,15 @@ export const projects: Project[] = [
     part: [
       "I built the review app on my own, from the first commit in May 2024 to the hand-over in August, when it moved into the lender's own repository and I helped fit it into their setup.",
     ],
+    art: {
+      real: "/projects/mortgage-review-real.webp",
+      abstract: "/projects/mortgage-review-abstract.webp",
+      width: 2400,
+      height: 1800,
+      circle: { x: 0.7108, y: 0.308, r: 0.04, drawn: true },
+      focus: { x: 0.14, y: 0.26, w: 0.72, h: 0.6 },
+      alt: "The mortgage review page on a laptop: a loan document beside the fields read from it",
+    },
     cover: gallery("/projects/mortgage-review/detail.webp", "A loan document beside the fields the AI read from it", "The review page, running the real app on made-up data.", 2000, 1250),
     chapters: [
       {
@@ -697,6 +728,15 @@ export const projects: Project[] = [
     part: [
       "The web dashboard already existed. For my thesis at Universitas Brawijaya I added a REST API to it and built the Android app from scratch, from October 2023 to June 2024. A teammate joined for a refactor pass in July 2024.",
     ],
+    art: {
+      real: "/projects/sidaku-real.webp",
+      abstract: "/projects/sidaku-abstract.webp",
+      width: 2400,
+      height: 1800,
+      circle: { x: 0.5525, y: 0.5053, r: 0.036, drawn: true },
+      focus: { x: 0.3867, y: 0.1333, w: 0.22, h: 0.68 },
+      alt: "SIDAKU's business directory on a phone",
+    },
     cover: gallery("/projects/sidaku/cover.webp", "SIDAKU on Android: the business directory with its map, regulations, and adding a product", "Screens of the real app from my thesis, with test data."),
     chapters: [
       {
@@ -762,6 +802,15 @@ export const projects: Project[] = [
     part: [
       "Bangkit Academy, run by Google, Gojek, Tokopedia and Traveloka, ends with a team capstone. I led ours as product manager, designed the app, and built it with one other Android developer, while two machine-learning and two cloud engineers built the rest.",
     ],
+    art: {
+      real: "/projects/breel-real.webp",
+      abstract: "/projects/breel-abstract.webp",
+      width: 2400,
+      height: 1800,
+      circle: { x: 0.5939, y: 0.4132, r: 0.036, drawn: true },
+      focus: { x: 0.3833, y: 0.1956, w: 0.2833, h: 0.6711 },
+      alt: "Breel's home screen on a phone: projects and mentors",
+    },
     cover: gallery("/projects/breel/screens.webp", "Breel's screens: projects, mentors, proposals and chat", "Breel's high-fidelity screens.", 1280, 960),
     chapters: [
       {
@@ -825,6 +874,15 @@ export const projects: Project[] = [
     ],
     method:
       "Built as AI coding sessions that I plan and review. Each starts from a written ticket and a glossary of the product's words, and end-to-end tests drive the real server, a real database and the real live worker.",
+    art: {
+      real: "/projects/seru-room-real.webp",
+      abstract: "/projects/seru-room-abstract.webp",
+      width: 2400,
+      height: 1800,
+      circle: { x: 0.6704, y: 0.3852, r: 0.036, drawn: true },
+      focus: { x: 0.23, y: 0.0756, w: 0.5533, h: 0.8622 },
+      alt: "Seru Room's presenter view on a laptop, mid-session",
+    },
     cover: gallery("/projects/seru-room/live-poll.webp", "The presenter's live view: a multiple-choice question with its results as columns, and the join code and QR beside it", "The presenter's view mid-session, running locally. Sample deck; the eight people answering are test accounts."),
     chapters: [
       {
@@ -889,6 +947,15 @@ export const projects: Project[] = [
     part: [
       "I wrote the spec, designed it and am building it on my own, for myself first. Every component builds and passes its automated tests; none of it has run on a real phone, a real Windows laptop or a real Google account yet.",
     ],
+    art: {
+      real: "/projects/jagaday-real.webp",
+      abstract: "/projects/jagaday-abstract.webp",
+      width: 2400,
+      height: 1800,
+      circle: { x: 0.5163, y: 0.4754, r: 0.036, drawn: true },
+      focus: { x: 0.3333, y: 0.1956, w: 0.2833, h: 0.6711 },
+      alt: "JagaDay's Today screen on a phone",
+    },
     cover: gallery("/projects/jagaday/today.webp", "JagaDay's Today screen: the current block with its tick timer, and the day's plan against what was clocked", "The Today screen of the real build, on sample data.", 1280, 900),
     chapters: [
       {
@@ -932,10 +999,25 @@ export const projects: Project[] = [
   },
 ];
 
-/** A project with a device render: it gets a home-grid card and the circle reveal. */
-export type FeaturedProject = Project & Required<Pick<Project, "art" | "card" | "hero">>;
+/** A project with a device render: it can lead the home grid and the projects page, with the circle reveal. */
+export type ProjectWithArt = Project & Required<Pick<Project, "art">>;
 
-export const isFeatured = (p: Project): p is FeaturedProject => Boolean(p.art && p.card && p.hero);
+export const hasArt = (p: Project): p is ProjectWithArt => Boolean(p.art);
+
+/** How many projects lead: the home grid's four cards, and the large rows on the projects page. */
+export const LEAD_COUNT = 4;
+
+/**
+ * The projects that lead, in order: the first four with a render. `list` is in the site's order, or in
+ * a tailored link's, which puts its own projects first.
+ */
+export const leading = <T extends { art?: unknown }>(list: T[]): T[] => list.filter((p) => p.art).slice(0, LEAD_COUNT);
+
+/** The project's headline number: its own, or the figure of a chapter a tailored link chose instead. */
+export function statOf(p: Project, chapterId?: string): Project["stat"] {
+  const figure = chapterId ? p.chapters.find((c) => c.id === chapterId)?.figure : undefined;
+  return figure ? { value: figure.from ? `${figure.from} → ${figure.to}` : figure.to, label: figure.label } : p.stat;
+}
 
 /** The project after this one, wrapping round to the first. */
 export const nextProject = (list: Project[], slug: string) => {

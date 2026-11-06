@@ -1,5 +1,5 @@
-import Image from "next/image";
 import type { CSSProperties } from "react";
+import { Picture } from "@/components/Picture";
 import type { Art, Placement } from "@/content/projects";
 
 const px = (n: number) => `calc(var(--s) * ${n})`;
@@ -10,19 +10,21 @@ const px = (n: number) => `calc(var(--s) * ${n})`;
  * or `data-open="true"` on any ancestor (see `.art-real` in globals.css).
  *
  * `frame` is the box the art fills and `place` where the image sits inside it, both in design px.
+ * `preload` is for the art at the top of a page. Elsewhere the real render, hidden but for its
+ * circle until the art opens, loads after the twin that shows.
  */
 export function ProjectArt({
   art,
   frame,
   place,
   sizes,
-  priority = false,
+  preload = false,
 }: {
   art: Art;
   frame: { w: number; h: number };
   place: Placement;
   sizes: string;
-  priority?: boolean;
+  preload?: boolean;
 }) {
   const cx = place.x + art.circle.x * place.w;
   const cy = place.y + art.circle.y * place.h;
@@ -47,24 +49,26 @@ export function ProjectArt({
 
   return (
     <div aria-hidden className="absolute inset-0" style={vars}>
-      <Image
+      <Picture
         src={art.abstract}
         alt=""
         width={art.width}
         height={art.height}
         sizes={sizes}
-        priority={priority}
+        preload={preload}
+        fetchPriority={preload ? "high" : undefined}
         className="absolute max-w-none"
         style={box}
       />
       <div className="art-real absolute inset-0">
-        <Image
+        <Picture
           src={art.real}
           alt=""
           width={art.width}
           height={art.height}
           sizes={sizes}
-          priority={priority}
+          preload={preload}
+          fetchPriority={preload ? undefined : "low"}
           className="absolute max-w-none"
           style={box}
         />

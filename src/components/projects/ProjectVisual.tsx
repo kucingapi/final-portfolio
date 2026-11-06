@@ -1,33 +1,40 @@
-import Image from "next/image";
 import type { CSSProperties } from "react";
-import { isFeatured, type Placement, type Project } from "@/content/projects";
+import { Picture } from "@/components/Picture";
+import { hasArt, type Placement, type Project } from "@/content/projects";
 import { ProjectArt } from "./ProjectArt";
+import { placeArt } from "./place";
 
 const px = (n: number) => `calc(var(--s) * ${n})`;
 
+/** How wide the visual is drawn in a frame (design px), for its `sizes`: the render's width, or the frame's. */
+export const visualWidth = (project: Project, frame: { w: number; h: number }) =>
+  hasArt(project) ? placeArt(project, frame).w : frame.w;
+
 /**
- * Any project drawn into a frame (design px). Featured projects show their device render
- * (`place` crops it). The others show their one number; when they have a cover, the same
- * "open" disc grows a circle that reveals the screenshot (`.art-real` in globals.css).
+ * Any project drawn into a frame (design px). A project with a device render shows it, cropped by
+ * `place`, by a crop drawn for this frame, or fitted around the device (see ./place.ts). One without
+ * shows its one number; when it has a cover, the same "open" disc grows a circle that reveals the
+ * screenshot (`.art-real` in globals.css).
  */
 export function ProjectVisual({
   project,
   frame,
   place,
   sizes,
-  priority = false,
+  preload = false,
   footnote,
 }: {
   project: Project;
   frame: { w: number; h: number };
   place?: Placement;
   sizes: string;
-  priority?: boolean;
+  /** For the visual at the top of a page. */
+  preload?: boolean;
   /** A small line along the bottom of the number panel, e.g. the stack. */
   footnote?: string;
 }) {
-  if (isFeatured(project)) {
-    return <ProjectArt art={project.art} frame={frame} place={place ?? project.hero} sizes={sizes} priority={priority} />;
+  if (hasArt(project)) {
+    return <ProjectArt art={project.art} frame={frame} place={place ?? placeArt(project, frame)} sizes={sizes} preload={preload} />;
   }
 
   // The disc sits in the top-right corner, one disc-width in.
@@ -56,7 +63,8 @@ export function ProjectVisual({
       {cover && (
         <>
           <div className="art-real absolute inset-0 bg-white">
-            <Image src={cover.src} alt="" fill sizes={sizes} priority={priority} className="object-cover object-top" />
+            {/* Hidden until the disc opens, so it loads after what shows, unless it heads the page. */}
+            <Picture src={cover.src} alt="" fill sizes={sizes} preload={preload} fetchPriority={preload ? "high" : "low"} className="object-cover object-top" />
           </div>
           <span
             className="art-button absolute flex items-center justify-center rounded-full bg-midnight-950"

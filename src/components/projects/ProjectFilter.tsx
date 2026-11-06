@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ComponentProps, type ReactNode } from "react";
 import { ScrollTrigger } from "@/lib/gsap";
 import { CONTEXTS, PLATFORMS, type Context, type Platform } from "@/content/projects";
-import { useVariantOrder } from "@/components/cv/Variant";
+import { useLead, useVariantOrder } from "@/components/cv/Variant";
 
 /**
  * Search and filters for the projects index. The page stays a server component: it passes each
@@ -178,13 +178,24 @@ export function ProjectFilterBar() {
   );
 }
 
+type Item = { slug: string; art?: boolean; node: ReactNode };
+
 /**
  * A list whose rows show or hide with the filter. Rows alternate by their visible position, and a
- * tailored link's variant can move its projects to the top.
+ * tailored link's variant can move its projects to the top. `pick` keeps the projects that lead for
+ * this visitor (the first four with a render, `art`) or the rest; without it, every item shows.
  */
-export function FilterList({ items: given, className }: { items: { slug: string; node: ReactNode }[]; className?: string }) {
+export function FilterList({ items: given, pick, className }: { items: Item[]; pick?: "lead" | "rest"; className?: string }) {
   const { visible } = useFilter();
-  const items = useVariantOrder(given);
+  const ordered = useVariantOrder(given);
+  const { lead, rest } = useLead(given);
+  const items = pick === "lead" ? lead : pick === "rest" ? rest : ordered;
+  const key = items.map((i) => i.slug).join(" ");
+  // A tailored link moves rows between the lists after the page is drawn: measure the reveals again.
+  useEffect(() => {
+    const id = requestAnimationFrame(() => ScrollTrigger.refresh());
+    return () => cancelAnimationFrame(id);
+  }, [key]);
   let shown = 0;
   return (
     <ul className={className} hidden={!items.some((i) => visible.has(i.slug))}>
@@ -201,11 +212,16 @@ export function FilterList({ items: given, className }: { items: { slug: string;
   );
 }
 
-/** A section that disappears when none of its projects match. */
-export function FilterSection({ slugs, children, ...rest }: { slugs: string[]; children: ReactNode } & ComponentProps<"section">) {
+/** The section of projects that don't lead for this visitor; it disappears when none of them match. */
+export function FilterSection({
+  items,
+  children,
+  ...props
+}: { items: { slug: string; art?: boolean }[]; children: ReactNode } & ComponentProps<"section">) {
   const { visible } = useFilter();
+  const { rest } = useLead(items);
   return (
-    <section {...rest} hidden={!slugs.some((s) => visible.has(s))}>
+    <section {...props} hidden={!rest.some((i) => visible.has(i.slug))}>
       {children}
     </section>
   );

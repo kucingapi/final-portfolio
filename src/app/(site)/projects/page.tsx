@@ -3,7 +3,8 @@ import type { CSSProperties } from "react";
 import { Heading } from "@/components/ui";
 import { SectionMotion } from "@/components/motion/SectionMotion";
 import { TransitionLink } from "@/components/transition/PageTransition";
-import { ProjectVisual } from "@/components/projects/ProjectVisual";
+import { ProjectVisual, visualWidth } from "@/components/projects/ProjectVisual";
+import { ProjectStat } from "@/components/projects/ProjectStat";
 import { LetsTalk } from "@/components/sections/LetsTalk";
 import { Footer } from "@/components/sections/Footer";
 import {
@@ -14,7 +15,7 @@ import {
   FilterSection,
   type FilterMeta,
 } from "@/components/projects/ProjectFilter";
-import { isFeatured, type Project } from "@/content/projects";
+import { hasArt, statOf, type Project } from "@/content/projects";
 import { getProjects } from "@/lib/content/read";
 
 export const metadata: Metadata = {
@@ -23,9 +24,18 @@ export const metadata: Metadata = {
     "Case studies: AI products at Multimodal, client work, a thesis and side projects.",
 };
 
-/** Featured renders are composed for the 1240×700 case-study frame and scaled down here. */
+/** The leading rows draw the 1240×700 case-study frame and scale it down; the cards below are 600×380. */
 const HERO = { w: 1240, h: 700 };
 const CARD = { w: 600, h: 380 };
+
+/**
+ * Image sizes for a visual drawn `w` design px wide (a render is drawn wider than its frame). Rows show
+ * the 1240 frame at 720 (390 on phones), cards at 600 (390 on phones); the design stops growing at 1440.
+ */
+const rowSizes = (w: number) =>
+  `(max-width: 1023px) ${Math.round((w / 1240) * 91)}vw, (min-width: 1440px) ${Math.round((w / 1240) * 720)}px, ${Math.round(((w / 1240) * 720) / 14.4)}vw`;
+const cardSizes = (w: number) =>
+  `(max-width: 1023px) ${Math.round((w / CARD.w) * 91)}vw, (min-width: 1440px) ${Math.round(w)}px, ${Math.round(w / 14.4)}vw`;
 
 /** Everything a visitor might search for: names, client, what it is, and the tools. */
 const filterMeta = (p: Project): FilterMeta => ({
@@ -76,6 +86,10 @@ function Meta({ project }: { project: Project }) {
   );
 }
 
+/** Each chapter's figure as a headline stat, for a tailored link to choose from. */
+const figures = (p: Project) =>
+  Object.fromEntries(p.chapters.filter((c) => c.figure).map((c) => [c.id, statOf(p, c.id)]));
+
 function ReadMore() {
   return (
     <span className="inline-flex items-center gap-10 text-lead font-semibold text-midnight-50">
@@ -87,8 +101,8 @@ function ReadMore() {
 
 export default async function ProjectsPage() {
   const projects = await getProjects();
-  const featuredProjects = projects.filter(isFeatured);
-  const moreProjects = projects.filter((p) => !isFeatured(p));
+  // Every project is drawn both ways, as a large row and as a card. The four that lead for this visitor
+  // (the site's first four with a render, or a tailored link's) show as rows, the rest as cards.
   return (
     <>
       <SectionMotion preset="index">
@@ -119,9 +133,11 @@ export default async function ProjectsPage() {
                 <FilterEmpty />
 
                 <FilterList
+                  pick="lead"
                   className="mt-120 flex flex-col gap-120 max-md:mt-64 max-md:gap-72"
-                  items={featuredProjects.map((project) => ({
+                  items={projects.map((project) => ({
                     slug: project.slug,
+                    art: hasArt(project),
                     node: (
                       <TransitionLink
                         href={`/projects/${project.slug}`}
@@ -133,7 +149,7 @@ export default async function ProjectsPage() {
                             <ProjectVisual
                               project={project}
                               frame={HERO}
-                              sizes={`(max-width: 1023px) 100vw, ${Math.round(((project.hero.w / 1240) * 720) / 14.4)}vw`}
+                              sizes={rowSizes(visualWidth(project, HERO))}
                             />
                           </div>
                         </div>
@@ -145,14 +161,7 @@ export default async function ProjectsPage() {
                           <p className="text-lead leading-[1.45] text-midnight-100">
                             {project.summary}
                           </p>
-                          <p className="mt-8 flex items-baseline gap-14">
-                            <span className="font-display text-h4 leading-none font-semibold text-midnight-50 tabular-nums">
-                              {project.stat.value}
-                            </span>
-                            <span className="text-body text-midnight-200">
-                              {project.stat.label}
-                            </span>
-                          </p>
+                          <ProjectStat slug={project.slug} stat={project.stat} figures={figures(project)} />
                           <span className="mt-8">
                             <ReadMore />
                           </span>
@@ -165,7 +174,7 @@ export default async function ProjectsPage() {
             </section>
 
             <FilterSection
-              slugs={moreProjects.map((p) => p.slug)}
+              items={projects.map((p) => ({ slug: p.slug, art: hasArt(p) }))}
               aria-labelledby="more-title"
               className="relative"
             >
@@ -192,15 +201,16 @@ export default async function ProjectsPage() {
                   data-lines
                   className="mt-24 w-760 text-h4 font-semibold text-midnight-100 max-md:w-full"
                 >
-                  An app a neighbourhood waste bank runs on, a payroll tool for
-                  a client, a review tool for a mortgage lender, my thesis, my
-                  Bangkit capstone, and two apps I am building now.
+                  Everything else I have built, each with its own case
+                  study.
                 </p>
 
                 <FilterList
+                  pick="rest"
                   className="mt-80 grid grid-cols-2 gap-x-40 gap-y-96 max-md:mt-48 max-md:grid-cols-1 max-md:gap-y-64"
-                  items={moreProjects.map((project) => ({
+                  items={projects.map((project) => ({
                     slug: project.slug,
+                    art: hasArt(project),
                     node: (
                       <TransitionLink
                         href={`/projects/${project.slug}`}
@@ -217,7 +227,7 @@ export default async function ProjectsPage() {
                             <ProjectVisual
                               project={project}
                               frame={CARD}
-                              sizes="(max-width: 1023px) 100vw, 42vw"
+                              sizes={cardSizes(visualWidth(project, CARD))}
                               footnote={project.stack.slice(0, 4).join(" · ")}
                             />
                           </div>

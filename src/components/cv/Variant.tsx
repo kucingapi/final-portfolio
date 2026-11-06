@@ -2,6 +2,7 @@
 
 import { useEffect, useSyncExternalStore } from "react";
 import { useMode } from "@/components/mode/Mode";
+import { leading } from "@/content/projects";
 import { isTester, track } from "@/lib/analytics";
 import type { PublicVariant } from "@/lib/cv/variant";
 
@@ -57,6 +58,21 @@ export function useVariantOrder<T extends { slug: string }>(items: T[]): T[] {
   if (!lead?.length) return items;
   const first = lead.map((s) => items.find((i) => i.slug === s)).filter((i): i is T => Boolean(i));
   return [...first, ...items.filter((i) => !lead.includes(i.slug))];
+}
+
+/**
+ * The projects that lead for this visitor: the first four with a device render, in the variant's order
+ * when it has one (see `leading` in src/content/projects.ts). `items` come in the site's order.
+ */
+export function useLead<T extends { slug: string; art?: unknown }>(items: T[]): { lead: T[]; rest: T[] } {
+  const ordered = useVariantOrder(items);
+  const lead = leading(ordered);
+  return { lead, rest: ordered.filter((i) => !lead.includes(i)) };
+}
+
+/** The variant's chosen headline figure for a project (a chapter id), if any. */
+export function useVariantStat(slug: string): string | undefined {
+  return useVariant().current?.variant.stats?.[slug];
 }
 
 /** Picks up `?v=` once per page load. Lives inside ModeProvider so a variant can set the mode. */

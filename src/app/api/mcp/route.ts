@@ -4,9 +4,12 @@ import type { Operation } from "rfc6902";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { z } from "zod";
 import { at, describeChanges } from "@/lib/content/changes";
-import { getCvContent, getProjects } from "@/lib/content/read";
 import { ContentError, changes, getState, patchDraft, publishedValue } from "@/lib/content/store";
 import { CV_SECTIONS, CV_TAGS } from "@/lib/content/schema";
+import { leading, statOf } from "@/content/projects";
+import { getCvContent, getProjects, getSiteContent } from "@/lib/content/read";
+import { pickChapters, pickProjects } from "@/lib/portfolio/pdf";
+import { linkRoles, tailorRoles, roleLines } from "@/lib/cv/career";
 import { renderCvPdf } from "@/lib/cv/pdf";
 import { deleteVariant, getActivity, getVariant, listVariants, saveVariant, type StoredVariant } from "@/lib/cv/store";
 import { variantSchema } from "@/lib/cv/schema";
@@ -28,7 +31,9 @@ const GUIDE = `How to tailor:
 - Four bullets per entry at most; five only for the lead role when every line is strong.
 - The CV must be exactly 2 pages: preview_cv reports the page count; trim bullets or entries until it is 2.
 - Only pick, order and choose between existing lines (entry ids, bullet ids, allowed titles, skill group ids and items, stack items). Never invent facts; free text is limited to "headline" and "summary", and those must stay true to the master CV.
-- "projects" orders the site's projects page for this visitor (lead with the most relevant), and its first three are the three projects in the portfolio PDF deck. "mode" sets which way the site opens (fulltime for employers, freelance for clients).
+- "projects" orders the site's projects for this visitor, most relevant first. Every project has a device render, and the first four lead: the home page's project grid and the large rows of the projects page. The first three make the portfolio PDF deck. "mode" sets which way the site opens (fulltime for employers, freelance for clients).
+- "stats" gives a project another headline number, on the projects page and in the deck: the chapter whose figure answers the job's top requirement (only chapters with a figure). "chapters" picks the deck's slides for a project: up to three chapter ids, in order, the ones that prove what the job asks for.
+- The site's career (the Career page, and the home page in Full-time mode) follows the CV: a role that stands for a CV entry ("career" in get_cv_master) shows the title you chose for that entry and the lines you picked for it, and those roles lead in the order of "entries".
 - For Upwork and other platforms that bar sharing contact details, set "contact": false. It hides the email, GitHub and LinkedIn on the CV and both PDFs.
 - The label is private (e.g. "Acme, Senior Frontend, 2026-11"); the visitor never sees it.`;
 
@@ -54,16 +59,36 @@ function links(origin: string, code: string) {
   };
 }
 
+/** What the variant does to the site and the deck, for an agent to check alongside the CV. */
+async function sitePreview(variant: Variant) {
+  const [projects, cv, { careerDetail }] = await Promise.all([getProjects(), getCvContent(), getSiteContent()]);
+  const lead = (variant.projects ?? []).map((slug) => projects.find((p) => p.slug === slug)).filter((p) => p !== undefined);
+  const ordered = [...lead, ...projects.filter((p) => !lead.includes(p))];
+  const all = careerDetail.flatMap((g) => g.roles);
+  const links = linkRoles(all, cv);
+  const lines = roleLines(cv, links);
+  let start = 0;
+  return {
+    leading: leading(ordered).map((p) => p.slug),
+    deck: pickProjects(projects, variant, 3).map((p) => ({
+      project: p.slug,
+      stat: statOf(p, variant.stats?.[p.slug]),
+      chapters: pickChapters(p, 3, variant.chapters?.[p.slug]).map((c) => c.id),
+    })),
+    careerPage: careerDetail.map((g) => {
+      const roles = tailorRoles(g.roles, links.slice(start, start + g.roles.length), lines, variant);
+      start += g.roles.length;
+      return { group: g.heading, roles: roles.map((r) => ({ org: r.org, role: r.role, points: r.points.length })) };
+    }),
+  };
+}
+
 async function preview(variant: Variant, origin: string) {
   const [content, projects] = await Promise.all([getCvContent(), getProjects()]);
-  const errors = checkVariant(
-    content,
-    variant,
-    projects.map((p) => p.slug),
-  );
+  const errors = checkVariant(content, variant, projects);
   const cv = resolveCv(content, variant);
   const { pages } = await renderCvPdf(cv, origin);
-  return { errors, pages, fitsTwoPages: pages === 2, text: cvToText(cv) };
+  return { errors, pages, fitsTwoPages: pages === 2, text: cvToText(cv), site: await sitePreview(variant) };
 }
 
 function buildServer(origin: string) {
@@ -74,11 +99,16 @@ function buildServer(origin: string) {
     {
       title: "Read the master CV",
       description:
-        "Everything that can go on the CV, with ids: entries (by section) and their bullets with tags and weight (3 = strongest), allowed titles, stock headlines and summaries, skill groups, and the site's projects. Read this first.",
+        "Everything that can go on the CV, with ids: entries (by section) and their bullets with tags and weight (3 = strongest), allowed titles, stock headlines and summaries, skill groups, the site's projects with their chapters and figures, and the site's career roles with the CV entry each follows. Read this first.",
       annotations: { readOnlyHint: true },
     },
     async () => {
-      const [cv, projects] = await Promise.all([getCvContent(), getProjects()]);
+      const [cv, projects, { careerDetail }] = await Promise.all([getCvContent(), getProjects(), getSiteContent()]);
+      const roles = careerDetail.flatMap((g) => g.roles.map((r) => ({ group: g.heading, r })));
+      const links = linkRoles(
+        roles.map((x) => x.r),
+        cv,
+      );
       return json({
         guide: GUIDE,
         sections: CV_SECTIONS,
@@ -97,7 +127,14 @@ function buildServer(origin: string) {
           status: p.status?.note,
           stat: `${p.stat.value} ${p.stat.label}`,
           summary: p.summary,
+          render: Boolean(p.art),
+          chapters: p.chapters.map((c) => ({
+            id: c.id,
+            title: c.title,
+            figure: c.figure ? `${statOf(p, c.id).value} ${statOf(p, c.id).label}` : undefined,
+          })),
         })),
+        career: roles.map((x, i) => ({ group: x.group, org: x.r.org, role: x.r.role, period: x.r.period, cvEntry: links[i] ?? undefined })),
         defaultVariant: "Leave any field out to use the default: entries with weight >= 2, their strongest bullets (4 per role, 5 for the lead one), skills first, then every section.",
       });
     },
@@ -107,7 +144,8 @@ function buildServer(origin: string) {
     "preview_cv",
     {
       title: "Preview a CV variant",
-      description: "Render a variant without saving it: the CV as text (with ids), its PDF page count, and any validation errors.",
+      description:
+        "Render a variant without saving it: the CV as text (with ids), its PDF page count, any validation errors, and what it does to the site: the four projects that lead, the deck's projects with their headline number and chapters, and the Career page's roles in order.",
       inputSchema: { variant: variantSchema },
       annotations: { readOnlyHint: true },
     },

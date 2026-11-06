@@ -164,7 +164,8 @@ html.lenis body {
     clip-path: circle(calc(var(--s) * var(--r0)) at calc(var(--s) * var(--cx)) calc(var(--s) * var(--cy)));
     transition: clip-path 550ms var(--ease-in-out);
   }
-  .art-real > img {
+  /* `img` at any depth: <Picture> wraps it in a <picture> (display: contents). */
+  .art-real img {
     scale: 1.06;
     transform-origin: calc(var(--s) * var(--ox)) calc(var(--s) * var(--oy));
     transition: scale 550ms var(--ease-in-out);
@@ -180,7 +181,7 @@ html.lenis body {
     transition-duration: 1100ms;
     transition-timing-function: cubic-bezier(0.55, 0, 0.15, 1);
   }
-  :is(.group:hover, .group:focus-visible, [data-open="true"]) .art-real > img {
+  :is(.group:hover, .group:focus-visible, [data-open="true"]) .art-real img {
     scale: 1;
     transition-duration: 1200ms;
     transition-timing-function: var(--ease-out);
@@ -259,7 +260,7 @@ html.lenis body {
   }
   /* The project art swaps to the real render instead of growing a circle across it. */
   .art-real,
-  .art-real > img {
+  .art-real img {
     transition-duration: 1ms !important;
   }
 }

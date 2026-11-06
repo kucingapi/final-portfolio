@@ -1,5 +1,5 @@
-import Image from "next/image";
 import { InlineSvg } from "@/components/InlineSvg";
+import { Picture } from "@/components/Picture";
 import { Chip, Deco } from "@/components/ui";
 import { SectionMotion } from "@/components/motion/SectionMotion";
 import { ByMode } from "@/components/mode/Mode";
@@ -66,12 +66,13 @@ export async function Hero() {
           >
             <div data-speed="0.9" className="absolute top-43 left-182 h-444 w-354">
               <div data-photo data-node-id="186:1926" className="relative size-full overflow-hidden rounded-lg border-2 border-base-200 bg-midnight-950">
-                <Image
+                {/* Drawn at 1.35× its box (scale-[1.35]); the sizes ask for that. */}
+                <Picture
                   src="/figma/hero/photo-main.webp"
                   alt="Novel speaking with a microphone"
                   fill
-                  priority
-                  sizes="(max-width: 1023px) 60vw, 30vw"
+                  preload
+                  sizes="(max-width: 1023px) 67vw, (min-width: 1440px) 478px, 34vw"
                   className="origin-[57%_38%] scale-[1.35] object-cover object-[60%_30%] opacity-80"
                 />
               </div>
@@ -82,7 +83,7 @@ export async function Hero() {
 
             <div data-speed="1.08" className="absolute top-276 left-25 flex h-404 w-359 items-center justify-center">
               <div data-photo data-node-id="186:1915" className="relative h-333 w-251 flex-none -rotate-[22.5deg] overflow-hidden rounded-lg border-2 border-base-200 bg-base-800">
-                <Image
+                <Picture
                   src="/figma/hero/photo-left.webp"
                   alt="Novel Bafagih at an event"
                   fill
@@ -97,7 +98,7 @@ export async function Hero() {
 
             <div data-speed="1.15" className="absolute top-294 left-325 flex h-404 w-359 items-center justify-center">
               <div data-photo data-node-id="186:1921" className="relative h-333 w-251 flex-none rotate-[22.5deg] overflow-hidden rounded-lg border-2 border-base-200 bg-base-800">
-                <Image
+                <Picture
                   src="/figma/hero/photo-right.webp"
                   alt="Novel at Hase-dera temple in Kamakura"
                   fill

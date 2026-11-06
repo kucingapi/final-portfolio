@@ -1,8 +1,8 @@
 "use client";
 
 import { Download, ExternalLink } from "lucide-react";
-import Image from "next/image";
 import { useState } from "react";
+import { Picture } from "@/components/Picture";
 import { CONTRA, UPWORK, type ProjectExport } from "@/lib/dashboard/export";
 import { CopyField, CopyList } from "./Copy";
 import { Button } from "./ui/button";
@@ -59,7 +59,7 @@ function ProjectExportView({ p }: { p: ProjectExport }) {
               {p.images.map((img) => (
                 <li key={img.src} className="flex flex-col gap-1.5">
                   <div className="relative aspect-[4/3] overflow-hidden rounded-lg border border-border bg-card">
-                    <Image src={img.src} alt="" fill sizes="(max-width: 1023px) 45vw, 180px" className="object-contain" />
+                    <Picture src={img.src} alt="" fill sizes="(max-width: 1023px) 45vw, 180px" className="object-contain" />
                   </div>
                   <span className="truncate text-xs text-muted-foreground">
                     {img.name} · {img.label}

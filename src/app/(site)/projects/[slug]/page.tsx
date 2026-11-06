@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Fragment } from "react";
+import { Picture } from "@/components/Picture";
 import { Chip, Heading } from "@/components/ui";
 import { SectionMotion } from "@/components/motion/SectionMotion";
 import { TransitionLink } from "@/components/transition/PageTransition";
-import { ProjectVisual } from "@/components/projects/ProjectVisual";
+import { ProjectVisual, visualWidth } from "@/components/projects/ProjectVisual";
 import { LetsTalk } from "@/components/sections/LetsTalk";
 import { Footer } from "@/components/sections/Footer";
 import { nextProject, type Chapter, type Part } from "@/content/projects";
@@ -29,8 +29,12 @@ export async function generateMetadata({ params }: PageProps<"/projects/[slug]">
 
 const HERO = { w: 1240, h: 700 };
 
-/** Sizes for a render drawn `w` design px wide in the 1240 frame (scaled to 390 on phones). */
-const heroSizes = (w: number) => `(max-width: 1023px) ${Math.round((w / 1240) * 91)}vw, ${Math.round(w / 14.4)}vw`;
+/**
+ * Sizes for a render drawn `w` design px wide in the 1240 frame (scaled to 390 on phones). The design
+ * stops growing at 1440, so from there it is `w` px.
+ */
+const heroSizes = (w: number) =>
+  `(max-width: 1023px) ${Math.round((w / 1240) * 91)}vw, (min-width: 1440px) ${w}px, ${Math.round(w / 14.4)}vw`;
 
 function Arrow({ className = "" }: { className?: string }) {
   return (
@@ -137,7 +141,7 @@ function ChapterBlock({ chapter, flip, level }: { chapter: Chapter; flip: boolea
         {chapter.shot ? (
           <figure data-rise className="flex min-w-0 flex-1 flex-col gap-14">
             <div className={`overflow-hidden border-2 border-midnight-50 bg-white ${flip ? "rounded-tl-lg rounded-br-xs" : "rounded-tr-lg rounded-bl-xs"}`}>
-              <Image
+              <Picture
                 src={chapter.shot.src}
                 alt={chapter.shot.alt}
                 width={chapter.shot.width}
@@ -217,7 +221,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
                 className="relative mt-48 h-[calc(var(--s)*700)] overflow-hidden rounded-tr-lg bg-midnight-950 max-md:mt-40 max-md:h-[calc(var(--s)*220)] max-md:rounded-tr-md"
               >
                 <div className="absolute top-0 left-0 h-[calc(var(--s)*700)] w-[calc(var(--s)*1240)] origin-top-left max-md:scale-[calc(390/1240)]">
-                  <ProjectVisual project={project} frame={HERO} sizes={heroSizes(project.hero?.w ?? HERO.w)} priority />
+                  <ProjectVisual project={project} frame={HERO} sizes={heroSizes(visualWidth(project, HERO))} preload />
                 </div>
                 <span className="sr-only">{project.art?.alt ?? project.cover?.alt ?? `${project.stat.value} ${project.stat.label}`}</span>
               </div>
@@ -309,7 +313,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
                   className="group absolute inset-0 block overflow-hidden rounded-tl-lg bg-midnight-950 max-md:rounded-tl-md"
                 >
                   <div className="absolute top-0 left-0 h-[calc(var(--s)*700)] w-[calc(var(--s)*1240)] origin-top-left max-md:scale-[calc(390/1240)]">
-                    <ProjectVisual project={next} frame={HERO} sizes={heroSizes(next.hero?.w ?? HERO.w)} />
+                    <ProjectVisual project={next} frame={HERO} sizes={heroSizes(visualWidth(next, HERO))} />
                   </div>
                   <span className="pointer-events-none absolute bottom-32 left-32 flex flex-wrap items-center gap-8 max-md:bottom-12 max-md:left-12">
                     <Chip>{next.title}</Chip>
