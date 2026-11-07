@@ -121,6 +121,7 @@ const en = {
     label: (name: string) => `${name}, CV`,
     certificate: "Certificate",
     tech: "Tech:",
+    coursework: "Relevant coursework:",
     download: "Download CV",
     downloadPortfolio: "Download portfolio",
     sections: {
@@ -307,6 +308,7 @@ const id: Ui = {
     label: (name) => `${name}, CV`,
     certificate: "Sertifikat",
     tech: "Teknologi:",
+    coursework: "Mata kuliah relevan:",
     download: "Unduh CV",
     downloadPortfolio: "Unduh portofolio",
     sections: {

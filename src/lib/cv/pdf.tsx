@@ -93,6 +93,7 @@ function Entry({ e, mark, origin, t }: { e: ResolvedEntry; mark?: ReactNode; ori
           <Text style={s.title}>
             {e.title}
             {e.note ? `, ${e.note}` : ""}
+            {e.grade ? ` | ${e.grade}` : ""}
           </Text>
           <Text style={s.period}>{e.period}</Text>
         </View>
@@ -102,6 +103,12 @@ function Entry({ e, mark, origin, t }: { e: ResolvedEntry; mark?: ReactNode; ori
       {rest.map((b) => (
         <Bullet key={b.id} text={b.text} />
       ))}
+      {e.courses.length > 0 && (
+        <Text style={s.stack} wrap={false}>
+          <Text style={s.bold}>{t.coursework} </Text>
+          {e.courses.map((c) => c.title).join(", ")}
+        </Text>
+      )}
       {e.stack && e.stack.length > 0 && (
         <Text style={s.stack} wrap={false}>
           <Text style={s.bold}>{t.tech} </Text>

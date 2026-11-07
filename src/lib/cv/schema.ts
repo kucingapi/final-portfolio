@@ -43,6 +43,11 @@ export const variantSchema = z.object({
   titles: byId(z.string().max(120)).optional(),
   /** Per entry, the "Tech:" line: items from its stack, in order, the job's tools first. Empty hides it. */
   stacks: byId(ids(32)).optional(),
+  /**
+   * Per education entry, the course ids to list as "Relevant coursework", in order, the job's closest
+   * first. An entry not listed shows no coursework.
+   */
+  courses: byId(ids(40)).optional(),
   /** Skill group ids in order; groups left out are hidden. */
   skills: ids(20).optional(),
   /** Per skill group, which of its items to show, in order, the job's requirements first. */

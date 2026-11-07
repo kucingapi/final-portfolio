@@ -42,7 +42,8 @@ type Path = (string | number)[];
 
 /**
  * `from` names a chapter in a project's parts but is a value in a chapter's figure; a career role's
- * `kind` is one of CAREER_KINDS, a project's is words.
+ * `kind` is one of CAREER_KINDS, a project's is words. A course's code and grade are the transcript's,
+ * while a degree's `grade` is words ("GPA 3.76/4.00, cum laude").
  */
 function locked(path: Path): boolean {
   const keys = path.filter((p): p is string => typeof p === "string");
@@ -50,6 +51,7 @@ function locked(path: Path): boolean {
   if (key === undefined) return false;
   if (key === "from") return keys.includes("parts");
   if (key === "kind") return keys.includes("career") || keys.includes("careerDetail");
+  if (key === "code" || key === "grade") return keys.includes("courses");
   return keys.some((k) => LOCKED.has(k));
 }
 

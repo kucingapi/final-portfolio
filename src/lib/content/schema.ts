@@ -171,6 +171,16 @@ const cvBulletSchema = z.object({
   weight: weight({ description: "How strong the line is on its own: 3 leads, and the default CV uses the heaviest." }),
 });
 
+/** A course from a degree's transcript, which a tailored CV may list as relevant coursework. */
+const cvCourseSchema = z.object({
+  id: id({ description: "Tailored CVs pick courses by this id." }),
+  code: text({ description: "The course code on the transcript, e.g. CIT61006." }),
+  title: line({ description: "The course's name as the transcript gives it in English." }),
+  grade: text({ description: "The grade on the transcript. Not printed; it helps choose between courses." }),
+  about: paragraph({ description: "What the course covers, from the faculty's own description; not printed." }),
+  tags: z.array(cvTag),
+});
+
 const cvEntrySchema = z.object({
   id: id({ description: "Tailored CVs pick entries by this id." }),
   section: z.enum(CV_ENTRY_SECTIONS),
@@ -179,6 +189,11 @@ const cvEntrySchema = z.object({
   titles: z.array(line()).min(1, "At least one title.").meta({ description: "Titles this role can honestly go by; the first is the default." }),
   period: line(),
   note: text({ description: 'A short qualifier after the title, e.g. "Freelance".' }).optional(),
+  grade: text({ description: 'A degree\'s result, after the title on every CV, e.g. "GPA 3.76/4.00, cum laude".' }).optional(),
+  courses: z
+    .array(cvCourseSchema)
+    .meta({ description: 'Courses a tailored CV may list as "Relevant coursework" (the default CV lists none).' })
+    .optional(),
   link: text({ title: "Case study", description: "A page on the site, e.g. /projects/agentflow." }).optional(),
   proof: text({ description: "The certificate, as an image path under public/certificates." }).optional(),
   about: paragraph({ description: "One line on what the organisation is." }).optional(),
@@ -212,14 +227,20 @@ export const cvSchema = z
       (i) => ["entries", i, "id"],
       "entry",
     );
-    v.entries.forEach((e, i) =>
+    v.entries.forEach((e, i) => {
       unique(
         ctx,
         e.bullets.map((b) => b.id),
         (j) => ["entries", i, "bullets", j, "id"],
         "line in this entry",
-      ),
-    );
+      );
+      unique(
+        ctx,
+        (e.courses ?? []).map((c) => c.id),
+        (j) => ["entries", i, "courses", j, "id"],
+        "course in this entry",
+      );
+    });
     unique(
       ctx,
       v.summaries.map((s) => s.id),
@@ -399,6 +420,7 @@ export type CvSectionId = (typeof CV_SECTIONS)[number];
 export type CvEntrySection = (typeof CV_ENTRY_SECTIONS)[number];
 export type CvBullet = z.infer<typeof cvBulletSchema>;
 export type CvEntry = z.infer<typeof cvEntrySchema>;
+export type CvCourse = z.infer<typeof cvCourseSchema>;
 export type CvSkillGroup = z.infer<typeof cvSkillGroupSchema>;
 export type CvHeader = CvContent["header"];
 export type CvSummary = CvContent["summaries"][number];

@@ -159,12 +159,159 @@ export const cvId: Record<string, string> = {
     "Malang, Indonesia",
   "Bachelor of Computer Science, Information Technology":
     "Sarjana Komputer (S.Kom.), Teknologi Informasi",
+  "GPA 3.76/4.00, cum laude":
+    "IPK 3,76/4,00, cum laude",
   "Chairman of FEEL-IT (2022), the orientation that KBMTI, the IT students' association, runs for 150+ new students: led a team of 60 across 8 divisions and brought it back offline for the first time in two years.":
     "Ketua Pelaksana FEEL-IT (2022), masa orientasi yang diadakan KBMTI, himpunan mahasiswa Teknologi Informasi, untuk 150+ mahasiswa baru: memimpin tim berisi 60 orang di 8 divisi dan menggelarnya kembali secara offline untuk pertama kalinya dalam dua tahun.",
   "Head of Talent Development at BCC, the faculty's student tech community (2021 – 2023): set up its software house, which won the community's first paid project, and ran its first offline townhall, with attendance up 50%.":
     "Head of Talent Development di BCC, komunitas teknologi mahasiswa di fakultas (2021 – 2023): mendirikan software house-nya, yang memenangkan proyek berbayar pertama komunitas, dan menggelar townhall offline pertamanya, dengan jumlah peserta naik 50%.",
   "Created a BCC learning event that drew 100+ attendees, 50% more than the year before.":
     "Membuat acara belajar BCC yang diikuti 100+ peserta, 50% lebih banyak dari tahun sebelumnya.",
+  // Courses: the transcript's own names, and FILKOM's descriptions condensed.
+  "Web-Based Application Development":
+    "Pengembangan Aplikasi Web",
+  "Building dynamic, database-backed websites: server-side scripting, database connections and data handling, object-oriented code, MVC with a PHP framework, and AJAX for responsive pages.":
+    "Membangun website dinamis yang mengelola data dalam database: server-side scripting, koneksi dan manipulasi data, pemrograman berorientasi objek, MVC dengan framework PHP, dan AJAX untuk halaman yang responsif.",
+  "Mobile Apps Development":
+    "Pengembangan Aplikasi Mobile",
+  "Android apps that exchange data and use location: activities and UI, navigation and events, on-device databases, background work, consuming REST APIs, notifications, maps and device sensors.":
+    "Aplikasi Android yang bertukar data dan memakai fitur lokasi: activity dan antarmuka, navigasi dan event, database di perangkat, proses di background, konsumsi REST API, notifikasi, peta, dan sensor perangkat.",
+  "Mobile Application Programming":
+    "Pemrograman Aplikasi Perangkat Bergerak",
+  "Applying software engineering principles to build software for mobile platforms, taught on Android (a Teknik Informatika elective).":
+    "Menerapkan prinsip rekayasa perangkat lunak untuk membangun perangkat lunak di platform mobile, dengan Android (mata kuliah pilihan Teknik Informatika).",
+  "Advanced Mobile Application Programming":
+    "Pemrograman Aplikasi Perangkat Bergerak Lanjut",
+  "Engineering mobile software and designing intelligent systems on the phone, such as activity recognition from smartphone sensors (a Teknik Informatika elective).":
+    "Rekayasa perangkat lunak mobile dan perancangan sistem cerdas di ponsel, seperti pengenalan aktivitas dari sensor smartphone (mata kuliah pilihan Teknik Informatika).",
+  "Fundamentals of User Interface Design":
+    "Dasar Desain Antarmuka Pengguna",
+  "Designing interfaces around human abilities and limits, then building their front end: usability heuristics, colour, typography and layout, Material Design, user-centred design, prototyping, HTML, CSS, JavaScript and Bootstrap.":
+    "Merancang antarmuka dengan memperhatikan kemampuan dan keterbatasan manusia, lalu membangun front end-nya: heuristik usability, warna, tipografi dan layout, Material Design, user-centred design, prototyping, HTML, CSS, JavaScript, dan Bootstrap.",
+  "Applications and Game Product Design":
+    "Desain Produk Aplikasi dan Gim",
+  "Designing and evaluating how users interact with apps and games, with an entrepreneurial focus: habit-forming products, lean MVPs and customer feedback, business models (a Teknik Informatika elective).":
+    "Merancang dan mengevaluasi interaksi pengguna dengan aplikasi dan gim, dengan semangat kewirausahaan: produk yang membentuk kebiasaan, MVP yang lean dan umpan balik pelanggan, serta model bisnis (mata kuliah pilihan Teknik Informatika).",
+  "Integrative Programming":
+    "Pemrograman Integratif",
+  "Integrating systems through web services: SOA, microservices, RESTful API design, building and deploying APIs with a framework (Lumen), JSON and XML, middleware, API security, cloud APIs and e-payment integration.":
+    "Integrasi sistem lewat web service: SOA, microservice, desain RESTful API, membangun dan men-deploy API dengan framework (Lumen), JSON dan XML, middleware, keamanan API, API cloud, dan integrasi e-payment.",
+  "System Integration Technology":
+    "Teknologi Integrasi Sistem",
+  "Service-based integration: SOA principles, SOAP and REST, data mapping and exchange between systems, REST modelling, design and implementation, service composition, SOA security, and scalable architectures towards cloud computing.":
+    "Integrasi berbasis layanan: prinsip SOA, SOAP dan REST, pemetaan dan pertukaran data antarsistem, pemodelan, perancangan, dan implementasi REST, komposisi layanan, keamanan SOA, serta arsitektur yang scalable menuju cloud computing.",
+  "Database Systems":
+    "Sistem Basis Data",
+  "Designing and implementing relational databases: DBMS architecture, ER and enhanced ER modelling, mapping to tables, SQL (DDL, joins, aggregates, subqueries), normalisation, and installing and configuring an RDBMS.":
+    "Merancang dan mengimplementasikan basis data relasional: arsitektur DBMS, pemodelan ERD dan EERD, pemetaan ke tabel, SQL (DDL, join, fungsi agregat, subquery), normalisasi, serta instalasi dan konfigurasi RDBMS.",
+  "Database Programming":
+    "Pemrograman Basis Data",
+  "Programming inside the database for faster, better-run servers: stored procedures, user-defined functions, triggers, cursors, control flow, error handling and dynamic SQL.":
+    "Pemrograman di dalam basis data untuk respons dan kinerja server yang lebih baik: stored procedure, user-defined function, trigger, cursor, control flow, penanganan kondisi, dan dynamic SQL.",
+  "Database Administration":
+    "Administrasi Basis Data",
+  "The database administrator's job on relational servers: planning server architecture, performance under complex transactions, concurrency and locking, security, backup and recovery, and availability for many users.":
+    "Pekerjaan database administrator pada server basis data relasional: perencanaan arsitektur server, kinerja pada transaksi kompleks, concurrency dan locking, keamanan, backup dan recovery, serta ketersediaan akses multi pengguna.",
+  "Distributed Databases":
+    "Basis Data Terdistribusi",
+  "Distributed database architecture and design, integrity control, distributed query processing and optimisation, transactions and concurrency control, and integrating several data sources for any application to reach.":
+    "Arsitektur dan desain basis data terdistribusi, pengendalian integritas, pemrosesan dan optimasi query terdistribusi, transaksi dan kontrol konkurensi, serta integrasi beberapa sumber data agar bisa diakses aplikasi mana pun.",
+  "Data Warehouse":
+    "Data Warehouse",
+  "Building data warehouses for analytics and management decisions, centred on ETL from varied sources: OLTP and OLAP, requirements, logical and physical design, and OLAP queries for reporting.":
+    "Membangun data warehouse untuk analitik dan pengambilan keputusan manajerial, berpusat pada ETL dari beragam sumber: OLTP dan OLAP, analisis kebutuhan, desain logikal dan fisikal, serta query OLAP untuk pelaporan.",
+  "Data Mining":
+    "Data Mining",
+  "Finding patterns in data for decisions: data preparation, clustering, classification, Bayesian methods, association rules, sequential patterns and regression.":
+    "Menggali pola dari data untuk pengambilan keputusan: persiapan data, clustering, klasifikasi, teknik Bayesian, association rule, sequential pattern, dan regresi.",
+  "Statistics":
+    "Statistika",
+  "Presenting and analysing data for decisions: descriptive and inferential statistics, probability and distributions, estimation, hypothesis testing, one-way ANOVA, linear regression and correlation.":
+    "Penyajian dan analisis data untuk pengambilan keputusan: statistika deskriptif dan inferensial, probabilitas dan distribusi, estimasi, uji hipotesis, ANOVA satu arah, regresi linier, dan korelasi.",
+  "Data Structures and Algorithms":
+    "Algoritma dan Struktur Data",
+  "Choosing and implementing efficient data structures and algorithms: abstract data types, linked lists, stacks, queues, trees (binary, AVL), graphs, sorting and searching.":
+    "Memilih dan mengimplementasikan struktur data dan algoritma yang efisien: abstract data type, linked list, stack, queue, tree (binary, AVL), graph, sorting, dan searching.",
+  "Advanced Programming":
+    "Pemrograman Lanjut",
+  "Object-oriented programming in Java: classes, inheritance, encapsulation, polymorphism, abstract classes and interfaces, exception handling, file I/O and GUI programming.":
+    "Pemrograman berorientasi objek dengan Java: class, inheritance, encapsulation, polymorphism, abstract class dan interface, exception handling, file I/O, dan pemrograman GUI.",
+  "Basic Programming":
+    "Pemrograman Dasar",
+  "Algorithms and structured programming for simple computing problems: flowcharts and pseudocode, data types, operators, selection, loops, functions and arrays.":
+    "Algoritma dan pemrograman terstruktur untuk masalah komputasi sederhana: flowchart dan pseudocode, tipe data, operator, percabangan, perulangan, fungsi, dan array.",
+  "Information Systems Analysis and Design":
+    "Analisis dan Desain Sistem Informasi",
+  "Eliciting requirements and designing information systems: business process modelling, requirements analysis, structured and object-oriented modelling in UML (use case, activity, sequence and class diagrams), and a software design project.":
+    "Penggalian kebutuhan dan perancangan sistem informasi: pemodelan proses bisnis, analisis kebutuhan, pemodelan terstruktur dan berorientasi objek dengan UML (use case, activity, sequence, dan class diagram), serta proyek perancangan perangkat lunak.",
+  "Basics of Information Systems Development":
+    "Dasar Pengembangan Sistem Informasi",
+  "The full software process for an information system: requirements engineering, system modelling, architecture design, implementation, testing, deployment, operation and maintenance.":
+    "Seluruh proses perangkat lunak untuk sebuah sistem informasi: rekayasa kebutuhan, pemodelan sistem, desain arsitektur, implementasi, pengujian, deployment, operasional, dan pemeliharaan.",
+  "Information System Implementation and Evaluation":
+    "Implementasi dan Evaluasi Sistem Informasi",
+  "Implementing a system from its models and testing it against functional and non-functional requirements: black-box and white-box, static and dynamic testing, test documentation and quality assurance.":
+    "Implementasi sistem sesuai pemodelannya dan pengujian terhadap kebutuhan fungsional dan non-fungsional: black-box dan white-box testing, pengujian statis dan dinamis, dokumentasi pengujian, dan quality assurance.",
+  "Information Technology Project Management":
+    "Manajemen Proyek Teknologi Informasi",
+  "Managing IT projects through their life cycle with the PMBOK: initiation, planning, execution, closing and evaluation, with scope, time, cost and risk management.":
+    "Mengelola proyek TI sepanjang siklus hidupnya dengan PMBOK: inisiasi, perencanaan, pelaksanaan, penutupan, dan evaluasi, beserta manajemen ruang lingkup, waktu, biaya, dan risiko.",
+  "Entrepreneurship":
+    "Kewirausahaan",
+  "Starting a business in the internet era: creative thinking, startups, marketing and market plans, finance, feasibility studies, competitive strategy and writing a business plan.":
+    "Memulai usaha di era internet: berpikir kreatif, startup, pemasaran dan rencana pasar, keuangan, studi kelayakan bisnis, strategi bersaing, dan menyusun business plan.",
+  "Networking Fundamentals":
+    "Jaringan Komputer Dasar",
+  "Computer networks and the Internet layer by layer (TCP/IP application, transport, network and data link), plus mobile and wireless networks, with lab work.":
+    "Jaringan komputer dan Internet lapis demi lapis (application, transport, network, dan data link pada TCP/IP), serta jaringan mobile dan nirkabel, dengan praktikum.",
+  "Internet Architecture and Protocol":
+    "Arsitektur dan Protokol Internet",
+  "Routing in depth, in theory and lab: routing algorithms and protocols, IP routing, traffic engineering, Internet routing architecture, packet switching, VLAN and MPLS.":
+    "Routing secara mendalam, lewat teori dan praktikum: algoritma dan protokol routing, IP routing, traffic engineering, arsitektur routing Internet, packet switching, VLAN, dan MPLS.",
+  "Information Security":
+    "Keamanan Informasi",
+  "Securing information assets: threats and attacks, access control, firewalls, VPN, intrusion detection and prevention, security risk management, physical and personnel security, and Indonesia's ITE law.":
+    "Pengamanan aset informasi: ancaman dan serangan, access control, firewall, VPN, deteksi dan pencegahan intrusi, manajemen risiko keamanan, keamanan fisik dan personel, serta UU ITE.",
+  "Network Security":
+    "Keamanan Jaringan",
+  "Securing networks across every TCP/IP layer: vulnerabilities, threats and attacks, spotting security breaches, and handling incidents.":
+    "Pengamanan jaringan di setiap lapisan TCP/IP: kerentanan, ancaman dan serangan, mengidentifikasi pelanggaran keamanan, dan menangani insiden.",
+  "System Administration":
+    "Administrasi Sistem",
+  "Running Linux services as a system administrator: booting, users, storage, backups, logs and syslog, performance, software management and data centre management.":
+    "Mengelola layanan berbasis Linux sebagai system administrator: booting, manajemen pengguna, storage, backup, log dan syslog, kinerja sistem, manajemen perangkat lunak, dan manajemen data center.",
+  "Operating System Fundamentals":
+    "Pengantar Sistem Operasi",
+  "How operating systems run modern computers: OS structure, process and memory management, scheduling, I/O and disks, security and protection, and assessing system performance.":
+    "Cara sistem operasi menjalankan komputer modern: struktur sistem operasi, manajemen proses dan memori, penjadwalan, I/O dan disk, keamanan dan proteksi, serta asesmen kinerja sistem.",
+  "Computer Architecture and Organization":
+    "Arsitektur dan Organisasi Komputer",
+  "Processors, memory, I/O and instruction set architecture: cache, buses, computer arithmetic, RISC and CISC, pipelining, control units, multicore and distributed systems.":
+    "Prosesor, memori, input-output, dan instruction set architecture: cache, bus, aritmetika komputer, RISC dan CISC, pipelining, control unit, multicore, dan sistem terdistribusi.",
+  "Computational Mathematics":
+    "Matematika Komputasi",
+  "Discrete mathematics for computing: logic, sets, relations and functions, sequences, induction, counting, discrete probability, number theory, recurrences, matrices and vectors.":
+    "Matematika diskrit untuk komputasi: logika, himpunan, relasi dan fungsi, deret dan barisan, induksi, pencacahan, probabilitas diskrit, teori bilangan, rekurensi, matriks, dan vektor.",
+  "Research Methodology and Scientific Writing":
+    "Metodologi Penelitian dan Penulisan Ilmiah",
+  "Research in information technology: framing problems, quantitative, qualitative and mixed methods, measurement and data collection, statistical analysis, and writing for publication.":
+    "Penelitian di bidang teknologi informasi: perumusan masalah, metode kuantitatif, kualitatif, dan campuran, pengukuran dan pengumpulan data, analisis statistik, serta penulisan publikasi ilmiah.",
+  "Enterprise Architecture":
+    "Enterprise Architecture",
+  "Managing an organisation's enterprise architecture with TOGAF's ADM, EA frameworks and ArchiMate.":
+    "Mengelola enterprise architecture sebuah organisasi dengan TOGAF ADM, framework EA, dan ArchiMate.",
+  "Information Technology Governance":
+    "Tata Kelola Teknologi Informasi",
+  "Aligning IT with the business and evaluating how it is governed: IT maturity, IT audit, COBIT 5, SPBE (Indonesia's e-government framework), IT balanced scorecard, risk and internal control.":
+    "Menyelaraskan TI dengan bisnis dan mengevaluasi tata kelolanya: maturitas TI, audit TI, COBIT 5, SPBE, IT balanced scorecard, manajemen risiko, dan pengendalian internal.",
+  "Geographic Information Systems":
+    "Sistem Informasi Geografi",
+  "Geoinformation from geographically referenced data: collecting geospatial data, satellite Earth observation, geoinformation computing platforms and spatial data infrastructure.":
+    "Geoinformasi dari data bereferensi geografis: pengumpulan data geospasial, observasi bumi dengan satelit, platform komputasi geoinformasi, dan infrastruktur data spasial.",
+  "Professional Ethics":
+    "Etika Profesi",
+  "Ethics and professionalism in IT: codes of ethics, cybercrime, e-commerce ethics, copyright, plagiarism and software licensing.":
+    "Etika dan profesionalisme di bidang TI: kode etik profesi, cybercrime, etika bisnis dan e-commerce, hak cipta, plagiarisme, dan lisensi perangkat lunak.",
   "Bangkit Academy, led by Google, Gojek, Tokopedia and Traveloka":
     "Bangkit Academy, diinisiasi oleh Google, Gojek, Tokopedia, dan Traveloka",
   "Mobile Development (Android) cohort":

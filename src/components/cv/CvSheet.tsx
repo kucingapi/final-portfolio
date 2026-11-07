@@ -32,6 +32,7 @@ function Entry({ e }: { e: ResolvedEntry }) {
         <span>
           {e.title}
           {e.note ? `, ${e.note}` : ""}
+          {e.grade ? ` | ${e.grade}` : ""}
         </span>
         <span className="shrink-0 tabular-nums">{e.period}</span>
       </p>
@@ -42,6 +43,11 @@ function Entry({ e }: { e: ResolvedEntry }) {
             <li key={b.id}>{b.text}</li>
           ))}
         </ul>
+      )}
+      {e.courses.length > 0 && (
+        <p className="pl-20">
+          <strong>{t.coursework}</strong> {e.courses.map((c) => c.title).join(", ")}
+        </p>
       )}
       {e.stack && e.stack.length > 0 && (
         <p className="pl-20">
