@@ -119,8 +119,8 @@ export function checkVariant(cv: CvContent, v: Variant, projects: Pick<Project, 
   return errors;
 }
 
-/** Courses past this many stop reading as the relevant ones and start reading as the transcript. */
-export const MAX_COURSES = 8;
+/** Each course takes a line or two; past this many they stop reading as the relevant ones. */
+export const MAX_COURSES = 5;
 
 /** `courses` are the ones the variant lists as relevant coursework, in its order; none by default. */
 export type ResolvedEntry = Omit<CvEntry, "bullets" | "titles" | "courses"> & { title: string; bullets: CvBullet[]; courses: CvCourse[] };
@@ -231,7 +231,11 @@ export function cvToText(cv: ResolvedCv): string {
       lines.push(`${e.title}${e.note ? ` (${e.note})` : ""}${e.grade ? ` | ${e.grade}` : ""}    ${e.period}`);
       if (e.about) lines.push(e.about);
       for (const b of e.bullets) lines.push(`• ${b.text} [${b.id}]`);
-      if (e.courses.length) lines.push(`${UI[cv.lang].cv.coursework} ${e.courses.map((c) => `${c.title} [${c.id}]`).join(", ")}`);
+      if (e.courses.length) {
+        const t = UI[cv.lang].cv;
+        lines.push(`  ${t.coursework}`);
+        for (const c of e.courses) lines.push(`  • ${c.title} (${t.courseGrade(c.grade, c.credits)}): ${c.text} [${c.id}]`);
+      }
       if (e.stack?.length) lines.push(`${UI[cv.lang].cv.tech} ${e.stack.join(", ")}`);
     }
     lines.push("");

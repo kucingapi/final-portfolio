@@ -45,9 +45,16 @@ function Entry({ e }: { e: ResolvedEntry }) {
         </ul>
       )}
       {e.courses.length > 0 && (
-        <p className="pl-20">
-          <strong>{t.coursework}</strong> {e.courses.map((c) => c.title).join(", ")}
-        </p>
+        <div className="mt-2 pl-20">
+          <p className="font-bold">{t.coursework}</p>
+          <ul className="mt-2 flex list-disc flex-col gap-4 pl-20">
+            {e.courses.map((c) => (
+              <li key={c.id}>
+                <strong>{c.title}</strong> ({t.courseGrade(c.grade, c.credits)}): {c.text}
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
       {e.stack && e.stack.length > 0 && (
         <p className="pl-20">

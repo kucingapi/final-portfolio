@@ -171,13 +171,18 @@ const cvBulletSchema = z.object({
   weight: weight({ description: "How strong the line is on its own: 3 leads, and the default CV uses the heaviest." }),
 });
 
-/** A course from a degree's transcript, which a tailored CV may list as relevant coursework. */
+/**
+ * A course from a degree's transcript, which a tailored CV may list under "Relevant coursework" as
+ * "Title (A, 4 credits): text".
+ */
 const cvCourseSchema = z.object({
   id: id({ description: "Tailored CVs pick courses by this id." }),
   code: text({ description: "The course code on the transcript, e.g. CIT61006." }),
   title: line({ description: "The course's name as the transcript gives it in English." }),
-  grade: text({ description: "The grade on the transcript. Not printed; it helps choose between courses." }),
-  about: paragraph({ description: "What the course covers, from the faculty's own description; not printed." }),
+  grade: line({ description: "The grade on the transcript, printed after the title." }),
+  credits: z.number().int().min(1).max(12).meta({ description: "Its credits (SKS) on the transcript, printed with the grade." }),
+  text: paragraph({ description: "The printed line: what I built or did in it, then what it covered. Lead with the work." }),
+  about: paragraph({ description: "What the course covers, from the faculty's own description; not printed, it helps match a job." }),
   tags: z.array(cvTag),
 });
 

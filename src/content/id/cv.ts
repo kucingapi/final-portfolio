@@ -418,4 +418,77 @@ export const cvId: Record<string, string> = {
     "Docker",
   "Google Cloud":
     "Google Cloud",
+  // Course lines: what I did in each course.
+  "Built PHP and MySQL web apps: sessions and login, user CRUD with a stored procedure, a hand-written MVC app for a student board's members and programmes, and a CodeIgniter blog.":
+    "Membangun aplikasi web PHP dan MySQL: session dan login, CRUD pengguna dengan stored procedure, aplikasi MVC buatan sendiri untuk anggota dan program kerja BEM, serta blog dengan CodeIgniter.",
+  "Built 11 Android apps in Java: Room storage, Retrofit REST clients, Firebase sign-in with Google and Realtime Database, GPS to street address, and images loaded in the background with Glide.":
+    "Membangun 11 aplikasi Android dengan Java: penyimpanan dengan Room, REST client dengan Retrofit, login Google lewat Firebase dan Realtime Database, GPS menjadi alamat jalan, serta gambar yang dimuat di background dengan Glide.",
+  "Covered building mobile software on Android with software engineering principles.":
+    "Mempelajari pembangunan perangkat lunak mobile di Android dengan prinsip rekayasa perangkat lunak.",
+  "Covered engineering mobile software and building intelligent features on the phone, such as recognising activity from smartphone sensors.":
+    "Mempelajari rekayasa perangkat lunak mobile dan fitur cerdas di ponsel, seperti mengenali aktivitas dari sensor smartphone.",
+  "Assembled a five-person team's 9-page responsive site, Brawijaya Smart City, in Bootstrap and Git, including a public complaint form with photo evidence; covered usability heuristics, colour, typography and layout.":
+    "Menyatukan website responsif 9 halaman, Brawijaya Smart City, buatan tim berlima dengan Bootstrap dan Git, termasuk form pengaduan publik dengan bukti foto; mempelajari heuristik usability, warna, tipografi, dan layout.",
+  "Covered designing and evaluating how people use apps and games: habit-forming products, lean MVPs tested with customers, and business models.":
+    "Mempelajari perancangan dan evaluasi cara orang memakai aplikasi dan gim: produk yang membentuk kebiasaan, MVP yang diuji ke pelanggan, dan model bisnis.",
+  "Built REST APIs in PHP (Lumen) and Node.js (Express with MongoDB): JWT sign-in, an API gateway, and a campus API that holds course registration until fees are paid.":
+    "Membangun REST API dengan PHP (Lumen) dan Node.js (Express dengan MongoDB): login dengan JWT, API gateway, dan API kampus yang menahan KRS sampai biaya kuliah dibayar.",
+  "Wrote up XML, XSD and XSLT with worked examples, and SOAP services in an SOA monitoring system; covered REST design, service composition and SOA security.":
+    "Menulis penjelasan XML, XSD, dan XSLT dengan contoh, serta layanan SOAP dalam sistem pemantauan berbasis SOA; mempelajari desain REST, komposisi layanan, dan keamanan SOA.",
+  "Designed a 12-table e-learning database with a team of three (the ERD, its mapping to tables, the SQL in IBM Db2 and every query), and practised joins and set operations.":
+    "Merancang database e-learning 12 tabel bersama tim bertiga (ERD, pemetaannya ke tabel, SQL di IBM Db2, dan semua query-nya), serta berlatih join dan operasi himpunan.",
+  "Wrote stored procedures in IBM Db2 that return result sets; covered functions, triggers, cursors and dynamic SQL.":
+    "Menulis stored procedure di IBM Db2 yang mengembalikan result set; mempelajari function, trigger, cursor, dan dynamic SQL.",
+  "Ran IBM Db2 on Linux: storage, schemas and indexes, data export, SQL stored procedures, backup with archive logging and recovery, isolation levels, and user rights.":
+    "Mengelola IBM Db2 di Linux: storage, schema dan index, ekspor data, stored procedure SQL, backup dengan archive logging dan recovery, isolation level, serta hak akses pengguna.",
+  "Covered distributed database design, distributed query processing and optimisation, transactions, concurrency control, and integrating several data sources.":
+    "Mempelajari desain basis data terdistribusi, pemrosesan dan optimasi query terdistribusi, transaksi, kontrol konkurensi, dan integrasi beberapa sumber data.",
+  "Designed a book-sales star schema (a fact table with book, store and time dimensions) and built it in IBM Db2, then an ETL job that joins, filters and aggregates an incident dataset.":
+    "Merancang star schema penjualan buku (tabel fakta dengan dimensi buku, toko, dan waktu) dan membangunnya di IBM Db2, lalu job ETL yang menggabungkan, menyaring, dan mengagregasi dataset insiden.",
+  "Worked classification and pattern mining through by hand: Naive Bayes, decision trees by information gain and FP-Growth, plus descriptive statistics and k-anonymity.":
+    "Mengerjakan klasifikasi dan penggalian pola secara manual: Naive Bayes, decision tree dengan information gain, dan FP-Growth, serta statistik deskriptif dan k-anonymity.",
+  "Ran a 10-question Likert survey on the university website's design, speed and navigation; covered hypothesis testing, ANOVA, regression and correlation.":
+    "Menjalankan survei Likert 10 pertanyaan tentang desain, kecepatan, dan navigasi website universitas; mempelajari uji hipotesis, ANOVA, regresi, dan korelasi.",
+  "Implemented a binary search tree in Java (insert, traversals, search, remove, min and max) and worked with stacks and linked lists; covered graphs, sorting and searching.":
+    "Mengimplementasikan binary search tree dengan Java (insert, traversal, search, remove, min dan max) serta memakai stack dan linked list; mempelajari graph, sorting, dan searching.",
+  "Built Java OOP console apps: a library catalogue, a turn-based battle game, a clinic system for patients and medicines, and a payroll that deducts invoices through an interface.":
+    "Membangun aplikasi konsol OOP dengan Java: katalog perpustakaan, gim pertarungan bergiliran, sistem klinik untuk pasien dan obat, serta payroll yang memotong tagihan lewat interface.",
+  "Wrote Java console programs and Flowgorithm flowcharts: primes, leap years, day of the week, GCD and LCM, and currency conversion.":
+    "Menulis program konsol Java dan flowchart Flowgorithm: bilangan prima, tahun kabisat, hari dalam minggu, FPB dan KPK, serta konversi mata uang.",
+  "Analysed Gojek's GoTransit in BPMN with SMART requirements, and drew the data flows of a consultation booking system, from sign-up to payment checks, mapped into its architecture.":
+    "Menganalisis GoTransit dari Gojek dengan BPMN dan kebutuhan SMART, serta menggambar aliran data sistem pemesanan konsultasi, dari pendaftaran sampai verifikasi pembayaran, yang dipetakan ke arsitekturnya.",
+  "Designed a library system: nine use cases across students, librarians and admins, its BPMN process and its screen flow; covered the SDLC, Scrum, testing and deployment.":
+    "Merancang sistem perpustakaan: sembilan use case untuk mahasiswa, pustakawan, dan admin, proses BPMN-nya, dan alur layarnya; mempelajari SDLC, Scrum, pengujian, dan deployment.",
+  "Covered implementing systems from their models and testing them against functional and non-functional requirements: black-box, white-box, static and dynamic testing.":
+    "Mempelajari implementasi sistem dari pemodelannya dan pengujiannya terhadap kebutuhan fungsional dan non-fungsional: black-box, white-box, pengujian statis dan dinamis.",
+  "Compared PMBOK with PRINCE2, wrote an MOV and a business case, and reviewed the terms of reference of a government website and network project; covered scope, time, cost and risk.":
+    "Membandingkan PMBOK dengan PRINCE2, menyusun MOV dan business case, serta meninjau kerangka acuan kerja proyek website dan jaringan sebuah dinas; mempelajari ruang lingkup, waktu, biaya, dan risiko.",
+  "Covered starting an internet business: startups, marketing plans, finance, feasibility studies, competitive strategy and business plans.":
+    "Mempelajari memulai usaha berbasis internet: startup, rencana pemasaran, keuangan, studi kelayakan, strategi bersaing, dan business plan.",
+  "Built LANs in Cisco Packet Tracer (switches, a router across three subnets, a server) and analysed HTTP, TCP, UDP, ICMP and NAT traffic in Wireshark.":
+    "Membangun LAN di Cisco Packet Tracer (switch, router untuk tiga subnet, server) dan menganalisis lalu lintas HTTP, TCP, UDP, ICMP, dan NAT dengan Wireshark.",
+  "Built networks in Cisco Packet Tracer with DHCP and HTTP servers and static, RIP and OSPF routing across three routers, and practised subnetting and tracing routes.":
+    "Membangun jaringan di Cisco Packet Tracer dengan server DHCP dan HTTP serta routing statis, RIP, dan OSPF di tiga router, dan berlatih subnetting serta penelusuran rute.",
+  "Wrote up the OWASP Top Ten, with an attack scenario and its prevention for each, and studied bug bounty programmes; covered access control, firewalls, VPN and intrusion detection.":
+    "Menulis tentang OWASP Top Ten, dengan skenario serangan dan pencegahan untuk tiap risiko, dan mempelajari program bug bounty; mempelajari access control, firewall, VPN, dan deteksi intrusi.",
+  "Wrote a C++ tool that encrypts and decrypts text with a columnar transposition cipher, and ran an SQL injection attack on a PHP login in the lab; covered security at every TCP/IP layer.":
+    "Menulis tool C++ yang mengenkripsi dan mendekripsi teks dengan columnar transposition cipher, dan menjalankan serangan SQL injection pada login PHP di praktikum; mempelajari keamanan di setiap lapisan TCP/IP.",
+  "Set up Linux on Vagrant VMs and documented building a RAID 1 array with mdadm, from creating it to mounting it at every boot; covered users, storage, backups and logs.":
+    "Menyiapkan Linux di VM Vagrant dan mendokumentasikan pembuatan RAID 1 dengan mdadm, dari pembuatan sampai mount otomatis setiap boot; mempelajari pengguna, storage, backup, dan log.",
+  "Installed Ubuntu in VirtualBox and traced processes and child processes; covered process and memory management, scheduling and I/O.":
+    "Menginstal Ubuntu di VirtualBox dan menelusuri proses serta child process; mempelajari manajemen proses dan memori, penjadwalan, dan I/O.",
+  "Wrote up how a processor works (ALU, control unit, registers, cache, the fetch-decode-execute cycle); covered memory, I/O, RISC and CISC, pipelining and multicore.":
+    "Menulis cara kerja prosesor (ALU, control unit, register, cache, siklus fetch-decode-execute); mempelajari memori, I/O, RISC dan CISC, pipelining, dan multicore.",
+  "Covered discrete mathematics for computing: logic and proofs with truth tables, sets, relations, induction, counting, discrete probability, recurrences and matrices.":
+    "Mempelajari matematika diskrit untuk komputasi: logika dan pembuktian dengan tabel kebenaran, himpunan, relasi, induksi, pencacahan, probabilitas diskrit, rekurensi, dan matriks.",
+  "Covered research in information technology: framing problems, quantitative and qualitative methods, data collection, statistical analysis and scientific writing.":
+    "Mempelajari penelitian di bidang teknologi informasi: perumusan masalah, metode kuantitatif dan kualitatif, pengumpulan data, analisis statistik, dan penulisan ilmiah.",
+  "Covered managing enterprise architecture with TOGAF's ADM, EA frameworks and ArchiMate.":
+    "Mempelajari pengelolaan enterprise architecture dengan TOGAF ADM, framework EA, dan ArchiMate.",
+  "Covered aligning IT with the business and evaluating its governance: IT maturity, IT audit, COBIT 5, SPBE, the IT balanced scorecard and risk management.":
+    "Mempelajari penyelarasan TI dengan bisnis dan evaluasi tata kelolanya: maturitas TI, audit TI, COBIT 5, SPBE, IT balanced scorecard, dan manajemen risiko.",
+  "Built a QGIS map of Japan layering an elevation raster over prefecture boundaries, and worked with shapefiles, GeoJSON, reprojection and digitising.":
+    "Membangun peta Jepang di QGIS yang menumpuk raster elevasi di atas batas prefektur, serta mengolah shapefile, GeoJSON, reproyeksi, dan digitasi.",
+  "Wrote on the history of computer ethics, Indonesian copyright law for software and open-source licences (GPL, Apache).":
+    "Menulis tentang sejarah etika komputer, hukum hak cipta perangkat lunak di Indonesia, dan lisensi open source (GPL, Apache).",
 };
