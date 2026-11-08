@@ -32,8 +32,9 @@ const GUIDE = `How to tailor:
 - Skills sit at the top: order the groups ("skills") and the items in each ("skillItems") so the job's tools come first, and order each entry's "Tech:" line ("stacks") the same way.
 - Write a "summary" for the job that covers every requirement the CV can back up, in the job's own words where true.
 - Four bullets per entry at most; five only for the lead role when every line is strong.
+- Every CV shows the degree's GPA. "courses" adds "Relevant coursework" under an education entry (the brawijaya degree has them), one line per course: "Title (A, 4 credits): what I built or did in it". Pick the 2–4 courses whose "about" (the faculty's own description) and "text" best match the job's requirements, the closest first, preferring A grades when two fit equally; 5 at most. Each takes a line or two, so make room: the degree's own bullets can go ("bullets": {"brawijaya": []}) when the courses matter more for the job. Leave courses out when the experience already proves the requirements, or for senior roles; they help most where a job asks for a degree, a field (databases, networking, security, data, mobile, UI) or fundamentals the work history doesn't show.
 - The CV must be exactly 2 pages: preview_cv reports the page count; trim bullets or entries until it is 2. It also reports the other language (a visitor who switches downloads that one), which drops its least relevant lines on its own to fit; trim further if it would drop a line that matters.
-- Only pick, order and choose between existing lines (entry ids, bullet ids, allowed titles, skill group ids and items, stack items). Never invent facts; free text is limited to "headline" and "summary", and those must stay true to the master CV.
+- Only pick, order and choose between existing lines (entry ids, bullet ids, allowed titles, skill group ids and items, stack items, course ids). Never invent facts; free text is limited to "headline" and "summary", and those must stay true to the master CV.
 - "projects" orders the site's projects for this visitor, most relevant first. Every project has a device render, and the first four lead: the home page's project grid and the large rows of the projects page. The first three make the portfolio PDF deck. "mode" sets which way the site opens (fulltime for employers, freelance for clients).
 - "stats" gives a project another headline number, on the projects page and in the deck: the chapter whose figure answers the job's top requirement (only chapters with a figure). "chapters" picks the deck's slides for a project: up to three chapter ids, in order, the ones that prove what the job asks for.
 - The site's career (the Career page, and the home page in Full-time mode) follows the CV: a role that stands for a CV entry ("career" in get_cv_master) shows the title you chose for that entry and the lines you picked for it, and those roles lead in the order of "entries".
@@ -128,7 +129,7 @@ function buildServer(origin: string) {
     {
       title: "Read the master CV",
       description:
-        "Everything that can go on the CV, with ids: entries (by section) and their bullets with tags and weight (3 = strongest), allowed titles, stock headlines and summaries, skill groups, the site's projects with their chapters and figures, and the site's career roles with the CV entry each follows. Read this first. With lang \"id\", the words are in Bahasa Indonesia (the ids are the same).",
+        "Everything that can go on the CV, with ids: entries (by section) and their bullets with tags and weight (3 = strongest), the degree's courses with what each covers, allowed titles, stock headlines and summaries, skill groups, the site's projects with their chapters and figures, and the site's career roles with the CV entry each follows. Read this first. With lang \"id\", the words are in Bahasa Indonesia (the ids are the same).",
       inputSchema: { lang: z.enum(LANGS).optional().describe("en (default) or id: the language to read the words in.") },
       annotations: { readOnlyHint: true },
     },
@@ -173,7 +174,7 @@ function buildServer(origin: string) {
           })),
         })),
         career: roles.map((x, i) => ({ group: x.group, org: x.r.org, role: x.r.role, period: x.r.period, cvEntry: links[i] ?? undefined })),
-        defaultVariant: "Leave any field out to use the default: entries with weight >= 2, their strongest bullets (4 per role, 5 for the lead one; in Bahasa one fewer for the lead role and each education entry), skills first, then every section.",
+        defaultVariant: "Leave any field out to use the default: entries with weight >= 2, their strongest bullets (4 per role, 5 for the lead one; in Bahasa one fewer for the lead role and each education entry), no coursework, skills first, then every section.",
       });
     },
   );

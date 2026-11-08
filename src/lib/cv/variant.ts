@@ -7,6 +7,7 @@ import {
   MAX_BULLETS,
   type CvBullet,
   type CvContent,
+  type CvCourse,
   type CvEntry,
   type CvSectionId,
   type CvSkillGroup,
@@ -58,6 +59,15 @@ export function checkVariant(cv: CvContent, v: Variant, projects: Pick<Project, 
     if (!entry) errors.push(`stacks: unknown entry "${id}".`);
     else for (const t of items) if (!entry.stack?.includes(t)) errors.push(`stacks.${id}: "${t}" is not in its stack (${entry.stack?.join(", ") ?? "none"}).`);
   }
+  for (const [id, courseIds] of Object.entries(v.courses ?? {})) {
+    const entry = getCvEntry(id);
+    if (!entry) errors.push(`courses: unknown entry "${id}".`);
+    else if (!entry.courses?.length) errors.push(`courses.${id}: this entry has no courses.`);
+    else {
+      for (const c of courseIds) if (!entry.courses.some((x) => x.id === c)) errors.push(`courses.${id}: unknown course "${c}".`);
+      if (courseIds.length > MAX_COURSES) errors.push(`courses.${id}: ${courseIds.length} courses; keep it to ${MAX_COURSES} at most.`);
+    }
+  }
   for (const [id, title] of Object.entries(v.titles ?? {})) {
     const entry = getCvEntry(id);
     if (!entry) errors.push(`titles: unknown entry "${id}".`);
@@ -95,6 +105,7 @@ export function checkVariant(cv: CvContent, v: Variant, projects: Pick<Project, 
     ["projects", v.projects],
     ...Object.entries(v.bullets ?? {}).map(([id, l]): [string, string[]] => [`bullets.${id}`, l]),
     ...Object.entries(v.stacks ?? {}).map(([id, l]): [string, string[]] => [`stacks.${id}`, l]),
+    ...Object.entries(v.courses ?? {}).map(([id, l]): [string, string[]] => [`courses.${id}`, l]),
     ...Object.entries(v.skillItems ?? {}).map(([id, l]): [string, string[]] => [`skillItems.${id}`, l]),
     ...Object.entries(v.chapters ?? {}).map(([slug, l]): [string, string[]] => [`chapters.${slug}`, l]),
   ];
@@ -108,7 +119,11 @@ export function checkVariant(cv: CvContent, v: Variant, projects: Pick<Project, 
   return errors;
 }
 
-export type ResolvedEntry = Omit<CvEntry, "bullets" | "titles"> & { title: string; bullets: CvBullet[] };
+/** Each course takes a line or two; past this many they stop reading as the relevant ones. */
+export const MAX_COURSES = 5;
+
+/** `courses` are the ones the variant lists as relevant coursework, in its order; none by default. */
+export type ResolvedEntry = Omit<CvEntry, "bullets" | "titles" | "courses"> & { title: string; bullets: CvBullet[]; courses: CvCourse[] };
 export type ResolvedSection = { id: CvSectionId; title: string; entries: ResolvedEntry[] };
 export type ResolvedCv = {
   /** The language it is written in; the PDFs take their labels from it. */
@@ -135,14 +150,18 @@ export function resolveCv(cv: CvContent, v: Variant = {}, code?: string, lang: L
     ? v.entries.map((id) => cv.entries.find((e) => e.id === id)).filter((e): e is CvEntry => Boolean(e))
     : cv.entries.filter((e) => e.weight >= 2);
   const resolve = (e: CvEntry): ResolvedEntry => {
-    const { titles, bullets: all, ...rest } = e;
+    const { titles, bullets: all, courses: offered = [], ...rest } = e;
     const ids = v.bullets?.[e.id];
     const bullets = ids
       ? ids.map((id) => all.find((b) => b.id === id)).filter((b): b is CvBullet => Boolean(b))
       : defaultBullets(e, lang);
     const wanted = v.titles?.[e.id];
     const stack = v.stacks?.[e.id]?.filter((t) => e.stack?.includes(t)) ?? e.stack;
-    return { ...rest, title: wanted && titles.includes(wanted) ? wanted : titles[0], bullets, stack };
+    const courses = (v.courses?.[e.id] ?? [])
+      .map((id) => offered.find((c) => c.id === id))
+      .filter((c): c is CvCourse => Boolean(c))
+      .slice(0, MAX_COURSES);
+    return { ...rest, title: wanted && titles.includes(wanted) ? wanted : titles[0], bullets, stack, courses };
   };
   // Skills is a section with no entries: the renderer reads `skills` at that spot.
   const sections: ResolvedSection[] = [];
@@ -187,7 +206,7 @@ export function masterCv(content: CvContent, lang: Lang = DEFAULT_LANG): Resolve
     ...s,
     entries: s.entries.map((e) => {
       const full = content.entries.find((x) => x.id === e.id)!;
-      return { ...e, title: full.titles.join(" / "), bullets: full.bullets };
+      return { ...e, title: full.titles.join(" / "), bullets: full.bullets, courses: full.courses ?? [] };
     }),
   }));
   return {
@@ -209,9 +228,14 @@ export function cvToText(cv: ResolvedCv): string {
     }
     for (const e of s.entries) {
       lines.push(`${e.org}${e.place ? ` – ${e.place}` : ""} [${e.id}]`);
-      lines.push(`${e.title}${e.note ? ` (${e.note})` : ""}    ${e.period}`);
+      lines.push(`${e.title}${e.note ? ` (${e.note})` : ""}${e.grade ? ` | ${e.grade}` : ""}    ${e.period}`);
       if (e.about) lines.push(e.about);
       for (const b of e.bullets) lines.push(`• ${b.text} [${b.id}]`);
+      if (e.courses.length) {
+        const t = UI[cv.lang].cv;
+        lines.push(`  ${t.coursework}`);
+        for (const c of e.courses) lines.push(`  • ${c.title} (${t.courseGrade(c.grade, c.credits)}): ${c.text} [${c.id}]`);
+      }
       if (e.stack?.length) lines.push(`${UI[cv.lang].cv.tech} ${e.stack.join(", ")}`);
     }
     lines.push("");

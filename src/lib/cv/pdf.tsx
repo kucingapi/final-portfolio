@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Document, Link, Page, StyleSheet, Text, View, renderToBuffer } from "@react-pdf/renderer";
 import type { ResolvedCv, ResolvedEntry } from "./variant";
+import type { CvCourse } from "@/lib/content/schema";
 import { UI, type Ui } from "@/lib/i18n/ui";
 
 /**
@@ -40,16 +41,27 @@ const s = StyleSheet.create({
   bulletText: { flex: 1 },
   about: { marginTop: 1 },
   stack: { marginTop: 1.5, paddingLeft: 10 },
+  courses: { marginTop: 2.5, paddingLeft: 10, fontFamily: "Helvetica-Bold" },
+  course: { paddingLeft: 10 },
   skill: { marginTop: 1.5 },
   bold: { fontFamily: "Helvetica-Bold" },
 });
 
-function Bullet({ text }: { text: string }) {
+function Bullet({ children, style }: { children: ReactNode; style?: typeof s.course }) {
   return (
-    <View style={s.bullet} wrap={false}>
+    <View style={style ? [s.bullet, style] : s.bullet} wrap={false}>
       <Text style={s.dot}>•</Text>
-      <Text style={s.bulletText}>{text}</Text>
+      <Text style={s.bulletText}>{children}</Text>
     </View>
+  );
+}
+
+/** "Web-Based Application Development (A, 4 credits): built …", the title in bold. */
+function Course({ c, t }: { c: CvCourse; t: Ui["cv"] }) {
+  return (
+    <Bullet style={s.course}>
+      <Text style={s.bold}>{c.title}</Text> ({t.courseGrade(c.grade, c.credits)}): {c.text}
+    </Bullet>
   );
 }
 
@@ -72,6 +84,7 @@ function Mark({ probe, id }: { probe?: Probe; id: string }) {
 
 function Entry({ e, mark, origin, t }: { e: ResolvedEntry; mark?: ReactNode; origin?: string; t: Ui["cv"] }) {
   const [first, ...rest] = e.bullets;
+  const [firstCourse, ...moreCourses] = e.courses;
   return (
     <View style={s.entry}>
       {/* The header never ends a page alone: it moves with its first bullet. */}
@@ -93,14 +106,25 @@ function Entry({ e, mark, origin, t }: { e: ResolvedEntry; mark?: ReactNode; ori
           <Text style={s.title}>
             {e.title}
             {e.note ? `, ${e.note}` : ""}
+            {e.grade ? ` | ${e.grade}` : ""}
           </Text>
           <Text style={s.period}>{e.period}</Text>
         </View>
         {e.about && <Text style={s.about}>{e.about}</Text>}
-        {first && <Bullet text={first.text} />}
+        {first && <Bullet>{first.text}</Bullet>}
       </View>
       {rest.map((b) => (
-        <Bullet key={b.id} text={b.text} />
+        <Bullet key={b.id}>{b.text}</Bullet>
+      ))}
+      {firstCourse && (
+        // The label never ends a page alone either.
+        <View wrap={false}>
+          <Text style={s.courses}>{t.coursework}</Text>
+          <Course c={firstCourse} t={t} />
+        </View>
+      )}
+      {moreCourses.map((c) => (
+        <Course key={c.id} c={c} t={t} />
       ))}
       {e.stack && e.stack.length > 0 && (
         <Text style={s.stack} wrap={false}>

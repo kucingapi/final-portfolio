@@ -121,6 +121,8 @@ const en = {
     label: (name: string) => `${name}, CV`,
     certificate: "Certificate",
     tech: "Tech:",
+    coursework: "Relevant coursework",
+    courseGrade: (grade: string, credits: number) => `${grade}, ${credits} credits`,
     download: "Download CV",
     downloadPortfolio: "Download portfolio",
     sections: {
@@ -307,6 +309,8 @@ const id: Ui = {
     label: (name) => `${name}, CV`,
     certificate: "Sertifikat",
     tech: "Teknologi:",
+    coursework: "Mata kuliah relevan",
+    courseGrade: (grade, credits) => `${grade}, ${credits} SKS`,
     download: "Unduh CV",
     downloadPortfolio: "Unduh portofolio",
     sections: {
