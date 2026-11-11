@@ -518,4 +518,12 @@ async function handle(request: Request) {
   return transport.handleRequest(request);
 }
 
-export { handle as GET, handle as POST, handle as DELETE };
+/**
+ * Stateless, so the server never pushes anything: a GET stream would only send keep-alive pings until the
+ * function times out, billed the whole time. The spec lets a server refuse it with 405; clients then use POST only.
+ */
+function GET() {
+  return new Response(null, { status: 405, headers: { Allow: "POST, DELETE" } });
+}
+
+export { GET, handle as POST, handle as DELETE };
