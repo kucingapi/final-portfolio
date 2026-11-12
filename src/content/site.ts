@@ -325,7 +325,60 @@ export const careerDetail: SiteContent["careerDetail"] = [
       },
     ],
   },
+  {
+    id: "volunteering",
+    heading: "Volunteering",
+    roles: [
+      {
+        period: "2025",
+        role: "Instructor",
+        org: "Asah, led by Dicoding with Accenture",
+        place: "Online",
+        points: ["Taught an instructor-led training session; participants rated it 4.77, and the program graduated 95% of its learners."],
+        proof: "/certificates/asah-2025-instructor.webp",
+      },
+      {
+        period: "16–20 Jun 2025",
+        role: "Mentor, Software Engineering Introduction",
+        org: "Tech Voice Indonesia, Tech Week 2025",
+        points: ["Mentored the Software Engineering Introduction course."],
+        proof: "/certificates/tech-voice-indonesia-mentor.webp",
+      },
+    ],
+  },
+  {
+    id: "certifications",
+    heading: "Certifications",
+    roles: [
+      { period: "May 2021", role: "JavaScript Algorithms and Data Structures", org: "freeCodeCamp", points: [], proof: "/certificates/freecodecamp-javascript.webp" },
+      { period: "May 2021", role: "Belajar Dasar Pemrograman JavaScript", org: "Dicoding", points: [], proof: "/certificates/dicoding-javascript.webp" },
+      { period: "Apr 2021", role: "Responsive Web Design", org: "freeCodeCamp", points: [], proof: "/certificates/freecodecamp-responsive-web.webp" },
+      { period: "Feb 2021", role: "Introduction to Packet Tracer", org: "Cisco Networking Academy", points: [], proof: "/certificates/cisco-packet-tracer.webp" },
+      { period: "Feb 2021", role: "Problem Solving (Basic)", org: "HackerRank", points: [], proof: "/certificates/hackerrank-problem-solving.webp" },
+      { period: "Feb 2021", role: "Technical Support Fundamentals", org: "Google, through Coursera", points: [], proof: "/certificates/google-technical-support.webp" },
+      { period: "Dec 2020", role: "Java (Basic)", org: "HackerRank", points: [], proof: "/certificates/hackerrank-java.webp" },
+    ],
+  },
 ];
+
+/** What a tailored rate card picks from; prices are set per link (see `rates` in src/lib/cv/schema.ts). */
+export const rateCard: NonNullable<SiteContent["rateCard"]> = {
+  formats: [
+    { id: "talk", label: "Webinar or talk", duration: "1–2 hours", unit: "session" },
+    { id: "training", label: "Live training, hands-on", duration: "2–3 hours", unit: "session" },
+    { id: "workshop", label: "Workshop or corporate training", duration: "6–8 hours", unit: "day" },
+    { id: "mentoring", label: "Mentoring or facilitation", unit: "hour" },
+    { id: "materials", label: "New course material: slides, case study, exercises", unit: "module" },
+    { id: "dev", label: "Software development", unit: "hour" },
+  ],
+  notes: [
+    { id: "own-material", text: "Material I already have costs nothing extra." },
+    { id: "travel", text: "Travel and lodging outside Greater Jakarta are covered by the organiser." },
+    { id: "package", text: "Programs of 6 or more sessions get a package price, 10–15% less per session." },
+    { id: "long-term", text: "Rates can be adjusted for long-term programs." },
+    { id: "gross-pph21", text: "Rates are gross; income tax (PPh 21) is withheld by the organiser." },
+  ],
+};
 
 export const services = ["Design", "Web", "Mobile", "Others"] as const;
 export type Service = (typeof services)[number];

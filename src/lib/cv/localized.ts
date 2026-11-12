@@ -1,4 +1,5 @@
-import { getCvContent, getTranslations } from "@/lib/content/read";
+import { getCvContent, getSiteContent, getTranslations } from "@/lib/content/read";
+import { resolveRateCard } from "./rate-card";
 import { DEFAULT_LANG, LANGS, isLang, type Lang } from "@/lib/i18n/lang";
 import { renderCvPdf } from "./pdf";
 import { localizeVariant, masterCv, resolveCv, variantNames, type ResolvedCv, type Variant } from "./variant";
@@ -61,3 +62,10 @@ export async function cvPdfIn(lang: Lang, v: Variant | undefined, code: string |
 
 /** The language a variant isn't written in, whose PDF a visitor gets from the other language's pages. */
 export const otherLang = (lang: Lang): Lang => LANGS.find((l) => l !== lang) ?? DEFAULT_LANG;
+
+/** A variant's rate card in a language, or null when it has none. */
+export async function rateCardIn(lang: Lang, v: Variant | undefined) {
+  if (!v?.rates) return null;
+  const { rateCard } = await getSiteContent(lang);
+  return rateCard ? resolveRateCard(rateCard, v.rates, lang) : null;
+}

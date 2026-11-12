@@ -72,6 +72,17 @@ export function CareerList({
                   {point}
                 </p>
               ))}
+              {r.proof && (
+                // Above the row's stretched case-study link, so this click opens the certificate.
+                <a
+                  href={r.proof}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="relative z-10 text-lead font-semibold text-midnight-50 underline underline-offset-4 hover:text-midnight-200"
+                >
+                  {t.seeProof}
+                </a>
+              )}
               {r.href && (
                 <TransitionLink
                   href={r.href}

@@ -3,6 +3,7 @@ import { draftMode } from "next/headers";
 import type { Lang } from "@/lib/i18n/lang";
 import { translateDoc, type Dict } from "@/lib/i18n/translate";
 import type { CvContent, DocContent, DocId, Project, SiteContent } from "./schema";
+import { DEFAULTS } from "./defaults";
 import { draftValue, publishedValue } from "./store";
 
 /**
@@ -46,7 +47,9 @@ export async function getSiteContent(lang: Lang = "en"): Promise<SiteContent> {
   cacheTag(CONTENT_TAGS.site);
   if (lang !== "en") cacheTag(CONTENT_TAGS.bahasa);
   cacheLife("max");
-  return inLang(await read("site"), lang);
+  const site = await read("site");
+  // A site document published before the rate card existed lacks it.
+  return inLang({ ...site, rateCard: site.rateCard ?? DEFAULTS.site.rateCard }, lang);
 }
 
 export async function getCvContent(lang: Lang = "en"): Promise<CvContent> {

@@ -1,4 +1,4 @@
-import type { Context, CvSectionId, Platform } from "@/lib/content/schema";
+import type { Context, CvSectionId, Platform, RateUnit } from "@/lib/content/schema";
 import type { Lang } from "./lang";
 
 /**
@@ -68,6 +68,7 @@ const en = {
   career: {
     readCase: "Read the case study",
     cursor: "View case study",
+    seeProof: "See certificate",
     kinds: { "Full-time": "Full-time", Freelance: "Freelance", Program: "Program", Degree: "Degree" } as Record<string, string>,
     page: {
       subtitle: "Freelance & Full-time",
@@ -125,6 +126,7 @@ const en = {
     courseGrade: (grade: string, credits: number) => `${grade}, ${credits} credits`,
     download: "Download CV",
     downloadPortfolio: "Download portfolio",
+    downloadRateCard: "Rate card",
     sections: {
       skills: "Skills",
       experience: "Experience",
@@ -192,6 +194,15 @@ const en = {
     home: "Back home",
   },
   notFound: "This page could not be found.",
+  /** The rate card PDF. */
+  rateCard: {
+    title: "Rate card",
+    documentTitle: (name: string) => `${name} – Rate card`,
+    format: "Format",
+    duration: "Duration",
+    rate: "Rate",
+    units: { session: "per session", day: "per day", hour: "per hour", module: "per module" } as Record<RateUnit, string>,
+  },
 };
 
 export type Ui = typeof en;
@@ -256,6 +267,7 @@ const id: Ui = {
   career: {
     readCase: "Baca studi kasusnya",
     cursor: "Lihat studi kasus",
+    seeProof: "Lihat sertifikat",
     kinds: { "Full-time": "Penuh waktu", Freelance: "Freelance", Program: "Program", Degree: "Kuliah" },
     page: {
       subtitle: "Freelance & Penuh Waktu",
@@ -313,6 +325,7 @@ const id: Ui = {
     courseGrade: (grade, credits) => `${grade}, ${credits} SKS`,
     download: "Unduh CV",
     downloadPortfolio: "Unduh portofolio",
+    downloadRateCard: "Rate card",
     sections: {
       skills: "Keahlian",
       experience: "Pengalaman Kerja",
@@ -382,6 +395,14 @@ const id: Ui = {
     home: "Kembali ke beranda",
   },
   notFound: "Halaman ini tidak ditemukan.",
+  rateCard: {
+    title: "Rate card",
+    documentTitle: (name) => `${name} – Rate card`,
+    format: "Format",
+    duration: "Durasi",
+    rate: "Tarif",
+    units: { session: "per sesi", day: "per hari", hour: "per jam", module: "per modul" },
+  },
 };
 
 export const UI: Record<Lang, Ui> = { en, id };

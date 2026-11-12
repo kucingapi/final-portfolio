@@ -124,7 +124,7 @@ function CvRowItem({ cv, onOpen }: { cv: CvRow; onOpen: (ref: string) => void })
     <Item
       icon={FileText}
       title={cv.label}
-      detail={`${cvPath(cv.code, cv.lang)} · ${a.cv} CV, ${a.portfolio} portfolio`}
+      detail={`${cvPath(cv.code, cv.lang)} · ${a.cv} CV, ${a.portfolio} portfolio${a.rates ? `, ${a.rates} rate card` : ""}`}
       figure={count(a.opens, "open")}
       when={a.lastOpen ? ago(a.lastOpen) : "not opened yet"}
       onClick={() => onOpen(`cv:${cv.code}`)}
