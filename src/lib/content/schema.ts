@@ -43,6 +43,8 @@ export const CAREER_KINDS = ["Full-time", "Freelance", "Program", "Degree"] as c
 export const MODES = ["freelance", "fulltime"] as const;
 /** Where a testimonial shows: one mode or both. */
 export const SHOWN_IN = ["both", "freelance", "fulltime"] as const;
+/** What a rate card's price is per; the words come from src/lib/i18n/ui.ts. */
+export const RATE_UNITS = ["session", "day", "hour", "module"] as const;
 
 /** How the dashboard's editor shows a field. */
 export type FieldMeta = {
@@ -93,6 +95,14 @@ const careerRoleSchema = z.object({
     description:
       "The master CV entry this role is, by id (e.g. multimodal). A tailored link's title, lines and order for that entry then apply here too. Left empty, a role whose organisation matches one entry is linked to it.",
   }).optional(),
+  proof: text({ title: "Certificate", description: "The certificate, as an image path under public/certificates." }).optional(),
+});
+
+const rateFormatSchema = z.object({
+  id: id({ description: "Variants pick formats by this id." }),
+  label: line({ description: 'What the client buys, e.g. "Live training, hands-on".' }),
+  duration: text({ description: 'How long one unit runs, e.g. "2–3 hours". Empty for hourly work.' }).optional(),
+  unit: z.enum(RATE_UNITS).meta({ description: "What the price is per; its words come from ui.ts." }),
 });
 
 const modeCopySchema = z.object({
@@ -150,15 +160,35 @@ export const siteSchema = z
     careerDetail: z
       .array(z.object({ id: id(), heading: line(), roles: z.array(careerRoleSchema) }))
       .meta({ title: "Career page", description: "Every role with what you did there, in groups." }),
+    // Optional so a site document published before it existed still parses; readers fall back to DEFAULTS.
+    rateCard: z
+      .object({
+        formats: z.array(rateFormatSchema),
+        notes: z.array(z.object({ id: id(), text: paragraph() })),
+      })
+      .meta({ title: "Rate card", description: "Formats and notes a tailored rate card picks from. Prices are set per link." })
+      .optional(),
   })
-  .superRefine((v, ctx) =>
+  .superRefine((v, ctx) => {
     unique(
       ctx,
       v.careerDetail.map((g) => g.id),
       (i) => ["careerDetail", i, "id"],
       "group",
-    ),
-  );
+    );
+    unique(
+      ctx,
+      (v.rateCard?.formats ?? []).map((f) => f.id),
+      (i) => ["rateCard", "formats", i, "id"],
+      "format",
+    );
+    unique(
+      ctx,
+      (v.rateCard?.notes ?? []).map((n) => n.id),
+      (i) => ["rateCard", "notes", i, "id"],
+      "note",
+    );
+  });
 
 /* ── CV ───────────────────────────────────────────────────────────────── */
 
@@ -419,6 +449,8 @@ export type SourceDocId = (typeof SOURCE_DOCS)[number];
 
 export type Mode = (typeof MODES)[number];
 export type CareerRole = z.infer<typeof careerRoleSchema>;
+export type RateCard = NonNullable<SiteContent["rateCard"]>;
+export type RateUnit = (typeof RATE_UNITS)[number];
 export type Testimonial = SiteContent["testimonials"][number];
 export type CvTag = (typeof CV_TAGS)[number];
 export type CvSectionId = (typeof CV_SECTIONS)[number];

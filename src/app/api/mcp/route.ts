@@ -14,9 +14,10 @@ import { renderCvPdf } from "@/lib/cv/pdf";
 import { deleteVariant, getActivity, getVariant, listVariants, saveVariant, type StoredVariant } from "@/lib/cv/store";
 import { variantSchema } from "@/lib/cv/schema";
 import { checkVariant, cvToText, normalizeVariant, type Variant } from "@/lib/cv/variant";
-import { cvIn, cvPdfIn, namesIn, otherLang } from "@/lib/cv/localized";
+import { cvIn, cvPdfIn, namesIn, otherLang, rateCardIn } from "@/lib/cv/localized";
+import { rateCardToText } from "@/lib/cv/rate-card";
 import { translationRows, saveTranslations } from "@/lib/content/translations";
-import { LANGS, localePath, type Lang } from "@/lib/i18n/lang";
+import { LANGS, localePath } from "@/lib/i18n/lang";
 import { JOB_STATUSES, JobError, createJob, listJobs, recordApplication, updateJob, withTotals } from "@/lib/dashboard/jobs";
 
 /**
@@ -40,6 +41,7 @@ const GUIDE = `How to tailor:
 - The site's career (the Career page, and the home page in Full-time mode) follows the CV: a role that stands for a CV entry ("career" in get_cv_master) shows the title you chose for that entry and the lines you picked for it, and those roles lead in the order of "entries".
 - For Upwork and other platforms that bar sharing contact details, set "contact": false. It hides the email, GitHub and LinkedIn on the CV and both PDFs.
 - For an Indonesian employer, set "lang": "id". The link then opens the site in Bahasa Indonesia (/id), and the CV and the portfolio deck come in Bahasa. Write "headline" and "summary" in Bahasa; everything else is picked by id as usual, and titles and skills may be named in English or in Bahasa (get_cv_master with lang "id" shows the Bahasa). Preview it: the 2-page limit holds in Bahasa too, and Bahasa runs longer.
+- Rate cards: add "rates" only when the client asked for prices (a rate card, a quote). Pick formats from get_cv_master's rateCard by id, in the order the client cares about; set one price per format in the client's currency (IDR for Indonesian clients, otherwise USD or EUR); add notes by id. The link then gets a rate card page ("rateCard" in links: send that one; only links with "rates" have it, and its views are counted) with a one-page PDF to download ("rateCardPdf"), in the variant's language, honouring "contact". Prices are Novel's call: propose them from market research, say which numbers are estimates, and save only after Novel agrees. A new kind of format goes into the master first (edit_content), never into the variant.
 - The label is private (e.g. "Acme, Senior Frontend, 2026-11"); the visitor never sees it.`;
 
 const JOBS_GUIDE = `Tracking applications:
@@ -57,12 +59,14 @@ const CONTENT_GUIDE = `Editing the site's content:
 const json = (data: unknown) => ({ content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }] });
 const fail = (message: string) => ({ content: [{ type: "text" as const, text: message }], isError: true });
 
-function links(origin: string, code: string, lang: Lang = "en") {
+function links(origin: string, code: string, { lang = "en", rates }: Variant) {
   return {
     site: `${origin}${lang === "en" ? "/" : localePath(lang, "/")}?v=${code}`,
     cv: `${origin}${localePath(lang, "/cv")}?v=${code}`,
     pdf: `${origin}/api/cv?v=${code}&download=1`,
     portfolio: `${origin}/api/portfolio?v=${code}&download=1`,
+    rateCard: rates ? `${origin}${localePath(lang, "/rates")}?v=${code}` : undefined,
+    rateCardPdf: rates ? `${origin}/api/rate-card?v=${code}&download=1` : undefined,
   };
 }
 
@@ -97,11 +101,15 @@ async function normalized(variant: Variant): Promise<Variant> {
 
 async function preview(given: Variant, origin: string) {
   const variant = await normalized(given);
-  const [content, projects] = await Promise.all([getCvContent(), getProjects()]);
-  const errors = checkVariant(content, variant, projects);
+  const [content, projects, site] = await Promise.all([getCvContent(), getProjects(), getSiteContent()]);
+  const errors = checkVariant(content, variant, projects, site.rateCard);
   const lang = variant.lang ?? "en";
   const cv = await cvIn(lang, variant);
-  const [{ pages }, other] = await Promise.all([renderCvPdf(cv, origin), cvPdfIn(otherLang(lang), variant, undefined, origin)]);
+  const [{ pages }, other, rateCard] = await Promise.all([
+    renderCvPdf(cv, origin),
+    cvPdfIn(otherLang(lang), variant, undefined, origin),
+    rateCardIn(lang, variant),
+  ]);
   return {
     variant,
     errors,
@@ -117,6 +125,7 @@ async function preview(given: Variant, origin: string) {
         : undefined,
     },
     text: cvToText(cv),
+    rateCard: rateCard ? rateCardToText(rateCard) : undefined,
     site: await sitePreview(variant),
   };
 }
@@ -134,7 +143,7 @@ function buildServer(origin: string) {
       annotations: { readOnlyHint: true },
     },
     async ({ lang = "en" }) => {
-      const [cv, projects, { careerDetail }, cvEn, siteEn] = await Promise.all([
+      const [cv, projects, { careerDetail, rateCard }, cvEn, siteEn] = await Promise.all([
         getCvContent(lang),
         getProjects(lang),
         getSiteContent(lang),
@@ -173,6 +182,7 @@ function buildServer(origin: string) {
             figure: c.figure ? `${statOf(p, c.id).value} ${statOf(p, c.id).label}` : undefined,
           })),
         })),
+        rateCard,
         career: roles.map((x, i) => ({ group: x.group, org: x.r.org, role: x.r.role, period: x.r.period, cvEntry: links[i] ?? undefined })),
         defaultVariant: "Leave any field out to use the default: entries with weight >= 2, their strongest bullets (4 per role, 5 for the lead one; in Bahasa one fewer for the lead role and each education entry), no coursework, skills first, then every section.",
       });
@@ -184,7 +194,7 @@ function buildServer(origin: string) {
     {
       title: "Preview a CV variant",
       description:
-        "Render a variant without saving it: the CV as text (with ids) in the variant's language, its PDF page count, any validation errors, and what it does to the site: the four projects that lead, the deck's projects with their headline number and chapters, and the Career page's roles in order.",
+        "Render a variant without saving it: the CV as text (with ids) in the variant's language, its PDF page count, any validation errors, the rate card as text when it has rates, and what it does to the site: the four projects that lead, the deck's projects with their headline number and chapters, and the Career page's roles in order.",
       inputSchema: { variant: variantSchema },
       annotations: { readOnlyHint: true },
     },
@@ -196,7 +206,7 @@ function buildServer(origin: string) {
     {
       title: "Save a CV variant",
       description:
-        "Create a variant (omit code; pass claim to choose its code) or replace one (pass its code). Refuses invalid ids. Returns the code, the links to send (site, CV page, CV PDF, portfolio PDF) and the page count.",
+        "Create a variant (omit code; pass claim to choose its code) or replace one (pass its code). Refuses invalid ids. Returns the code, the links to send (site, CV page, CV PDF, portfolio PDF, and the rate card page and PDF when it has rates) and the page count.",
       inputSchema: {
         label: z.string().trim().min(1).max(120).describe("Private note: who this is for."),
         variant: variantSchema,
@@ -223,7 +233,7 @@ function buildServer(origin: string) {
           code: row.code,
           label: row.label,
           lang: row.variant.lang ?? "en",
-          links: links(origin, row.code, row.variant.lang),
+          links: links(origin, row.code, row.variant),
           pages: result.pages,
           job: recorded && { id: recorded.id, company: recorded.company, title: recorded.title, status: recorded.status },
           warning: result.fitsTwoPages ? undefined : `The CV is ${result.pages} page(s); it should be 2.`,
@@ -251,7 +261,7 @@ function buildServer(origin: string) {
             updatedAt: r.updatedAt,
             activity: await getActivity(r.code),
             lang: r.variant.lang ?? "en",
-            links: links(origin, r.code, r.variant.lang),
+            links: links(origin, r.code, r.variant),
           })),
         ),
       ),
@@ -268,7 +278,7 @@ function buildServer(origin: string) {
     async ({ code }) => {
       const row = await getVariant(code);
       return row
-        ? json({ ...row, activity: await getActivity(row.code), links: links(origin, row.code, row.variant.lang) })
+        ? json({ ...row, activity: await getActivity(row.code), links: links(origin, row.code, row.variant) })
         : fail(`No variant with code "${code}".`);
     },
   );

@@ -31,6 +31,7 @@ const LOCKED = new Set([
   "platform",
   "context",
   "mode",
+  "unit",
   "tags",
   "cv",
   "stack",

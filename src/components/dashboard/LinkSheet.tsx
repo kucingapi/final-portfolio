@@ -299,6 +299,8 @@ function CvDetail({ cv }: { cv: CvRow }) {
     { label: "Last opened", value: a.lastOpen ? ago(a.lastOpen) : "not yet" },
     { label: "CV downloads", value: String(a.cv) },
     { label: "Portfolio downloads", value: String(a.portfolio) },
+    { label: "Rate card views", value: String(a.rateViews) },
+    { label: "Rate card downloads", value: String(a.rates) },
   ];
   return (
     <>

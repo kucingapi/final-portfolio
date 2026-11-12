@@ -91,7 +91,7 @@ export async function recordApplication(code: string, job: { company: string; ti
   return createJob({ ...job, links: [ref], appliedOn: today(), status: job.status ?? "applied" });
 }
 
-export type JobTotals = { opens: number; cv: number; portfolio: number; clicks: number; last?: string };
+export type JobTotals = { opens: number; cv: number; portfolio: number; rates: number; rateViews: number; clicks: number; last?: string };
 
 /** How often everything sent with each job was opened, for agents (the dashboard adds it up itself). */
 export async function withTotals(jobs: Job[]) {
@@ -100,7 +100,7 @@ export async function withTotals(jobs: Job[]) {
   const [activity, stats] = await Promise.all([Promise.all(codes.map((c) => getActivity(c))), getStats(names)]);
   const byCode = new Map<string, LinkActivity>(codes.map((c, i) => [c, activity[i]]));
   return jobs.map((job) => {
-    const totals: JobTotals = { opens: 0, cv: 0, portfolio: 0, clicks: 0 };
+    const totals: JobTotals = { opens: 0, cv: 0, portfolio: 0, rates: 0, rateViews: 0, clicks: 0 };
     const later = (at?: string) => {
       if (at && (!totals.last || at > totals.last)) totals.last = at;
     };
@@ -112,6 +112,8 @@ export async function withTotals(jobs: Job[]) {
         totals.opens += a.opens;
         totals.cv += a.cv;
         totals.portfolio += a.portfolio;
+        totals.rates += a.rates;
+        totals.rateViews += a.rateViews;
         later(a.lastOpen);
       } else {
         const s = stats[id];
