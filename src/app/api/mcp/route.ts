@@ -41,7 +41,7 @@ const GUIDE = `How to tailor:
 - The site's career (the Career page, and the home page in Full-time mode) follows the CV: a role that stands for a CV entry ("career" in get_cv_master) shows the title you chose for that entry and the lines you picked for it, and those roles lead in the order of "entries".
 - For Upwork and other platforms that bar sharing contact details, set "contact": false. It hides the email, GitHub and LinkedIn on the CV and both PDFs.
 - For an Indonesian employer, set "lang": "id". The link then opens the site in Bahasa Indonesia (/id), and the CV and the portfolio deck come in Bahasa. Write "headline" and "summary" in Bahasa; everything else is picked by id as usual, and titles and skills may be named in English or in Bahasa (get_cv_master with lang "id" shows the Bahasa). Preview it: the 2-page limit holds in Bahasa too, and Bahasa runs longer.
-- Rate cards: add "rates" only when the client asked for prices (a rate card, a quote). Pick formats from get_cv_master's rateCard by id, in the order the client cares about; set one price per format in the client's currency (IDR for Indonesian clients, otherwise USD or EUR); add notes by id. The link then gets a one-page rate card PDF ("rateCard" in links) in the variant's language, honouring "contact". Prices are Novel's call: propose them from market research, say which numbers are estimates, and save only after Novel agrees. A new kind of format goes into the master first (edit_content), never into the variant.
+- Rate cards: add "rates" only when the client asked for prices (a rate card, a quote). Pick formats from get_cv_master's rateCard by id, in the order the client cares about; set one price per format in the client's currency (IDR for Indonesian clients, otherwise USD or EUR); add notes by id. The link then gets a rate card page ("rateCard" in links: send that one; only links with "rates" have it, and its views are counted) with a one-page PDF to download ("rateCardPdf"), in the variant's language, honouring "contact". Prices are Novel's call: propose them from market research, say which numbers are estimates, and save only after Novel agrees. A new kind of format goes into the master first (edit_content), never into the variant.
 - The label is private (e.g. "Acme, Senior Frontend, 2026-11"); the visitor never sees it.`;
 
 const JOBS_GUIDE = `Tracking applications:
@@ -65,7 +65,8 @@ function links(origin: string, code: string, { lang = "en", rates }: Variant) {
     cv: `${origin}${localePath(lang, "/cv")}?v=${code}`,
     pdf: `${origin}/api/cv?v=${code}&download=1`,
     portfolio: `${origin}/api/portfolio?v=${code}&download=1`,
-    rateCard: rates ? `${origin}/api/rate-card?v=${code}&download=1` : undefined,
+    rateCard: rates ? `${origin}${localePath(lang, "/rates")}?v=${code}` : undefined,
+    rateCardPdf: rates ? `${origin}/api/rate-card?v=${code}&download=1` : undefined,
   };
 }
 
@@ -205,7 +206,7 @@ function buildServer(origin: string) {
     {
       title: "Save a CV variant",
       description:
-        "Create a variant (omit code; pass claim to choose its code) or replace one (pass its code). Refuses invalid ids. Returns the code, the links to send (site, CV page, CV PDF, portfolio PDF, and the rate card PDF when it has rates) and the page count.",
+        "Create a variant (omit code; pass claim to choose its code) or replace one (pass its code). Refuses invalid ids. Returns the code, the links to send (site, CV page, CV PDF, portfolio PDF, and the rate card page and PDF when it has rates) and the page count.",
       inputSchema: {
         label: z.string().trim().min(1).max(120).describe("Private note: who this is for."),
         variant: variantSchema,

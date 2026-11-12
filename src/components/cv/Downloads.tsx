@@ -2,6 +2,7 @@
 
 import { useVariant } from "./Variant";
 import { track } from "@/lib/analytics";
+import { localePath } from "@/lib/i18n/lang";
 import { useLang, useUi } from "@/lib/i18n/client";
 
 /**
@@ -44,15 +45,13 @@ export function Downloads({ className = "" }: { className?: string }) {
         {t.downloadPortfolio}
         <DownloadIcon />
       </a>
-      {/* Only a link made with prices has a rate card; there is no public one. */}
+      {/* Only a link made with prices has a rate card page; there is no public one. */}
       {current?.variant.rates && (
         <a
-          href={`/api/rate-card?download=1${q}`}
-          onClick={() => track("rate_card_downloaded", { tailored: true, lang })}
+          href={localePath(lang, "/rates")}
           className={`${pill} border-2 border-midnight-50 text-midnight-50 hover:bg-midnight-50 hover:text-midnight-950`}
         >
           {t.downloadRateCard}
-          <DownloadIcon />
         </a>
       )}
     </div>

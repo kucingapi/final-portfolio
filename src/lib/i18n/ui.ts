@@ -198,6 +198,10 @@ const en = {
   rateCard: {
     title: "Rate card",
     documentTitle: (name: string) => `${name} – Rate card`,
+    intro: "Prices for the work we talked about, set for you. The PDF is the same, ready to forward.",
+    private: "This rate card is made for one client and opens only from their link.",
+    download: "Download PDF",
+    home: "Back home",
     format: "Format",
     duration: "Duration",
     rate: "Rate",
@@ -398,6 +402,10 @@ const id: Ui = {
   rateCard: {
     title: "Rate card",
     documentTitle: (name) => `${name} – Rate card`,
+    intro: "Tarif untuk pekerjaan yang kita bicarakan, khusus untuk Anda. PDF-nya berisi hal yang sama, siap diteruskan.",
+    private: "Rate card ini dibuat untuk satu klien dan hanya terbuka lewat link miliknya.",
+    download: "Unduh PDF",
+    home: "Kembali ke beranda",
     format: "Format",
     duration: "Durasi",
     rate: "Tarif",

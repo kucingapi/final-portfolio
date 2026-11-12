@@ -105,10 +105,10 @@ export async function deleteVariant(code: string): Promise<boolean> {
 
 /**
  * What happened to one tailored link: how often it was opened (once per browser per five minutes, as
- * the variant response is cached that long) and how often its CV, portfolio and rate card PDFs were fetched.
+ * the variant response is cached that long) and how often its CV, portfolio and rate card PDFs were fetched and its rate card page viewed.
  */
-export type LinkActivity = { opens: number; cv: number; portfolio: number; rates: number; firstOpen?: string; lastOpen?: string };
-export type ActivityKind = "opens" | "cv" | "portfolio" | "rates";
+export type LinkActivity = { opens: number; cv: number; portfolio: number; rates: number; rateViews: number; firstOpen?: string; lastOpen?: string };
+export type ActivityKind = "opens" | "cv" | "portfolio" | "rates" | "rateViews";
 
 /** Novel's own browser, marked by visiting any page with `?test=1` (see src/lib/analytics.ts). */
 export const fromTester = (request: Request) => /(?:^|;\s*)nb_test=1(?:;|$)/.test(request.headers.get("cookie") ?? "");
@@ -126,7 +126,7 @@ export async function recordActivity(code: string, kind: ActivityKind) {
   }
   const store = local<LinkActivity>(ACTIVITY_FILE);
   const all = await store.read();
-  const row = (all[code] ??= { opens: 0, cv: 0, portfolio: 0, rates: 0 });
+  const row = (all[code] ??= { opens: 0, cv: 0, portfolio: 0, rates: 0, rateViews: 0 });
   row[kind] = (row[kind] ?? 0) + 1;
   if (kind === "opens") {
     row.firstOpen ??= now;
@@ -144,6 +144,7 @@ export async function getActivity(code: string): Promise<LinkActivity> {
     cv: Number(row?.cv ?? 0),
     portfolio: Number(row?.portfolio ?? 0),
     rates: Number(row?.rates ?? 0),
+    rateViews: Number(row?.rateViews ?? 0),
     firstOpen: row?.firstOpen ? String(row.firstOpen) : undefined,
     lastOpen: row?.lastOpen ? String(row.lastOpen) : undefined,
   };

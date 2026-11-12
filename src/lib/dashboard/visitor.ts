@@ -82,7 +82,7 @@ export function describeClick(request: Request): Click {
 }
 
 /** A tailored link's CV, portfolio or rate card PDF was fetched: on to the feed and the phone, unless a bot fetched it. */
-export async function reportDownload(request: Request, row: { code: string; label: string }, kind: "cv" | "portfolio" | "rates") {
+export async function reportDownload(request: Request, row: { code: string; label: string }, kind: "cv" | "portfolio" | "rates" | "rateViews") {
   if (isPreview(request)) return;
   const { at, country, device } = describeClick(request);
   await report({ kind, ref: `cv:${row.code}`, name: row.label, at, country, device });

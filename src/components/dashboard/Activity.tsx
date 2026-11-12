@@ -16,6 +16,7 @@ export const KIND = {
   open: { label: "CV link opened", icon: Eye },
   cv: { label: "CV downloaded", icon: FileDown },
   portfolio: { label: "Portfolio downloaded", icon: Presentation },
+  rateViews: { label: "Rate card viewed", icon: Receipt },
   rates: { label: "Rate card downloaded", icon: Receipt },
 } as const;
 

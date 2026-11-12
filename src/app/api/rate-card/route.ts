@@ -30,3 +30,12 @@ export async function GET(request: Request) {
     },
   });
 }
+
+/** The rate card page was viewed (src/app/[lang]/rates): counted on the link, like an open. */
+export async function POST(request: Request) {
+  const code = new URL(request.url).searchParams.get("v");
+  const row = code ? await getVariant(code) : null;
+  if (!row?.variant.rates) return new Response(null, { status: 404 });
+  if (!fromTester(request)) after(() => Promise.all([recordActivity(row.code, "rateViews"), reportDownload(request, row, "rateViews")]));
+  return new Response(null, { status: 204 });
+}
