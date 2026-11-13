@@ -10,7 +10,7 @@ import { pushToList, readList, removeFromList, setValue } from "./state";
  * already left out link previews and Novel's own browser (`nb_test`). Server only.
  */
 
-export type ActivityKind = "click" | "open" | "cv" | "portfolio" | "enquiry";
+export type ActivityKind = "click" | "open" | "cv" | "portfolio" | "rates" | "rateViews" | "enquiry";
 
 export type ActivityEvent = {
   at: string;
@@ -34,13 +34,15 @@ export const FEED_SIZE = 300;
 /** One ping per link a minute: a burst of clicks is one notification, and the feed has every one. */
 const QUIET_SECONDS = 60;
 
-const PREF: Record<ActivityKind, keyof Prefs> = { click: "clicks", open: "opens", cv: "downloads", portfolio: "downloads", enquiry: "enquiries" };
+const PREF: Record<ActivityKind, keyof Prefs> = { click: "clicks", open: "opens", cv: "downloads", portfolio: "downloads", rates: "downloads", rateViews: "opens", enquiry: "enquiries" };
 const TITLE: Record<ActivityKind, string> = {
   enquiry: "New message",
   click: "Short link opened",
   open: "CV link opened",
   cv: "CV downloaded",
   portfolio: "Portfolio downloaded",
+  rates: "Rate card downloaded",
+  rateViews: "Rate card viewed",
 };
 
 export const listEvents = (count = FEED_SIZE) => readList<ActivityEvent>(FEED, count);

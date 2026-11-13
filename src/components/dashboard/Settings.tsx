@@ -60,7 +60,7 @@ const KINDS: { key: keyof Prefs; label: string; hint: string }[] = [
   { key: "enquiries", label: "Contact form messages", hint: "Someone sent the contact form." },
   { key: "clicks", label: "Short-link clicks", hint: "Someone opened a /go/ link." },
   { key: "opens", label: "Tailored CV links opened", hint: "Someone opened a ?v= link." },
-  { key: "downloads", label: "CV and portfolio downloads", hint: "From a tailored link." },
+  { key: "downloads", label: "CV, portfolio and rate card downloads", hint: "From a tailored link." },
 ];
 
 function Notifications() {

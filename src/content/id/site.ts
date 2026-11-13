@@ -199,6 +199,50 @@ export const siteId: Record<string, string> = {
     "Menyelenggarakan townhall offline pertama BCC; jumlah peserta naik 50%.",
   "Created a learning event that drew 100+ attendees, 50% more than the year before.":
     "Membuat acara belajar yang diikuti 100+ peserta, 50% lebih banyak dari tahun sebelumnya.",
+  "Volunteering":
+    "Kerelawanan",
+  "Instructor":
+    "Instruktur",
+  "Asah, led by Dicoding with Accenture":
+    "Asah, diselenggarakan Dicoding bersama Accenture",
+  "Online":
+    "Online",
+  "Taught an instructor-led training session; participants rated it 4.77, and the program graduated 95% of its learners.":
+    "Mengajar satu sesi instructor-led training; peserta memberinya nilai kepuasan 4,77, dan program ini meluluskan 95% pesertanya.",
+  "Mentor, Software Engineering Introduction":
+    "Mentor, Software Engineering Introduction",
+  "Mentored the Software Engineering Introduction course.":
+    "Menjadi mentor kelas Software Engineering Introduction.",
+  "Certifications":
+    "Sertifikasi",
+  "Webinar or talk":
+    "Webinar atau talk",
+  "Live training, hands-on":
+    "Pelatihan langsung, hands-on",
+  "Workshop or corporate training":
+    "Workshop atau pelatihan korporat",
+  "Mentoring or facilitation":
+    "Mentoring atau fasilitasi",
+  "New course material: slides, case study, exercises":
+    "Materi kursus baru: slide, studi kasus, latihan",
+  "Software development":
+    "Pengembangan software",
+  "1–2 hours":
+    "1–2 jam",
+  "2–3 hours":
+    "2–3 jam",
+  "6–8 hours":
+    "6–8 jam",
+  "Material I already have costs nothing extra.":
+    "Materi yang sudah saya miliki tidak dikenakan biaya tambahan.",
+  "Travel and lodging outside Greater Jakarta are covered by the organiser.":
+    "Biaya perjalanan dan penginapan di luar Jabodetabek ditanggung penyelenggara.",
+  "Programs of 6 or more sessions get a package price, 10–15% less per session.":
+    "Program 6 sesi atau lebih mendapat harga paket, 10–15% lebih murah per sesi.",
+  "Rates can be adjusted for long-term programs.":
+    "Tarif dapat disesuaikan untuk program jangka panjang.",
+  "Rates are gross; income tax (PPh 21) is withheld by the organiser.":
+    "Tarif bersifat bruto; PPh 21 dipotong oleh penyelenggara.",
   "Co-worker":
     "Rekan kerja",
   "Co-Founder, Orthocopilot":

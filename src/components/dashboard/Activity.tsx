@@ -1,6 +1,6 @@
 "use client";
 
-import { BellRing, Eye, FileDown, Mail, MousePointerClick, PlayCircle, Presentation, X } from "lucide-react";
+import { BellRing, Eye, FileDown, Mail, MousePointerClick, PlayCircle, Presentation, Receipt, X } from "lucide-react";
 import { useMemo, useState, useSyncExternalStore } from "react";
 import type { View } from "./App";
 import { type ActivityEvent, useDashboard } from "./data";
@@ -16,6 +16,8 @@ export const KIND = {
   open: { label: "CV link opened", icon: Eye },
   cv: { label: "CV downloaded", icon: FileDown },
   portfolio: { label: "Portfolio downloaded", icon: Presentation },
+  rateViews: { label: "Rate card viewed", icon: Receipt },
+  rates: { label: "Rate card downloaded", icon: Receipt },
 } as const;
 
 /** The visit's session replay. With the project id set it opens straight in that project. */

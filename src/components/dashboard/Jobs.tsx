@@ -23,7 +23,7 @@ import { toast } from "./ui/toaster";
  */
 
 type LinksData = { links: LinkRow[]; cv: CvRow[] };
-type Totals = { opens: number; cv: number; portfolio: number; clicks: number; last?: string };
+type Totals = { opens: number; cv: number; portfolio: number; rates: number; rateViews: number; clicks: number; last?: string };
 
 const ACTIVE: JobStatus[] = ["saved", "applied", "interviewing", "offer"];
 type Filter = "active" | "closed" | "all";
@@ -38,7 +38,7 @@ const DOT: Record<JobStatus, string> = {
 };
 
 function totalsFor(refs: string[], data: LinksData | null): Totals {
-  const t: Totals = { opens: 0, cv: 0, portfolio: 0, clicks: 0 };
+  const t: Totals = { opens: 0, cv: 0, portfolio: 0, rates: 0, rateViews: 0, clicks: 0 };
   const later = (at?: string) => {
     if (at && (!t.last || at > t.last)) t.last = at;
   };
@@ -50,6 +50,8 @@ function totalsFor(refs: string[], data: LinksData | null): Totals {
       t.opens += a.opens;
       t.cv += a.cv;
       t.portfolio += a.portfolio;
+      t.rates += a.rates;
+      t.rateViews += a.rateViews;
       later(a.lastOpen);
     } else {
       const s = data?.links.find((l) => l.name === id)?.stats;
@@ -67,6 +69,8 @@ function summary(t: Totals) {
     t.opens && count(t.opens, "open"),
     t.cv && count(t.cv, "CV download"),
     t.portfolio && count(t.portfolio, "deck download"),
+    t.rateViews && count(t.rateViews, "rate card view"),
+    t.rates && count(t.rates, "rate card download"),
     t.clicks && count(t.clicks, "click"),
   ].filter(Boolean);
   return parts.length ? parts.join(" · ") : "Not opened yet";
@@ -146,7 +150,7 @@ export function JobsView({ open, onOpen, onClose }: { open: string | null; onOpe
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm text-foreground">{c.label}</span>
                   <span className="block text-[0.8125rem] text-muted-foreground">
-                    {summary({ opens: c.activity.opens, cv: c.activity.cv, portfolio: c.activity.portfolio, clicks: 0 })}
+                    {summary({ opens: c.activity.opens, cv: c.activity.cv, portfolio: c.activity.portfolio, rates: c.activity.rates, rateViews: c.activity.rateViews, clicks: 0 })}
                   </span>
                 </span>
                 <Button size="sm" variant="secondary" onClick={() => onOpen(`new~cv:${c.code}`)}>
@@ -413,7 +417,7 @@ function LinkPicker({ value, onChange }: { value: string[]; onChange: (refs: str
     ...data.cv.map((c) => ({
       ref: `cv:${c.code}`,
       name: c.label,
-      sub: `Tailored link · ${summary({ opens: c.activity.opens, cv: c.activity.cv, portfolio: c.activity.portfolio, clicks: 0 })}`,
+      sub: `Tailored link · ${summary({ opens: c.activity.opens, cv: c.activity.cv, portfolio: c.activity.portfolio, rates: c.activity.rates, rateViews: c.activity.rateViews, clicks: 0 })}`,
     })),
     ...data.links.map((l) => ({
       ref: `go:${l.name}`,

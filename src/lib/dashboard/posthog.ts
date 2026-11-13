@@ -24,6 +24,8 @@ const NAME: Record<ActivityEvent["kind"], string> = {
   open: "cv_link_opened",
   cv: "cv_downloaded",
   portfolio: "portfolio_downloaded",
+  rates: "rate_card_downloaded",
+  rateViews: "rate_card_viewed",
   enquiry: "enquiry_received",
 };
 

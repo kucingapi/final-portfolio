@@ -136,6 +136,28 @@ function Entry({ e, mark, origin, t }: { e: ResolvedEntry; mark?: ReactNode; ori
   );
 }
 
+/** Name, headline and the contact line; shared with the rate card. `email` and `links` already honour `contact: false`. */
+export function CvHeader({ cv }: { cv: Pick<ResolvedCv, "name" | "headline" | "location" | "email" | "links"> }) {
+  return (
+    <>
+      <Text style={s.name}>{cv.name}</Text>
+      <Text style={s.headline}>{cv.headline}</Text>
+      <Text style={s.contact}>
+        {cv.location}
+        {cv.email && ` | ${cv.email}`}
+        {cv.links.map((l) => (
+          <Text key={l.href}>
+            {" | "}
+            <Link src={l.href} style={s.link}>
+              {l.label}
+            </Link>
+          </Text>
+        ))}
+      </Text>
+    </>
+  );
+}
+
 /**
  * `breaks` lists sections that start a new page; `probe` records where titles and first entries land,
  * so renderCvPdf can find a title left alone at the foot of a page and render again with a break.
@@ -144,20 +166,7 @@ export function CvDocument({ cv, breaks, probe, origin }: { cv: ResolvedCv; brea
   return (
     <Document title={UI[cv.lang].cv.documentTitle(cv.name)} language={cv.lang} author={cv.name} subject={cv.headline} creator={cv.name} producer={cv.name}>
       <Page size="A4" style={s.page}>
-        <Text style={s.name}>{cv.name}</Text>
-        <Text style={s.headline}>{cv.headline}</Text>
-        <Text style={s.contact}>
-          {cv.location}
-          {cv.email && ` | ${cv.email}`}
-          {cv.links.map((l) => (
-            <Text key={l.href}>
-              {" | "}
-              <Link src={l.href} style={s.link}>
-                {l.label}
-              </Link>
-            </Text>
-          ))}
-        </Text>
+        <CvHeader cv={cv} />
         {cv.summary && <Text style={s.summary}>{cv.summary}</Text>}
         {cv.sections.map((section) => (
           <View key={section.id} style={s.section}>

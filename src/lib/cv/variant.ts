@@ -12,7 +12,9 @@ import {
   type CvSectionId,
   type CvSkillGroup,
   type Project,
+  type RateCard,
 } from "@/lib/content/schema";
+import { checkRates } from "./rate-card";
 
 /** One tailored version of the CV and the site; see `variantSchema` in ./schema for the fields. */
 export type Variant = z.infer<typeof variantSchema>;
@@ -39,10 +41,11 @@ function defaultBullets(entry: CvEntry, lang: Lang): CvBullet[] {
  * Check a variant against the master CV. Returns every problem found, so an agent can fix them in one
  * pass; an empty list means it is valid.
  */
-export function checkVariant(cv: CvContent, v: Variant, projects: Pick<Project, "slug" | "chapters">[]): string[] {
+export function checkVariant(cv: CvContent, v: Variant, projects: Pick<Project, "slug" | "chapters">[], rateCard?: RateCard): string[] {
   const projectSlugs = projects.map((p) => p.slug);
   const getCvEntry = (id: string) => cv.entries.find((e) => e.id === id);
   const errors: string[] = [];
+  if (v.rates) errors.push(...(rateCard ? checkRates(rateCard, v.rates) : ["rates: the site has no rate card formats yet."]));
   if (v.summaryId && !cv.summaries.some((s) => s.id === v.summaryId)) errors.push(`Unknown summaryId "${v.summaryId}".`);
   for (const id of v.entries ?? []) if (!getCvEntry(id)) errors.push(`Unknown entry "${id}".`);
   for (const [id, bulletIds] of Object.entries(v.bullets ?? {})) {

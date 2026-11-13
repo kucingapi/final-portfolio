@@ -13,6 +13,8 @@ const MAX_KEYS = 50;
 const byId = <T extends z.ZodType>(value: T) =>
   z.record(id, value).refine((r) => Object.keys(r).length <= MAX_KEYS, { message: `At most ${MAX_KEYS} keys.` });
 
+export const RATE_CURRENCIES = ["IDR", "USD", "EUR"] as const;
+
 /**
  * A variant is one tailored version of the CV and the site, made for one application. It only picks,
  * orders and chooses between lines that already exist in the master CV (src/content/cv.ts); the free
@@ -69,4 +71,13 @@ export const variantSchema = z.object({
    * bar sharing contact details. The location, the site and the Upwork profile stay.
    */
   contact: z.boolean().optional(),
+  /** A rate card for this link: formats from the master, in order, each with this client's price. */
+  rates: z
+    .object({
+      currency: z.enum(RATE_CURRENCIES),
+      items: z.array(z.object({ id, price: z.number().positive().max(1_000_000_000) })).min(1).max(12),
+      /** Master note ids to print under the table, in order. */
+      notes: ids(8).optional(),
+    })
+    .optional(),
 });
