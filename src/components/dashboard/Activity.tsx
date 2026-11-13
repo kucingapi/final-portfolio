@@ -1,6 +1,6 @@
 "use client";
 
-import { BellRing, Eye, FileDown, Mail, MousePointerClick, Presentation, X } from "lucide-react";
+import { BellRing, Eye, FileDown, Mail, MousePointerClick, PlayCircle, Presentation, X } from "lucide-react";
 import { useMemo, useState, useSyncExternalStore } from "react";
 import type { View } from "./App";
 import { type ActivityEvent, useDashboard } from "./data";
@@ -17,6 +17,12 @@ export const KIND = {
   cv: { label: "CV downloaded", icon: FileDown },
   portfolio: { label: "Portfolio downloaded", icon: Presentation },
 } as const;
+
+/** The visit's session replay. With the project id set it opens straight in that project. */
+function replayUrl(session: string) {
+  const project = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_ID;
+  return project ? `https://eu.posthog.com/project/${project}/replay/${session}` : `https://eu.posthog.com/replay/${session}`;
+}
 
 const PAGE = 40;
 const WEEK = 7 * 86_400_000;
@@ -114,6 +120,17 @@ function EventRow({ event: e, onOpen }: { event: ActivityEvent; onOpen: (ref: st
           {clock(e.at)}
         </time>
       </button>
+      {e.session && (
+        <a
+          href={replayUrl(e.session)}
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center gap-1.5 border-t border-border/60 px-4 py-2 pl-16 text-[0.8125rem] font-medium text-primary transition-colors duration-150 hover:bg-accent/60"
+        >
+          <PlayCircle className="size-4" />
+          Watch the visit in PostHog
+        </a>
+      )}
     </li>
   );
 }

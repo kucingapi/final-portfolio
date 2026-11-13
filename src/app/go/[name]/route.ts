@@ -3,6 +3,7 @@ import { fromTester } from "@/lib/cv/store";
 import { report } from "@/lib/dashboard/activity";
 import { getLink, recordClick } from "@/lib/dashboard/links";
 import { describeClick, isPreview } from "@/lib/dashboard/visitor";
+import { visitFrom } from "@/lib/dashboard/posthog";
 
 /**
  * A short link: `/go/<name>` sends the visitor on with a 302, so browsers don't cache it and a changed
@@ -19,7 +20,7 @@ export async function GET(request: Request, ctx: RouteContext<"/go/[name]">) {
   if (link?.url.startsWith("/") && target.origin !== here.origin) target = new URL("/", here);
   if (link && !isPreview(request) && !fromTester(request)) {
     const click = describeClick(request);
-    after(() => Promise.all([recordClick(link.name, click), report({ kind: "click", ref: `go:${link.name}`, name: link.name, ...click })]));
+    after(() => Promise.all([recordClick(link.name, click), report({ kind: "click", ref: `go:${link.name}`, name: link.name, ...click, ...visitFrom(request) })]));
   }
   return new Response(null, {
     status: 302,

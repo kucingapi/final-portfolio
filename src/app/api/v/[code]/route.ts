@@ -2,6 +2,7 @@ import { after } from "next/server";
 import { fromTester, getVariant, recordActivity } from "@/lib/cv/store";
 import type { PublicVariant } from "@/lib/cv/variant";
 import { report } from "@/lib/dashboard/activity";
+import { visitFrom } from "@/lib/dashboard/posthog";
 import { describeClick } from "@/lib/dashboard/visitor";
 
 /**
@@ -17,8 +18,9 @@ export async function GET(request: Request, ctx: RouteContext<"/api/v/[code]">) 
   if (!fromTester(request) && !new URL(request.url).searchParams.has("moved")) {
     // The referrer is this site's own page, which says nothing; where and on what device do.
     const { at, country, device } = describeClick(request);
+    const visit = visitFrom(request);
     after(() =>
-      Promise.all([recordActivity(row.code, "opens"), report({ kind: "open", ref: `cv:${row.code}`, name: row.label, at, country, device })]),
+      Promise.all([recordActivity(row.code, "opens"), report({ kind: "open", ref: `cv:${row.code}`, name: row.label, at, country, device, ...visit })]),
     );
   }
   const body: PublicVariant = { code: row.code, variant: row.variant };

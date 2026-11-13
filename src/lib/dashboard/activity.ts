@@ -1,4 +1,5 @@
 import type { Device } from "./links";
+import { capture } from "./posthog";
 import { getPrefs, send, type Ping, type Prefs } from "./push";
 import { pushToList, readList, removeFromList, setValue } from "./state";
 
@@ -23,6 +24,9 @@ export type ActivityEvent = {
   country?: string;
   device?: Device;
   referrer?: string;
+  /** The visitor's PostHog session (for its replay) and person, when their browser had analytics loaded. */
+  session?: string;
+  person?: string;
 };
 
 const FEED = "dash:events";
@@ -48,7 +52,7 @@ export async function forget(ref: string) {
 
 /** Record an event and ping the phone. Run it inside `after()`, so the visitor never waits for it. */
 export async function report(event: ActivityEvent) {
-  const results = await Promise.allSettled([pushToList(FEED, event, FEED_SIZE), ping(event)]);
+  const results = await Promise.allSettled([pushToList(FEED, event, FEED_SIZE), ping(event), capture(event)]);
   for (const r of results) if (r.status === "rejected") console.error("[dashboard] activity", r.reason);
 }
 

@@ -6,6 +6,7 @@ import { clientIp, senderKey } from "@/lib/rate";
 import { report } from "@/lib/dashboard/activity";
 import { saveEnquiry } from "@/lib/dashboard/enquiries";
 import { describeClick } from "@/lib/dashboard/visitor";
+import { visitFrom } from "@/lib/dashboard/posthog";
 
 /**
  * Contact form endpoint. Every message is saved for the dashboard's Inbox and pings the phone, and a
@@ -127,10 +128,11 @@ export async function POST(request: Request) {
   let saved = false;
   try {
     const { country, device } = describeClick(request);
+    const visit = visitFrom(request);
     const row = await saveEnquiry({ service, name, email, phone: phone || undefined, message, country, device, emailed: emailed === true });
     saved = true;
     const detail = message ? `${service} · ${message.length > 120 ? `${message.slice(0, 117)}…` : message}` : service;
-    after(() => report({ at: row.at, kind: "enquiry", ref: `enquiry:${row.id}`, name, detail, country, device }));
+    after(() => report({ at: row.at, kind: "enquiry", ref: `enquiry:${row.id}`, name, detail, country, device, ...visit }));
   } catch (e) {
     console.error("[contact] couldn't save the message", e);
   }
