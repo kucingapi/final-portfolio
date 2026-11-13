@@ -1,5 +1,6 @@
 import { userAgent } from "next/server";
 import { report } from "./activity";
+import { visitFrom } from "./posthog";
 import type { Click, Device } from "./links";
 
 /**
@@ -85,5 +86,5 @@ export function describeClick(request: Request): Click {
 export async function reportDownload(request: Request, row: { code: string; label: string }, kind: "cv" | "portfolio" | "rates" | "rateViews") {
   if (isPreview(request)) return;
   const { at, country, device } = describeClick(request);
-  await report({ kind, ref: `cv:${row.code}`, name: row.label, at, country, device });
+  await report({ kind, ref: `cv:${row.code}`, name: row.label, at, country, device, ...visitFrom(request) });
 }

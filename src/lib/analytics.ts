@@ -11,6 +11,43 @@ import type { PostHog } from "posthog-js";
 
 const KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
 const TEST_COOKIE = "nb_test";
+/**
+ * The visitor's PostHog session and person, as `<session>.<distinct id>`, for the server: the feed events
+ * it records (link opens, PDF downloads, messages) carry them, so the dashboard can open that visit's
+ * replay, and the server sends the same events to PostHog under the same person and session.
+ */
+const SESSION_COOKIE = "nb_ph";
+
+function uuidv7() {
+  const b = crypto.getRandomValues(new Uint8Array(16));
+  let t = Date.now();
+  for (let i = 5; i >= 0; i--) {
+    b[i] = t % 256;
+    t = Math.floor(t / 256);
+  }
+  b[6] = (b[6] & 0x0f) | 0x70;
+  b[8] = (b[8] & 0x3f) | 0x80;
+  const h = Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
+}
+
+const remember = (session: string, person: string) => {
+  document.cookie = `${SESSION_COOKIE}=${session}.${person}; path=/; samesite=lax`;
+};
+
+/**
+ * PostHog loads when the browser is idle, but a tailored link's open is reported at once. On a first
+ * visit, pick the session and person ids now and hand them to PostHog, so that open already points at
+ * the replay. A returning visitor keeps PostHog's own ids, and the cookie still holds them from before.
+ */
+function bootstrap(): { sessionID: string; distinctID: string } | undefined {
+  try {
+    if (localStorage.getItem(`ph_${KEY}_posthog`)) return undefined;
+  } catch {}
+  const ids = { sessionID: uuidv7(), distinctID: uuidv7() };
+  remember(ids.sessionID, ids.distinctID);
+  return ids;
+}
 
 /**
  * Novel's own browser. Visiting any page with `?test=1` marks it for a year, and `?test=0` clears the
@@ -39,7 +76,8 @@ export function loadAnalytics(tags?: Record<string, string>): Promise<PostHog | 
   if (typeof window === "undefined") return Promise.resolve(null);
   window.__nbAnalytics ??= !KEY || isTester()
     ? Promise.resolve(null)
-    : new Promise<PostHog | null>((resolve) =>
+    : new Promise<PostHog | null>((resolve) => {
+        const ids = bootstrap();
         idle(() =>
           import("posthog-js")
             .then(({ default: posthog }) => {
@@ -47,6 +85,7 @@ export function loadAnalytics(tags?: Record<string, string>): Promise<PostHog | 
                 api_host: "/relay",
                 ui_host: "https://eu.posthog.com",
                 defaults: "2026-08-30",
+                ...(ids && { bootstrap: ids }),
                 person_profiles: "identified_only",
                 // Inputs are masked; so is any text marked data-ph-mask (the contact thank-you, which names the visitor).
                 session_recording: { maskAllInputs: true, maskTextSelector: "[data-ph-mask]" },
@@ -57,13 +96,15 @@ export function loadAnalytics(tags?: Record<string, string>): Promise<PostHog | 
                 },
                 loaded: (ph) => {
                   if (tags) ph.register(tags);
+                  remember(ph.get_session_id(), ph.get_distinct_id());
+                  ph.onSessionId((session) => remember(session, ph.get_distinct_id()));
                 },
               });
               resolve(posthog);
             })
             .catch(() => resolve(null)),
-        ),
-      );
+        );
+      });
   return window.__nbAnalytics;
 }
 
