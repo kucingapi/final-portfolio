@@ -207,6 +207,30 @@ const en = {
     rate: "Rate",
     units: { session: "per session", day: "per day", hour: "per hour", module: "per module" } as Record<RateUnit, string>,
   },
+  /** "Ask AI Novel", the chat in the corner of every page. */
+  chat: {
+    open: "Ask AI Novel",
+    title: "AI Novel",
+    subtitle: "An AI that answers from my CV and case studies. It can get things wrong.",
+    greeting:
+      "Hi! I’m an AI version of Novel. Ask me about my projects, my stack or how I work. For anything that needs the real me, like rates or start dates, the contact page reaches me directly.",
+    starters: ["What do you build?", "Show me your best project", "What’s your tech stack?", "Are you open to new work?"],
+    placeholder: "Ask about my work…",
+    send: "Send",
+    stop: "Stop",
+    close: "Close the chat",
+    restart: "Start over",
+    saved: "Chats are saved so the real Novel can read them.",
+    thinking: "Thinking…",
+    contact: "Contact page",
+    errors: {
+      off: "The chat is off right now. The contact page reaches me directly.",
+      busy: "Lots of messages right now. Try again in a bit, or use the contact page.",
+      full: "This chat is getting long. Start over, or use the contact page.",
+      long: "That’s a bit long. Keep it under 1,000 characters.",
+      error: "Something went wrong. Try again, or use the contact page.",
+    } as Record<string, string>,
+  },
 };
 
 export type Ui = typeof en;
@@ -410,6 +434,29 @@ const id: Ui = {
     duration: "Durasi",
     rate: "Tarif",
     units: { session: "per sesi", day: "per hari", hour: "per jam", module: "per modul" },
+  },
+  chat: {
+    open: "Tanya AI Novel",
+    title: "AI Novel",
+    subtitle: "AI yang menjawab dari CV dan studi kasus saya. Jawabannya bisa keliru.",
+    greeting:
+      "Halo! Saya versi AI dari Novel. Tanyakan tentang proyek, tech stack, atau cara kerja saya. Untuk hal yang perlu jawaban langsung dari saya, seperti tarif atau tanggal mulai, silakan lewat halaman kontak.",
+    starters: ["Apa yang Anda bangun?", "Tunjukkan proyek terbaik Anda", "Apa tech stack Anda?", "Apakah Anda terbuka untuk proyek baru?"],
+    placeholder: "Tanyakan tentang pekerjaan saya…",
+    send: "Kirim",
+    stop: "Berhenti",
+    close: "Tutup chat",
+    restart: "Mulai lagi",
+    saved: "Chat disimpan agar Novel yang asli bisa membacanya.",
+    thinking: "Sedang berpikir…",
+    contact: "Halaman kontak",
+    errors: {
+      off: "Chat sedang nonaktif. Silakan hubungi saya lewat halaman kontak.",
+      busy: "Sedang banyak pesan. Coba lagi sebentar lagi, atau lewat halaman kontak.",
+      full: "Chat ini sudah panjang. Mulai lagi, atau lewat halaman kontak.",
+      long: "Pesannya terlalu panjang. Maksimal 1.000 karakter.",
+      error: "Ada yang salah. Coba lagi, atau lewat halaman kontak.",
+    },
   },
 };
 

@@ -10,7 +10,7 @@ import { Sheet, SheetBody, SheetContent, SheetDescription, SheetHeader, SheetTit
 
 /**
  * Picks an OpenRouter model: the suggested ones, the free ones, or any other by search or by pasting its
- * id, each with its live price and what one use of it costs (`use`: a draft by default).
+ * id, each with its live price and what one use of it costs. Used by the Assistant and the site chat.
  */
 
 /** What one use is ("a draft") and how many tokens it takes, for the cost shown beside each model. */

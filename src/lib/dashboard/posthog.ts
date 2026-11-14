@@ -27,6 +27,7 @@ const NAME: Record<ActivityEvent["kind"], string> = {
   rates: "rate_card_downloaded",
   rateViews: "rate_card_viewed",
   enquiry: "enquiry_received",
+  chat: "site_chat_started",
 };
 
 /**
