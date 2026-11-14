@@ -2,8 +2,8 @@ import { cacheLife, cacheTag } from "next/cache";
 import { draftMode } from "next/headers";
 import type { Lang } from "@/lib/i18n/lang";
 import { translateDoc, type Dict } from "@/lib/i18n/translate";
-import type { CvContent, DocContent, DocId, Project, SiteContent } from "./schema";
-import { DEFAULTS } from "./defaults";
+import type { CvContent, DocContent, DocId, Project, SiteView } from "./schema";
+import { siteView } from "./backfill";
 import { draftValue, publishedValue } from "./store";
 
 /**
@@ -42,14 +42,14 @@ async function inLang<T>(value: T, lang: Lang): Promise<T> {
   return lang === "en" ? value : translateDoc(value, await getTranslations(lang), lang);
 }
 
-export async function getSiteContent(lang: Lang = "en"): Promise<SiteContent> {
+export async function getSiteContent(lang: Lang = "en"): Promise<SiteView> {
   "use cache";
   cacheTag(CONTENT_TAGS.site);
   if (lang !== "en") cacheTag(CONTENT_TAGS.bahasa);
   cacheLife("max");
   const site = await read("site");
-  // A site document published before the rate card existed lacks it.
-  return inLang({ ...site, rateCard: site.rateCard ?? DEFAULTS.site.rateCard }, lang);
+  // A site document published before the rate card, the speaking list or Speaker mode existed lacks them.
+  return inLang(siteView(site), lang);
 }
 
 export async function getCvContent(lang: Lang = "en"): Promise<CvContent> {

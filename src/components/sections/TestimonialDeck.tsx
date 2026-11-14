@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useRef, useState } from "react";
 import { gsap, useGSAP, ScrollTrigger, prefersReducedMotion } from "@/lib/gsap";
 import { designUnit } from "@/lib/motion";
-import type { Mode, Testimonial } from "@/content/site";
+import type { Testimonial } from "@/content/site";
 import { useLang, useUi } from "@/lib/i18n/client";
 
 /** Seconds a card stays in front before autoplay moves on. */
@@ -45,7 +45,7 @@ const initials = (name: string) =>
  * Autoplay holds while the deck is off screen, hovered, focused, dragged, or the tab is hidden,
  * and never runs with reduced motion.
  */
-export function TestimonialDeck({ testimonials, mode }: { testimonials: Testimonial[]; mode?: Mode }) {
+export function TestimonialDeck({ testimonials, mode }: { testimonials: Testimonial[]; /** The modes it shows in, separated by spaces (the section's `data-for`). */ mode?: string }) {
   const root = useRef<HTMLDivElement>(null);
   const controls = useRef<{ step: (dir: 1 | -1) => void } | null>(null);
   const [front, setFront] = useState(0);

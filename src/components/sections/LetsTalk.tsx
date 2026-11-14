@@ -5,6 +5,7 @@ import { TransitionLink } from "@/components/transition/PageTransition";
 import { getSiteContent } from "@/lib/content/read";
 import { getLang } from "@/lib/i18n/server";
 import { ui } from "@/lib/i18n/ui";
+import { MODES } from "@/lib/modes";
 
 function TalkRow({ word, outline = false }: { word: string; outline?: boolean }) {
   return (
@@ -32,7 +33,7 @@ export async function LetsTalk() {
     <SectionMotion preset="talk">
       <section aria-label={t.label} data-node-id="275:3116" className="relative overflow-clip bg-midnight-950">
         <div className="relative mx-auto h-1024 w-1440 max-md:h-auto max-md:w-full max-md:pt-80 max-md:pb-40">
-          {(["freelance", "fulltime"] as const).map((m) => (
+          {MODES.map((m) => (
             <div key={m} data-for={m} className="contents">
               <div className="absolute top-57 left-111 max-md:static max-md:px-20">
                 <Heading barLeft="-0.1375em" barRight="-0.06em" className="max-md:text-[calc(var(--s)*28)]">

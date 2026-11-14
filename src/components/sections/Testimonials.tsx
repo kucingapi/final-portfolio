@@ -1,26 +1,34 @@
 import { Heading } from "@/components/ui";
 import { SectionMotion } from "@/components/motion/SectionMotion";
-import type { Mode } from "@/content/site";
 import { getSiteContent } from "@/lib/content/read";
 import { getLang } from "@/lib/i18n/server";
 import { ui } from "@/lib/i18n/ui";
-import { MODES } from "@/lib/content/schema";
+import { MODES, type Mode } from "@/lib/modes";
 import { TestimonialDeck } from "./TestimonialDeck";
 
 /**
  * Testimonials (Figma 249:2682): heading on the left, the fanned card deck on the right. Each one shows
- * in Freelance mode, Full-time mode or both. When the two modes' lists differ, each mode gets its own
- * deck (`data-for`, like the rest of the mode copy), and a mode with none hides the section.
+ * in one mode or every mode. Modes with the same list share a deck (`data-for` lists them, like the
+ * rest of the mode copy); a mode with none shows no section.
  */
 export async function Testimonials() {
   const lang = await getLang();
   const t = ui(lang).home.testimonials;
   const { testimonials } = await getSiteContent(lang);
   const shownIn = (m: Mode) => testimonials.filter((t) => !t.mode || t.mode === "both" || t.mode === m);
-  const lists = { freelance: shownIn("freelance"), fulltime: shownIn("fulltime") };
-  if (!lists.freelance.length && !lists.fulltime.length) return null;
-  const only = !lists.fulltime.length ? "freelance" : !lists.freelance.length ? "fulltime" : undefined;
-  const same = lists.freelance.length === lists.fulltime.length && lists.freelance.every((t, i) => t === lists.fulltime[i]);
+  // Group the modes whose lists are identical into one deck.
+  const decks: { modes: Mode[]; list: typeof testimonials }[] = [];
+  for (const m of MODES) {
+    const list = shownIn(m);
+    if (!list.length) continue;
+    const deck = decks.find((d) => d.list.length === list.length && d.list.every((x, i) => x === list[i]));
+    if (deck) deck.modes.push(m);
+    else decks.push({ modes: [m], list });
+  }
+  if (!decks.length) return null;
+  const withAny = decks.flatMap((d) => d.modes);
+  // Every mode has the same deck: no mode filter at all.
+  const only = withAny.length === MODES.length ? undefined : withAny.join(" ");
   return (
     <SectionMotion preset="testimonials">
       <section
@@ -42,10 +50,10 @@ export async function Testimonials() {
             </p>
           </div>
 
-          {same || only ? (
-            <TestimonialDeck testimonials={lists[only ?? "freelance"]} />
+          {decks.length === 1 ? (
+            <TestimonialDeck testimonials={decks[0].list} />
           ) : (
-            MODES.map((m) => <TestimonialDeck key={m} testimonials={lists[m]} mode={m} />)
+            decks.map((d) => <TestimonialDeck key={d.modes.join()} testimonials={d.list} mode={d.modes.join(" ")} />)
           )}
         </div>
       </section>

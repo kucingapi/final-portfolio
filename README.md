@@ -72,6 +72,7 @@ variant is kept in the visitor's localStorage, and the whole site follows it:
 
 - Projects: its first four lead the home page's grid and the projects page (any project can, as each has a device
   render), and it can give a project another of its figures as the headline number (`stats`).
+- Modes: Freelance, Full-time and Speaker / Teacher (navbar drop-down; `?mode=speaker`). Speaker mode adds a rate card request form (no prices shown) that lands in the dashboard Inbox.
 - Career: the Career page and the home page's career list (Full-time mode) take the CV's choices for each role that
   stands for a CV entry (the role's `cv`, or a unique match by organisation for work roles): the title, the lines,
   and the order (`src/lib/cv/career.ts`).

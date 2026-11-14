@@ -51,7 +51,7 @@ function locked(path: Path): boolean {
   const key = keys[keys.length - 1];
   if (key === undefined) return false;
   if (key === "from") return keys.includes("parts");
-  if (key === "kind") return keys.includes("career") || keys.includes("careerDetail");
+  if (key === "kind") return keys.includes("career") || keys.includes("careerDetail") || keys.includes("speaking");
   if (key === "code" || key === "grade") return keys.includes("courses");
   return keys.some((k) => LOCKED.has(k));
 }
