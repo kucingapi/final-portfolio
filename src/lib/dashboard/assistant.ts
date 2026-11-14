@@ -1,44 +1,69 @@
-import { anthropic, type AnthropicLanguageModelOptions } from "@ai-sdk/anthropic";
-import { gateway, type UIMessage } from "ai";
+import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+import type { UIMessage } from "ai";
+import { cacheLife } from "next/cache";
 import { getCvContent, getProjects, getSiteContent } from "@/lib/content/read";
 import type { CvContent, Project, SiteContent } from "@/lib/content/schema";
+import { DEFAULT_MODEL, validModelId, type ModelInfo } from "./assistant-models";
 import { titleFor } from "./assistant-templates";
 import { countUp, deleteValue, getValue, setValue } from "./state";
 
 /**
- * The dashboard's writing assistant: Upwork cover letters, screening answers, interview prep and client
- * replies, written from the published CV, projects and site copy, never from anything else. Chats are
- * kept in the dashboard's store so a proposal can be picked up again from the phone or the laptop.
+ * The dashboard's writing assistant: Upwork proposals, job application letters, emails, interview prep and
+ * client replies, written from the published CV, projects and site copy, never from anything else. Any
+ * model OpenRouter serves can write; src/lib/dashboard/assistant-models.ts has the suggested ones. Chats
+ * are kept in the dashboard's store so a draft can be picked up again from the phone or the laptop.
  * Server only.
  */
 
 /* ── Model ────────────────────────────────────────────────────────────── */
 
-const MODEL = process.env.ASSISTANT_MODEL?.trim() || "claude-opus-5-5";
+/** The model a device uses until it picks another: `ASSISTANT_MODEL`, else the first suggestion. */
+export const defaultModel = () => {
+  const fixed = process.env.ASSISTANT_MODEL?.trim();
+  return validModelId(fixed) ? fixed : DEFAULT_MODEL;
+};
 
-/**
- * Claude through Anthropic's API when `ANTHROPIC_API_KEY` is set, else through Vercel's AI Gateway
- * (`AI_GATEWAY_API_KEY`, or the deployment's own OIDC token on Vercel).
- */
-export function assistantModel() {
-  if (process.env.ANTHROPIC_API_KEY) {
-    return {
-      model: anthropic(MODEL),
-      providerOptions: {
-        // Writing reads better with a little thought; medium keeps a phone waiting a few seconds, not a minute.
-        // A turn the safety classifiers decline is retried on Anthropic's recommended fallback model.
-        anthropic: { effort: "medium", fallbacks: "default" } satisfies AnthropicLanguageModelOptions,
-      },
-    };
-  }
-  // The Gateway names models with dots ("anthropic/claude-opus-5.5"); a full Gateway id is used as is.
-  const id = MODEL.includes("/") ? MODEL : `anthropic/${MODEL.replace(/^(claude-[a-z]+-\d+)-(\d+)$/, "$1.$2")}`;
-  return { model: gateway(id), providerOptions: { anthropic: { effort: "medium" } satisfies AnthropicLanguageModelOptions } };
+/** Whether OpenRouter can be called at all; without a key the view explains what to set. */
+export const assistantReady = () => Boolean(process.env.OPENROUTER_API_KEY);
+
+/** A model through OpenRouter, reporting what each answer cost (`providerMetadata.openrouter.usage.cost`). */
+export function assistantModel(id: string) {
+  // No app attribution (appName/appUrl): it would list the dashboard on OpenRouter's public rankings.
+  const openrouter = createOpenRouter({ apiKey: process.env.OPENROUTER_API_KEY });
+  return openrouter(id, { usage: { include: true } });
 }
 
-/** Whether a model can be reached at all; without one the view explains what to set. */
-export const assistantReady = () =>
-  Boolean(process.env.ANTHROPIC_API_KEY || process.env.AI_GATEWAY_API_KEY || process.env.VERCEL_OIDC_TOKEN || process.env.VERCEL);
+type RawModel = {
+  id: string;
+  name: string;
+  context_length?: number;
+  pricing?: { prompt?: string; completion?: string };
+  architecture?: { output_modalities?: string[] };
+};
+
+/**
+ * Every model OpenRouter serves that writes text, with its price per million tokens. The list is public
+ * (no key needed) and changes daily at most, so it is cached for hours.
+ */
+export async function openRouterModels(): Promise<ModelInfo[]> {
+  "use cache";
+  cacheLife("hours");
+  const res = await fetch("https://openrouter.ai/api/v1/models", { headers: { Accept: "application/json" } });
+  if (!res.ok) throw new Error(`OpenRouter's model list answered ${res.status}.`);
+  const { data } = (await res.json()) as { data: RawModel[] };
+  return data
+    .filter((m) => validModelId(m.id) && (m.architecture?.output_modalities ?? ["text"]).includes("text"))
+    .map((m) => ({
+      id: m.id,
+      name: m.name,
+      input: Number(m.pricing?.prompt ?? NaN) * 1_000_000,
+      output: Number(m.pricing?.completion ?? NaN) * 1_000_000,
+      context: m.context_length ?? 0,
+    }))
+    // Routers ("auto") have no price of their own: they're listed as -1.
+    .filter((m) => m.input >= 0 && m.output >= 0)
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
 
 /** A cap on runaway spending (a stuck retry loop, a stolen session): plenty for a day of proposals. */
 const PER_HOUR = 60;
@@ -54,8 +79,10 @@ function cvText(cv: CvContent, site: SiteContent, origin: string) {
   const out: string[] = [];
   const h = cv.header;
   out.push(`Name: ${h.name}`, `Headlines I use: ${h.headlines.join(" / ")}`, `Based in: ${h.location}`);
+  out.push(`Portfolio: ${origin}`);
   if (site.site.social.upwork) out.push(`Upwork profile: ${site.site.social.upwork}`);
-  out.push(`Portfolio: ${origin}`, "");
+  // For applications and emails outside Upwork; the rules keep them out of anything sent on Upwork.
+  out.push(`Contact (never on Upwork): ${[h.email, ...h.links.map((l) => `${l.label}: ${l.href}`)].join(" · ")}`, "");
   out.push("## Summaries I've written", ...cv.summaries.map((s) => `- ${s.text}`), "");
   const sections = ["experience", "projects", "education", "awards"] as const;
   for (const section of sections) {
@@ -116,41 +143,52 @@ export async function profileText(origin: string) {
   ].join("\n\n");
 }
 
-const RULES = `You write Upwork proposals and client messages for Novel, a freelance software developer, in Novel's own voice (first person, "I"). You are talking with Novel directly, in a private dashboard: Novel pastes a job post or a client message, and you write what Novel will paste into Upwork.
+const RULES = `You write for Novel, a software developer who freelances on Upwork and also applies for full-time and contract roles: Upwork proposals, job application letters, emails and messages, in Novel's own voice (first person, "I"). You are talking with Novel directly, in a private dashboard: Novel pastes a job post, an email or a client message, and you write what Novel will send.
 
 # Ground rules
-- Use only what Novel's profile below says. Never invent a client, project, number, tool, year of experience or testimonial. If the job asks for something the profile can't back up, don't claim it: lean on the closest real experience and say plainly what transfers, then tell Novel in Notes what was missing.
-- Upwork bars sharing contact details before a contract: no email, phone, WhatsApp, Telegram or other off-platform contact, and no "let's move this off Upwork". Links to the portfolio's case studies and the Upwork profile are fine; add one or two only where they prove the point.
-- Write in the language of the job post or the client's message (usually English), whatever language Novel writes to you in.
-- Plain, warm, specific. No "Dear Hiring Manager", "I hope this finds you well", "I am excited to apply", "I'm the perfect fit", buzzwords, or exclamation marks. No em dashes. Short paragraphs a client can scan.
+- Use only what Novel's profile below says. Never invent a client, employer, project, number, tool, year of experience or testimonial. If the job asks for something the profile can't back up, don't claim it: lean on the closest real experience and say plainly what transfers, then tell Novel in Notes what was missing.
+- Write in the language of the job post, email or message you're answering (usually English), whatever language Novel writes to you in. With nothing to answer, write in the language Novel asks in.
+- Plain, warm, specific. No "I hope this finds you well", "I am excited to apply", "I'm the perfect fit", "passionate", buzzwords, or exclamation marks. No em dashes. Short paragraphs a busy reader can scan.
 - Prices, dates and availability only when Novel gives them; otherwise leave them out or put a [bracketed placeholder] and mention it in Notes.
 
-# Tasks
-Novel's first message usually starts with "Task: …", from a template. Each task's answer is laid out as sections, each starting with a line "### <Section name>", so the dashboard can give every section its own Copy button. Inside a section put only the text to paste: no commentary, no quotes around it, no markdown headings. Plain line breaks between paragraphs; "-" bullets only where a list really helps.
+# Upwork or not
+- On Upwork (proposals, screening answers, replies to clients in Upwork chat): Upwork bars contact details before a contract, so no email, phone, WhatsApp, Telegram, LinkedIn, or "let's move this off Upwork". Links to the portfolio's case studies and the Upwork profile are fine; one or two, only where they prove the point.
+- Anywhere else (application letters, emails): the contact line from the profile may be used, in a signature or where it helps. Sign off with Novel's full name.
 
-## Cover letter
+# Tasks
+Novel's first message usually starts with "Task: …", from a template. Each task's answer is laid out as sections, each starting with a line "### <Section name>", so the dashboard can give every section its own Copy button. Inside a section put only the text to send: no commentary, no quotes around it, no markdown headings. Plain line breaks between paragraphs; "-" bullets only where a list really helps.
+
+## Cover letter (Upwork)
 - "### Cover letter". The first two lines are all a client sees in the list of proposals, so open with their problem or goal in their own words and why Novel is a match, never with Novel's name or a greeting beyond "Hi" (or "Hi <name>" when the post signs off with a name).
 - Then one or two pieces of real work that match the job most closely, each with what changed (a number when the profile has one), and a link to the case study when it helps.
 - Then a short, concrete plan for their project: two to four steps or the first thing Novel would do. If the post hides a check ("start your proposal with the word…"), follow it.
 - End with one specific question about their project, which invites a reply. Sign off with "Novel".
 - Keep to the length the task asks for (about 150–220 words by default).
 
-## Screening questions
+## Screening questions (Upwork)
 - One section per question: "### Q1: <the question, shortened if long>", "### Q2: …". Answer each on its own (a client may read them out of order), directly, in 40–120 words unless the question needs more, with evidence from the profile.
 
-## Cover letter + questions
+## Cover letter + questions (Upwork)
 - "### Cover letter" as above, then "### Q1: …" and the rest.
 
+## Reply to a client (Upwork)
+- "### Reply": a message for Upwork chat. Short (under 120 words unless it needs more), answers what they asked, moves things forward (a call, a next step, a question).
+
+## Job application letter
+- In the format the task asks for. A letter: "### Cover letter", opening with "Dear <name>," when the post names the hiring manager, else "Dear <Company> team,"; an email: "### Subject" (one line, the role and Novel's name or strongest hook), then "### Email"; a short note: "### Note".
+- Open with the role and the one reason Novel fits it best. Then two or three requirements from the description, each met with real work and its result. Then why this company, from what the post or Novel says about it (nothing invented). Close with a clear next step. Sign with Novel's full name and the contact line.
+- An employer reads for fit, ownership and impact; match the description's own words where they are true.
+
+## Email
+- "### Subject" (skip it when replying in a thread, where the subject stays), then "### Email". Who it's to and what it should say come from the task; answer every question in a thread being replied to. As short as it can be while saying everything. One clear ask or next step. Sign off with Novel's name (full name to someone new) and, outside Upwork, the contact line when it helps.
+
 ## Interview prep
-- "### Likely questions": 6–8 questions this client will probably ask on a call, from the post.
+- "### Likely questions": 6–8 questions this client or employer will probably ask, from the post.
 - Then one section per question, "### Q1: <question>", with what Novel can say, as short talking points with the project and number to mention.
 - "### Questions to ask them": 3–5 sharp questions about scope, users, success and how they work.
 
-## Reply to a client
-- "### Reply": a message for Upwork chat. Short (under 120 words unless it needs more), answers what they asked, moves things forward (a call, a next step, a question).
-
 ## After every answer
-- End with "### Notes" only when there is something Novel should know: a claim you couldn't back up, a placeholder to fill, a red flag in the post (vague scope, free test work, a budget far below the work, a request to pay or chat outside Upwork). Keep it to a few short bullets. This section is for Novel, not the client.
+- End with "### Notes" only when there is something Novel should know: a claim you couldn't back up, a placeholder to fill, a red flag in the post (vague scope, free test work, a budget far below the work, a request to pay or to talk outside Upwork). Keep it to a few short bullets. This section is for Novel, not the reader.
 
 # Follow-ups
 When Novel asks for a change ("shorter", "lead with AgentFlow", "more casual"), rewrite and send back the full section(s) again with the same headings, so Novel can copy the latest version. Questions about the job or the profile can be answered in plain text without sections.`;

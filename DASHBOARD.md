@@ -81,34 +81,57 @@ it gained Content: the site's copy, the master CV and the projects became editab
   entry in the activity feed; both open the message.
 - The latest 500 are kept. On a phone, Settings moved to the header so the tab bar keeps five tabs.
 
-## Assistant: proposals written from the CV
+## Assistant: proposals, letters and emails written from the CV
 
-Added 2026-11-14. A chat in the dashboard that writes Upwork cover letters, screening answers, interview prep and
-replies to clients, from the published content only.
+Added 2026-11-14 for Upwork; the same day it took application letters and emails too, and moved to OpenRouter so
+any model can write. A chat in the dashboard that writes from the published content only.
 
 - **Vercel's AI SDK** (`ai` and `@ai-sdk/react`'s `useChat`), the library Vercel's chat template is built on. (Vercel's
   separate "Chat SDK" package is for bots on Slack, Teams and the like, not a chat inside a web page.)
-- **The model:** Claude Opus 5.5 (`claude-opus-5-5`) at medium effort, through Anthropic's API when `ANTHROPIC_API_KEY`
-  is set, else through Vercel's AI Gateway (`AI_GATEWAY_API_KEY`, or the deployment's OIDC token).
-  `ASSISTANT_MODEL` picks another. On Anthropic's API, a turn the safety classifiers decline is retried on
-  Anthropic's recommended fallback model (`fallbacks: "default"`).
-- **What it knows:** the published CV (every entry, line, stack and summary), every project's case study (summary,
-  my part, each chapter's problem, work, result and figure, with its link), About, How I work, and the testimonials
-  that aren't placeholders. Built per request from the cached content reads, so a publish reaches it at once. It's
-  about 15k tokens, sent as a cached system prompt, so later turns in a chat cost a fraction.
-- **Rules it writes by:** only what the profile says (gaps are named in Notes, never papered over); no contact
-  details or off-Upwork talk, as Upwork bars them before a contract; the job post's language; no greeting cliches;
-  the first two lines answer the client's problem, as they are all Upwork shows in the proposal list.
-- **Templates:** Cover letter (short, standard or detailed), Screening questions, Cover letter + questions,
-  Interview prep, Reply to a client. Each is a short form whose answers become the first message ("Task: …"); a
-  chat can also start from a plain message. Under the latest answer, chips ask for common changes.
-- **Copy-ready sections:** answers are laid out under `### ` headings, and each one shows as a card with its word
-  and character count and its own Copy button. "Notes" is for Novel only and has none.
+- **Models through OpenRouter** (`OPENROUTER_API_KEY`, with `@openrouter/ai-sdk-provider`). Any model OpenRouter
+  serves can be picked from the chip above the message box: a sheet with the suggested models and a search over
+  OpenRouter's whole list (`/api/dashboard/assistant/models`, cached for hours), each with its live price and what a
+  draft costs (about 16k tokens in, 1k out). An id that isn't in the list can be pasted. The choice is kept per
+  device; `ASSISTANT_MODEL` sets where a device starts. Each answer says which model wrote it and what it cost
+  (OpenRouter's usage accounting).
+- **The suggested models** (`src/lib/dashboard/assistant-models.ts`), chosen on 14 Nov 2026 from LMArena's
+  creative-writing ranking weighed against OpenRouter's prices. Arena pages and OpenRouter couldn't be opened from
+  the build session, so the scores come from search results quoting the board (Oct 28 to Nov 11 snapshots, which
+  differ by a few points); check them against arena.ai when updating.
+
+  | Model | Arena creative writing | $ per M tokens in / out | Why |
+  |---|---|---|---|
+  | Claude Sonnet 5.5 (default) | ~1469 | 2 / 10 | Mid-tier price, careful about sticking to the CV, which matters more here than flair |
+  | Gemini 4 Argon | ~1517–1523, #1 | 2 / 10 until 30 Nov, then 4 / 20 | The most quality per dollar, for two weeks |
+  | Claude Opus 5.5 | ~1517–1520 | 4 / 20 | Best quality, for a job that matters |
+  | Qwen3.8 Max | ~1469 | 2 / 6 | Best open-weight writer, Sonnet's score with cheaper output |
+  | GLM 5.3 | ~1457 | 1.40 / 4.40 | Budget |
+  | DeepSeek V4 Pro | ~1447 | ~1.32 / 3.96 | Cheapest that still writes a decent letter |
+
+  Left out: Kimi K3 (~1463 at $3 / $15) and GPT-6.1 Sol (~1454 at $2 / $10) cost more for less; Gemini 4 Hydrogen
+  (~1492) had no OpenRouter id to be found. At about 16k tokens in per draft, the input price decides the cost,
+  so most of these come to 3–8 cents a draft.
+- **What it knows:** the published CV (every entry, line, stack and summary, and the contact line), every
+  project's case study (summary, my part, each chapter's problem, work, result and figure, with its link), About,
+  How I work, and the testimonials that aren't placeholders. Built per request from the cached content reads, so a
+  publish reaches it at once. About 15k tokens, sent as the system prompt with a cache marker, which Claude models
+  honour through OpenRouter (OpenAI, Gemini and DeepSeek cache a repeated prefix on their own).
+- **Rules it writes by:** only what the profile says (gaps are named in Notes, never papered over); the language of
+  what it answers; no greeting cliches or em dashes. On Upwork, no contact details or off-Upwork talk, as Upwork bars
+  them before a contract, and the first two lines answer the client's problem, as they are all Upwork shows in the
+  proposal list. Outside Upwork (letters, emails), the contact line may sign off.
+- **Templates:** Upwork: Cover letter (short, standard or detailed), Screening questions, Cover letter + questions,
+  Reply to a client. Applications and email: Interview prep, Job application letter (as a letter, an email with a
+  subject, or a short note), Email (professional, friendly or brief; for outreach, follow-ups, thank-yous and
+  replies). Each is a short form whose answers become the first message ("Task: …"); a chat can also start from a
+  plain message. Under the latest answer, chips ask for common changes.
+- **Copy-ready sections:** answers are laid out under `### ` headings (Cover letter, Subject, Email, Q1…), each a
+  card with its word and character count and its own Copy button. "Notes" is for Novel only and has none.
 - **On the phone:** the Assistant is in the tab bar (Activity, Inbox, Jobs, Assistant, Links); Content joined
   Projects and Settings in the header. The message box sits on the tab bar; Enter sends with a keyboard, and is a new
-  line on a touch screen.
+  line on a touch screen. The model sheet rises from the bottom.
 - **Saved chats:** the newest 60, in the dashboard's store (`dash:assistant:*`), listed under the templates and
-  opened by address (`?view=assistant&chat=<id>`), so a proposal started on the laptop carries on on the phone.
+  opened by address (`?view=assistant&chat=<id>`), so a draft started on the laptop carries on on the phone.
 - **Limits:** 60 turns an hour, 80 messages or 200k characters per chat, 16k output tokens per turn.
 
 ## Content: the site's own CMS
@@ -199,7 +222,7 @@ Neither platform can import a file, so the export is copy-ready fields plus the 
 | Content: schema, store, cached reads, defaults | `src/lib/content/` (`schema.ts`, `store.ts`, `read.ts`, `defaults.ts`, `changes.ts`) |
 | Jobs: store, totals, agent recording | `src/lib/dashboard/jobs.ts` (shared types in `job-types.ts`), `/api/dashboard/jobs`, `/api/dashboard/jobs/<id>`; view `src/components/dashboard/Jobs.tsx` |
 | Inbox: saving, listing, delete | `src/lib/dashboard/enquiries.ts`, `/api/contact`, `/api/dashboard/enquiries`, `/api/dashboard/enquiries/<id>`; view `src/components/dashboard/Inbox.tsx` |
-| Assistant: model, profile, prompt, saved chats; templates | `src/lib/dashboard/assistant.ts`, `src/lib/dashboard/assistant-templates.ts`, `/api/dashboard/assistant` (stream and list), `/api/dashboard/assistant/<id>`; view `src/components/dashboard/Assistant.tsx` |
+| Assistant: OpenRouter, profile, prompt, saved chats; templates; suggested models | `src/lib/dashboard/assistant.ts`, `src/lib/dashboard/assistant-templates.ts`, `src/lib/dashboard/assistant-models.ts`, `/api/dashboard/assistant` (stream and list), `/api/dashboard/assistant/<id>`, `/api/dashboard/assistant/models`; view `src/components/dashboard/Assistant.tsx` |
 | Content editor | `src/components/dashboard/Content.tsx`, `src/components/dashboard/content/Editor.tsx`; actions in `src/app/dashboard/content-actions.ts`; Preview at `/api/dashboard/preview` |
 | Shared Redis client (also used by the CV store) | `src/lib/kv.ts` |
 

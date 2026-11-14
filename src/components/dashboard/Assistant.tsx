@@ -4,10 +4,14 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, generateId, type UIMessage } from "ai";
 import {
   ArrowUp,
+  Briefcase,
+  Check,
+  ChevronDown,
   ChevronLeft,
   FileText,
   Layers,
   ListChecks,
+  Mail,
   MessagesSquare,
   Reply,
   RotateCcw,
@@ -15,9 +19,20 @@ import {
   Square,
   Trash2,
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import type { ChatSummary, StoredChat } from "@/lib/dashboard/assistant";
-import { FOLLOW_UPS, TEMPLATES, buildPrompt, type Template } from "@/lib/dashboard/assistant-templates";
+import {
+  DEFAULT_MODEL,
+  PICKS,
+  money,
+  perDraft,
+  priceLabel,
+  shortName,
+  validModelId,
+  type AnswerMeta,
+  type ModelInfo,
+} from "@/lib/dashboard/assistant-models";
+import { FOLLOW_UPS, TEMPLATES, TEMPLATE_GROUPS, buildPrompt, type Template } from "@/lib/dashboard/assistant-templates";
 import { send, useApi } from "./api";
 import { CopyButton } from "./Copy";
 import { ago } from "./format";
@@ -25,12 +40,14 @@ import { Problem } from "./Problem";
 import { Button } from "./ui/button";
 import { cn } from "./ui/cn";
 import { Confirm } from "./ui/confirm";
-import { Field } from "./ui/input";
+import { Field, Input } from "./ui/input";
+import { Sheet, SheetBody, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "./ui/sheet";
 import { Skeleton } from "./ui/skeleton";
 import { toast } from "./ui/toaster";
 
 /**
- * A chat that writes Upwork proposals from Novel's own CV and projects (src/lib/dashboard/assistant.ts).
+ * A chat that writes Upwork proposals, application letters and emails from Novel's own CV and projects
+ * (src/lib/dashboard/assistant.ts), with any model OpenRouter serves.
  * A new chat opens on the templates; filling one in sends its first message. The open chat lives in the
  * address (`?view=assistant&chat=<id>`), so the back button returns to the templates and a saved chat
  * reopens on another device.
@@ -42,12 +59,59 @@ const ICONS: Record<string, typeof FileText> = {
   proposal: Layers,
   interview: MessagesSquare,
   reply: Reply,
+  application: Briefcase,
+  email: Mail,
 };
 
-type ChatList = { chats: ChatSummary[]; ready: boolean };
+type ChatList = { chats: ChatSummary[]; ready: boolean; defaultModel: string };
+type ModelList = { models: ModelInfo[]; error?: string };
+type Message = UIMessage<AnswerMeta>;
+
+/* ── The model, remembered per device ─────────────────────────────────── */
+
+const MODEL_KEY = "nb-assistant-model";
+const MODEL_EVENT = "nb-assistant-model";
+const readModel = () => {
+  try {
+    return localStorage.getItem(MODEL_KEY);
+  } catch {
+    return null;
+  }
+};
+const onModelChange = (cb: () => void) => {
+  window.addEventListener("storage", cb);
+  window.addEventListener(MODEL_EVENT, cb);
+  return () => {
+    window.removeEventListener("storage", cb);
+    window.removeEventListener(MODEL_EVENT, cb);
+  };
+};
+function saveModel(id: string) {
+  try {
+    localStorage.setItem(MODEL_KEY, id);
+  } catch {
+    // A private window: the choice lasts until the page closes.
+  }
+  window.dispatchEvent(new Event(MODEL_EVENT));
+}
+
+/** The picked model, else the server's default (`ASSISTANT_MODEL`), else the first suggestion. */
+function useModel(fallback: string | undefined) {
+  const stored = useSyncExternalStore(onModelChange, readModel, () => null);
+  const [session, setSession] = useState<string | null>(null);
+  const id = session ?? (validModelId(stored) ? stored : (fallback ?? DEFAULT_MODEL));
+  const pick = (next: string) => {
+    setSession(next);
+    saveModel(next);
+  };
+  return [id, pick] as const;
+}
 
 export function AssistantView({ chat, onOpen }: { chat: string | null; onOpen: (id: string) => void }) {
   const list = useApi<ChatList>("/api/dashboard/assistant");
+  const models = useApi<ModelList>("/api/dashboard/assistant/models");
+  const [model, setModel] = useModel(list.data?.defaultModel);
+  const picker = { model, onModel: setModel, models: models.data?.models, modelsError: models.data?.error ?? models.error };
   // The chat a blank page starts; it takes this id in the address once its first message goes.
   const [live, setLive] = useState(() => generateId());
   // Once the address has shown this chat, coming back to a blank page starts a fresh one. (Not as soon
@@ -69,15 +133,18 @@ export function AssistantView({ chat, onOpen }: { chat: string | null; onOpen: (
         initial={[]}
         onStart={start}
         onSettled={list.reload}
+        picker={picker}
         home={(sendText) => <Home list={list} onOpen={onOpen} onSend={sendText} />}
       />
     );
   }
-  return <Saved key={chat} id={chat} onSettled={list.reload} />;
+  return <Saved key={chat} id={chat} onSettled={list.reload} picker={picker} />;
 }
 
+type Picker = { model: string; onModel: (id: string) => void; models?: ModelInfo[]; modelsError?: string | null };
+
 /** A chat from the list: loaded, then carried on where it stopped. */
-function Saved({ id, onSettled }: { id: string; onSettled: () => void }) {
+function Saved({ id, onSettled, picker }: { id: string; onSettled: () => void; picker: Picker }) {
   const saved = useApi<StoredChat>(`/api/dashboard/assistant/${id}`);
   const chat = saved.data;
 
@@ -91,7 +158,7 @@ function Saved({ id, onSettled }: { id: string; onSettled: () => void }) {
     );
   }
   // Loading it again later (the app coming back on screen) doesn't restart the chat: useChat keeps its own.
-  return <Conversation id={id} initial={chat.messages} title={chat.title} onSettled={onSettled} />;
+  return <Conversation id={id} initial={chat.messages as Message[]} title={chat.title} onSettled={onSettled} picker={picker} />;
 }
 
 /* ── The conversation ─────────────────────────────────────────────────── */
@@ -102,18 +169,20 @@ function Conversation({
   title,
   onStart,
   onSettled,
+  picker,
   home,
 }: {
   id: string;
-  initial: UIMessage[];
+  initial: Message[];
   title?: string;
   onStart?: () => void;
   onSettled: () => void;
+  picker: Picker;
   home?: (send: (text: string) => void) => React.ReactNode;
 }) {
   const transport = useMemo(
     () =>
-      new DefaultChatTransport({
+      new DefaultChatTransport<Message>({
         api: "/api/dashboard/assistant",
         // A lapsed session reloads onto the sign-in form, as every other dashboard call does; the
         // server's own words explain any other refusal.
@@ -129,7 +198,7 @@ function Conversation({
       }),
     [],
   );
-  const { messages, sendMessage, status, stop, error, regenerate, clearError } = useChat({
+  const { messages, sendMessage, status, stop, error, regenerate, clearError } = useChat<Message>({
     id,
     messages: initial,
     transport,
@@ -142,7 +211,8 @@ function Conversation({
     if (!text.trim() || busy) return;
     if (!messages.length) onStart?.();
     clearError();
-    sendMessage({ text: text.trim() });
+    // The model goes with each message, so one picked mid-chat writes the next answer.
+    sendMessage({ text: text.trim() }, { body: { model: picker.model } });
   };
 
   useFollow(messages, status);
@@ -156,7 +226,9 @@ function Conversation({
       ) : (
         <ol className="flex flex-col gap-5" aria-live="polite">
           {messages.map((m) => (
-            <li key={m.id}>{m.role === "user" ? <UserMessage text={textOf(m)} /> : <Answer text={textOf(m)} />}</li>
+            <li key={m.id}>
+              {m.role === "user" ? <UserMessage text={textOf(m)} /> : <Answer text={textOf(m)} meta={m.metadata} models={picker.models} />}
+            </li>
           ))}
           {status === "submitted" && (
             <li>
@@ -169,7 +241,7 @@ function Conversation({
       {error && (
         <div role="alert" className="mt-5 flex flex-col items-start gap-3 rounded-xl border border-destructive/30 bg-destructive/8 p-4">
           <p className="text-sm leading-relaxed text-foreground">{error.message}</p>
-          <Button size="sm" variant="secondary" onClick={() => regenerate()}>
+          <Button size="sm" variant="secondary" onClick={() => regenerate({ body: { model: picker.model } })}>
             <RotateCcw />
             Try again
           </Button>
@@ -192,13 +264,13 @@ function Conversation({
         </ul>
       )}
 
-      <Composer busy={busy} onSend={submit} onStop={stop} first={messages.length === 0} />
+      <Composer busy={busy} onSend={submit} onStop={stop} first={messages.length === 0} picker={picker} />
     </div>
   );
 }
 
 /** Keeps the newest words in view while they arrive, unless the page was scrolled up to read. */
-function useFollow(messages: UIMessage[], status: string) {
+function useFollow(messages: Message[], status: string) {
   const count = messages.length;
   useEffect(() => {
     if (count) window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "smooth" });
@@ -211,10 +283,24 @@ function useFollow(messages: UIMessage[], status: string) {
   }, [messages, status]);
 }
 
-const textOf = (m: UIMessage) => m.parts.map((p) => (p.type === "text" ? p.text : "")).join("");
+const textOf = (m: Message) => m.parts.map((p) => (p.type === "text" ? p.text : "")).join("");
 
-function Composer({ busy, first, onSend, onStop }: { busy: boolean; first: boolean; onSend: (text: string) => void; onStop: () => void }) {
+function Composer({
+  busy,
+  first,
+  picker,
+  onSend,
+  onStop,
+}: {
+  busy: boolean;
+  first: boolean;
+  picker: Picker;
+  onSend: (text: string) => void;
+  onStop: () => void;
+}) {
   const [text, setText] = useState("");
+  const [choosing, setChoosing] = useState(false);
+  const info = picker.models?.find((m) => m.id === picker.model);
   const go = () => {
     if (!text.trim() || busy) return;
     onSend(text);
@@ -228,6 +314,17 @@ function Composer({ busy, first, onSend, onStop }: { busy: boolean; first: boole
       }}
       className="sticky bottom-[calc(4rem+env(safe-area-inset-bottom))] z-20 mt-auto -mx-4 bg-gradient-to-t from-background from-70% to-transparent px-4 pt-6 pb-3 md:bottom-0 md:-mx-8 md:px-8 md:pb-6"
     >
+      <button
+        type="button"
+        onClick={() => setChoosing(true)}
+        className="mb-2 flex max-w-full items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-xs text-muted-foreground transition-colors duration-150 hover:bg-accent hover:text-foreground"
+      >
+        <Sparkles className="size-3.5 shrink-0 text-primary" />
+        <span className="truncate font-medium text-foreground">{shortName(picker.model, picker.models)}</span>
+        {info && <span className="shrink-0 tabular-nums">≈{money(perDraft(info))} a draft</span>}
+        <ChevronDown className="size-3.5 shrink-0" />
+      </button>
+      <ModelSheet open={choosing} onOpenChange={setChoosing} picker={picker} />
       <div className="flex items-end gap-2 rounded-2xl border border-input bg-card p-2 pl-3.5 shadow-[0_8px_32px_rgb(0_0_0/0.25)] focus-within:border-primary">
         <label htmlFor="assistant-input" className="sr-only">
           Message
@@ -244,7 +341,7 @@ function Composer({ busy, first, onSend, onStop }: { busy: boolean; first: boole
             }
           }}
           rows={1}
-          placeholder={first ? "Or paste a job post and ask anything…" : "Ask for a change…"}
+          placeholder={first ? "Or just ask: a job post, an email to answer…" : "Ask for a change…"}
           className="field-sizing-content max-h-48 min-h-10 flex-1 resize-none bg-transparent py-2 text-base leading-snug text-foreground outline-none placeholder:text-muted-foreground/60 md:text-sm"
         />
         {busy ? (
@@ -265,7 +362,7 @@ function Writing() {
   return (
     <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
       <Sparkles className="size-4 animate-pulse text-primary" />
-      Reading the post and picking the work that fits…
+      Picking the work that fits and writing…
     </div>
   );
 }
@@ -328,7 +425,7 @@ function Inline({ text }: { text: string }) {
   );
 }
 
-function Answer({ text }: { text: string }) {
+function Answer({ text, meta, models }: { text: string; meta?: AnswerMeta; models?: ModelInfo[] }) {
   const parts = sections(text);
   if (!parts.length) return null;
   return (
@@ -343,6 +440,12 @@ function Answer({ text }: { text: string }) {
         ),
       )}
       {parts.every((s) => !s.title) && <CopyButton text={plain(text)} className="self-start" />}
+      {meta?.model && (
+        <p className="text-xs text-muted-foreground">
+          {shortName(meta.model, models)}
+          {meta.cost !== undefined && ` · ${money(meta.cost)}`}
+        </p>
+      )}
     </div>
   );
 }
@@ -376,8 +479,8 @@ function Home({ list, onOpen, onSend }: { list: ReturnType<typeof useApi<ChatLis
     <div className="flex flex-col gap-8">
       {list.data && !list.data.ready && (
         <div role="alert" className="rounded-xl border border-destructive/30 bg-destructive/8 p-4 text-sm leading-relaxed text-foreground">
-          No model is set up yet. Add <code className="font-mono text-[0.8125rem]">ANTHROPIC_API_KEY</code> (or{" "}
-          <code className="font-mono text-[0.8125rem]">AI_GATEWAY_API_KEY</code>) to the project&apos;s environment and redeploy.
+          OpenRouter isn&apos;t set up yet. Add <code className="font-mono text-[0.8125rem]">OPENROUTER_API_KEY</code> to the
+          project&apos;s environment and redeploy.
         </div>
       )}
       {picked ? (
@@ -396,11 +499,22 @@ function Templates({ onPick }: { onPick: (t: Template) => void }) {
       <div>
         <h2 className="text-base font-semibold text-foreground">Start from a template</h2>
         <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-          Paste the job post. Everything is written from your published CV, projects and testimonials, nothing made up.
+          Paste the job post or the email. Everything is written from your published CV, projects and testimonials, nothing made up.
         </p>
       </div>
+      {TEMPLATE_GROUPS.map((g) => (
+        <TemplateGroup key={g.id} label={g.label} templates={TEMPLATES.filter((t) => t.group === g.id)} onPick={onPick} />
+      ))}
+    </section>
+  );
+}
+
+function TemplateGroup({ label, templates, onPick }: { label: string; templates: Template[]; onPick: (t: Template) => void }) {
+  return (
+    <div className="flex flex-col gap-2">
+      <h3 className="mt-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">{label}</h3>
       <ul className="grid gap-2.5 sm:grid-cols-2">
-        {TEMPLATES.map((t) => {
+        {templates.map((t) => {
           const Icon = ICONS[t.id] ?? Sparkles;
           return (
             <li key={t.id}>
@@ -421,7 +535,7 @@ function Templates({ onPick }: { onPick: (t: Template) => void }) {
           );
         })}
       </ul>
-    </section>
+    </div>
   );
 }
 
@@ -549,5 +663,108 @@ function Recent({ list, onOpen }: { list: ReturnType<typeof useApi<ChatList>>; o
         onConfirm={remove}
       />
     </section>
+  );
+}
+
+/* ── Choosing the model ───────────────────────────────────────────────── */
+
+function ModelSheet({ open, onOpenChange, picker }: { open: boolean; onOpenChange: (open: boolean) => void; picker: Picker }) {
+  const [query, setQuery] = useState("");
+  const choose = (id: string) => {
+    picker.onModel(id);
+    onOpenChange(false);
+  };
+  const byId = new Map(picker.models?.map((m) => [m.id, m]));
+  const words = query.toLowerCase().split(/\s+/).filter(Boolean);
+  const found = words.length
+    ? (picker.models ?? []).filter((m) => words.every((w) => `${m.id} ${m.name}`.toLowerCase().includes(w))).slice(0, 60)
+    : [];
+  // A typed id that isn't in the list (or with no list at all) can still be used.
+  const typed = query.trim();
+  const custom = validModelId(typed) && !byId.has(typed) ? typed : null;
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent>
+        <SheetHeader>
+          <SheetTitle>Model</SheetTitle>
+          <SheetDescription>Any model on OpenRouter. Prices are per million tokens in / out; a draft is about 16k in and 1k out.</SheetDescription>
+        </SheetHeader>
+        <SheetBody>
+          <section className="flex flex-col gap-2">
+            <h3 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Suggested</h3>
+            <ul className="flex flex-col gap-2">
+              {PICKS.map((p) => {
+                const info = byId.get(p.id);
+                const missing = picker.models?.length && !info;
+                return (
+                  <li key={p.id}>
+                    <button
+                      type="button"
+                      onClick={() => choose(p.id)}
+                      aria-pressed={picker.model === p.id}
+                      className="flex w-full flex-col gap-1 rounded-xl border border-border bg-card p-3.5 text-left transition-colors duration-150 hover:bg-accent aria-pressed:border-primary"
+                    >
+                      <span className="flex items-center gap-2">
+                        <span className="text-[0.9375rem] font-semibold text-foreground">{p.label}</span>
+                        <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[0.6875rem] font-semibold text-primary">{p.tag}</span>
+                        {picker.model === p.id && <Check className="ml-auto size-4 text-primary" />}
+                      </span>
+                      <span className="text-[0.8125rem] leading-snug text-muted-foreground">{p.why}</span>
+                      <span className="text-xs text-foreground/80 tabular-nums">
+                        {info ? `${priceLabel(info)} · ≈${money(perDraft(info))} a draft` : missing ? "Not on OpenRouter under this id right now" : p.id}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+            <p className="text-xs leading-snug text-muted-foreground">
+              Picked on 14 Nov 2026 from LMArena&apos;s creative-writing ranking, weighed against price.
+            </p>
+          </section>
+
+          <section className="flex flex-col gap-2">
+            <h3 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">All models</h3>
+            <label htmlFor="model-search" className="sr-only">
+              Search models
+            </label>
+            <Input id="model-search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search, or paste an id like openai/gpt-6.1-sol" />
+            {picker.modelsError && <p className="text-[0.8125rem] text-muted-foreground">{picker.modelsError}</p>}
+            {custom && (
+              <Button variant="secondary" className="self-start" onClick={() => choose(custom)}>
+                Use {custom}
+              </Button>
+            )}
+            {found.length > 0 && (
+              <ul className="flex flex-col overflow-hidden rounded-xl border border-border bg-card">
+                {found.map((m) => (
+                  <li key={m.id} className="border-b border-border last:border-b-0">
+                    <button
+                      type="button"
+                      onClick={() => choose(m.id)}
+                      className="flex w-full items-center gap-3 px-3.5 py-2.5 text-left transition-colors duration-150 hover:bg-accent"
+                    >
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-medium text-foreground">{m.name}</span>
+                        <span className="block truncate text-xs text-muted-foreground">{m.id}</span>
+                      </span>
+                      <span className="shrink-0 text-right text-xs text-muted-foreground tabular-nums">
+                        {priceLabel(m)}
+                        <span className="block">≈{money(perDraft(m))}</span>
+                      </span>
+                      {picker.model === m.id && <Check className="size-4 shrink-0 text-primary" />}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {words.length > 0 && !found.length && !custom && picker.models?.length ? (
+              <p className="text-[0.8125rem] text-muted-foreground">No model matches.</p>
+            ) : null}
+          </section>
+        </SheetBody>
+      </SheetContent>
+    </Sheet>
   );
 }

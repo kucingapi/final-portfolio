@@ -1,5 +1,5 @@
 /**
- * The Assistant's templates: each is a short form (paste the job post, the questions…) that becomes the
+ * The Assistant's templates: each is a short form (paste the job post, the questions, who an email is for) that becomes the
  * first message of a chat. The message names the task on its first line ("Task: Cover letter"), which the
  * system prompt (src/lib/dashboard/assistant.ts) knows how to answer, and the chat list uses for titles.
  * Shared by the browser and the server, so nothing here may import server code.
@@ -19,6 +19,8 @@ export type TemplateChoice = { id: string; label: string; options: { id: string;
 
 export type Template = {
   id: string;
+  /** Where it's listed: Upwork work, or applications and email anywhere else. */
+  group: "upwork" | "other";
   label: string;
   description: string;
   fields: TemplateField[];
@@ -60,6 +62,7 @@ const LENGTH: TemplateChoice = {
 export const TEMPLATES: Template[] = [
   {
     id: "cover-letter",
+    group: "upwork",
     label: "Cover letter",
     description: "A proposal for one job post, from the projects that fit it best.",
     fields: [JOB, EXTRA],
@@ -67,12 +70,14 @@ export const TEMPLATES: Template[] = [
   },
   {
     id: "screening",
+    group: "upwork",
     label: "Screening questions",
     description: "Answers to the client's questions, each ready to paste in its box.",
     fields: [JOB, QUESTIONS, EXTRA],
   },
   {
     id: "proposal",
+    group: "upwork",
     label: "Cover letter + questions",
     description: "The whole proposal at once: the letter and every answer.",
     fields: [JOB, QUESTIONS, EXTRA],
@@ -80,12 +85,17 @@ export const TEMPLATES: Template[] = [
   },
   {
     id: "interview",
+    group: "other",
     label: "Interview prep",
-    description: "The questions the client is likely to ask on a call, answered from my work.",
-    fields: [JOB, { ...EXTRA, placeholder: "e.g. they asked about my timezone and availability" }],
+    description: "The questions they're likely to ask on a call or in an interview, answered from my work.",
+    fields: [
+      { ...JOB, label: "Job post or role", placeholder: "Paste the Upwork post or the job description" },
+      { ...EXTRA, placeholder: "e.g. it's a 30-minute call with the CTO; they asked about my timezone" },
+    ],
   },
   {
     id: "reply",
+    group: "upwork",
     label: "Reply to a client",
     description: "An answer to a message in Upwork chat: an invite, a question, a follow-up.",
     fields: [
@@ -94,7 +104,52 @@ export const TEMPLATES: Template[] = [
       { id: "extra", label: "What I want to say", placeholder: "e.g. yes, I can do a call Thursday; my rate is $45/h", rows: 2 },
     ],
   },
+  {
+    id: "application",
+    group: "other",
+    label: "Job application letter",
+    description: "A cover letter for a full-time or contract role: for an email, a careers page or LinkedIn.",
+    fields: [
+      { ...JOB, label: "Job description", placeholder: "Paste the role: title, company, requirements…" },
+      { id: "company", label: "About the company", placeholder: "Optional: what they do, why I want to work there, who I'm writing to", rows: 2 },
+      EXTRA,
+    ],
+    choice: {
+      id: "format",
+      label: "Format",
+      options: [
+        { id: "letter", label: "Letter", prompt: "a classic cover letter, about 250–350 words" },
+        { id: "email", label: "Email", prompt: "the application email itself, with a subject line, about 150–200 words" },
+        { id: "short", label: "Short note", prompt: "a short note for a form field or a LinkedIn message, under 120 words" },
+      ],
+    },
+  },
+  {
+    id: "email",
+    group: "other",
+    label: "Email",
+    description: "Any email: reaching out, following up, a thank-you after an interview, a reply.",
+    fields: [
+      { id: "to", label: "Who it's to", placeholder: "e.g. the CTO at Acme, a recruiter, a past client", required: true, rows: 1 },
+      { id: "goal", label: "What it should say", placeholder: "e.g. follow up on my application from last week and mention the AgentFlow work", required: true, rows: 3 },
+      { id: "thread", label: "Their email or the thread", placeholder: "Optional: paste what I'm replying to", rows: 3 },
+    ],
+    choice: {
+      id: "tone",
+      label: "Tone",
+      options: [
+        { id: "professional", label: "Professional", prompt: "professional and warm" },
+        { id: "friendly", label: "Friendly", prompt: "friendly and relaxed" },
+        { id: "brief", label: "Brief", prompt: "as short as it can be" },
+      ],
+    },
+  },
 ];
+
+export const TEMPLATE_GROUPS = [
+  { id: "upwork", label: "Upwork" },
+  { id: "other", label: "Applications and email" },
+] as const;
 
 export const templateById = (id: string) => TEMPLATES.find((t) => t.id === id);
 
@@ -103,7 +158,10 @@ const fence = (text: string) => `"""\n${text.trim()}\n"""`;
 /** The first message a filled template sends. Empty optional fields are left out. */
 export function buildPrompt(template: Template, values: Record<string, string>, choice?: string): string {
   const option = template.choice?.options.find((o) => o.id === choice) ?? template.choice?.options[0];
-  const head = `Task: ${template.label}${option ? ` (${option.label.toLowerCase()}, ${option.prompt})` : ""}`;
+  // "(short, under 120 words)", but "(professional and warm)" rather than "(professional, professional and warm)".
+  const label = option?.label.toLowerCase();
+  const detail = option && label ? (option.prompt.startsWith(label) ? option.prompt : `${label}, ${option.prompt}`) : null;
+  const head = `Task: ${template.label}${detail ? ` (${detail})` : ""}`;
   const parts = [head];
   for (const f of template.fields) {
     const value = values[f.id]?.trim();
