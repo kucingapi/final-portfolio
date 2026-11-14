@@ -1,18 +1,15 @@
-[00.0s - 05.4s] HOOK
-Outlook sempat mati sekitar sehari. Dan itu bukan karena diretas.
-
-[05.4s - 21.7s] WHAT HAPPENED
-Tanggal 12 November, server email Microsoft mulai gagal di pemeriksaan otomatisnya sendiri, lalu offline. Server yang tersisa kewalahan dan ikut tumbang. Outlook dan Teams lumpuh di seluruh dunia. Penyebab pastinya belum diumumkan Microsoft.
-
-[21.7s - 34.7s] WHAT TO DO
-Kalau terjadi lagi, cek dulu halaman status Microsoft. Siap-siap email telat masuk. Yang mendesak, pindahkan ke telepon atau WhatsApp.
-
-[34.7s - 47.7s] MIGRATE?
-Perlu pindah ke Google? Bisa, tapi Google juga pernah down, dan migrasi satu kantor itu mahal. Rencana cadangan jauh lebih murah.
-
-[47.7s - 59.6s] AVOID IT NEXT TIME
-Kita nggak bisa mencegah Microsoft gangguan, tapi bisa menjaga bisnis tetap jalan. Tentukan jalur komunikasi kedua, simpan kontak penting secara offline, dan latih rencananya sekali.
-
-[59.6s - 65.0s] CLOSER
-Kantor kamu ngapain waktu Outlook mati? Tulis di komentar.
-
+[00.30s] Outlook sempat mati sekitar sehari.
+[03.24s] Dan itu bukan karena diretas.
+[05.87s] Tanggal 12 November, server email Microsoft mulai gagal di pemeriksaan otomatisnya sendiri, lalu offline.
+[13.74s] Server yang tersisa kewalahan dan ikut tumbang.
+[17.20s] Outlook dan Teams lumpuh di seluruh dunia.
+[20.27s] Penyebab pastinya belum diumumkan Microsoft.
+[23.90s] Kalau terjadi lagi, cek dulu halaman status Microsoft.
+[27.66s] Siap-siap email telat masuk.
+[30.02s] Yang mendesak, pindahkan ke telepon atau WhatsApp.
+[33.60s] Perlu pindah ke Google?
+[35.27s] Bisa, tapi Google juga pernah down, dan migrasi satu kantor itu mahal.
+[40.44s] Rencana cadangan jauh lebih murah.
+[43.22s] Kita nggak bisa mencegah Microsoft gangguan, tapi bisa menjaga bisnis tetap jalan.
+[49.44s] Tentukan jalur komunikasi kedua, simpan kontak penting secara offline, dan latih rencananya sekali.
+[56.39s] Kantor kamu ngapain waktu Outlook mati? Tulis di komentar.

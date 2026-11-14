@@ -1,103 +1,103 @@
 1
-00:00:00,300 --> 00:00:02,869
+00:00:00,300 --> 00:00:03,055
 Outlook sempat mati sekitar sehari.
 
 2
-00:00:02,869 --> 00:00:04,998
+00:00:03,235 --> 00:00:05,475
 Dan itu bukan karena diretas.
 
 3
-00:00:05,548 --> 00:00:06,954
+00:00:05,875 --> 00:00:07,382
 Tanggal 12 November,
 
 4
-00:00:06,954 --> 00:00:09,346
+00:00:07,382 --> 00:00:09,943
 server email Microsoft mulai gagal
 
 5
-00:00:09,346 --> 00:00:11,807
+00:00:09,943 --> 00:00:12,580
 di pemeriksaan otomatisnya sendiri,
 
 6
-00:00:11,807 --> 00:00:12,722
+00:00:12,580 --> 00:00:13,560
 lalu offline.
 
 7
-00:00:12,722 --> 00:00:16,028
+00:00:13,740 --> 00:00:17,023
 Server yang tersisa kewalahan dan ikut tumbang.
 
 8
-00:00:16,028 --> 00:00:18,982
+00:00:17,203 --> 00:00:20,086
 Outlook dan Teams lumpuh di seluruh dunia.
 
 9
-00:00:18,982 --> 00:00:22,076
+00:00:20,266 --> 00:00:23,498
 Penyebab pastinya belum diumumkan Microsoft.
 
 10
-00:00:22,626 --> 00:00:24,036
+00:00:23,898 --> 00:00:25,183
 Kalau terjadi lagi,
 
 11
-00:00:24,036 --> 00:00:26,559
+00:00:25,183 --> 00:00:27,484
 cek dulu halaman status Microsoft.
 
 12
-00:00:26,559 --> 00:00:28,636
+00:00:27,664 --> 00:00:29,836
 Siap-siap email telat masuk.
 
 13
-00:00:28,636 --> 00:00:29,675
+00:00:30,016 --> 00:00:30,926
 Yang mendesak,
 
 14
-00:00:29,675 --> 00:00:32,272
+00:00:30,926 --> 00:00:33,202
 pindahkan ke telepon atau WhatsApp.
 
 15
-00:00:32,822 --> 00:00:34,541
+00:00:33,602 --> 00:00:35,089
 Perlu pindah ke Google?
 
 16
-00:00:34,541 --> 00:00:34,915
+00:00:35,269 --> 00:00:35,636
 Bisa,
 
 17
-00:00:34,915 --> 00:00:37,083
+00:00:35,636 --> 00:00:37,763
 tapi Google juga pernah down,
 
 18
-00:00:37,083 --> 00:00:39,625
+00:00:37,763 --> 00:00:40,257
 dan migrasi satu kantor itu mahal.
 
 19
-00:00:39,625 --> 00:00:42,166
+00:00:40,437 --> 00:00:42,816
 Rencana cadangan jauh lebih murah.
 
 20
-00:00:42,716 --> 00:00:45,459
+00:00:43,216 --> 00:00:46,501
 Kita nggak bisa mencegah Microsoft gangguan,
 
 21
-00:00:45,459 --> 00:00:47,766
+00:00:46,501 --> 00:00:49,265
 tapi bisa menjaga bisnis tetap jalan.
 
 22
-00:00:47,766 --> 00:00:49,760
+00:00:49,445 --> 00:00:51,603
 Tentukan jalur komunikasi kedua,
 
 23
-00:00:49,760 --> 00:00:52,067
+00:00:51,603 --> 00:00:54,098
 simpan kontak penting secara offline,
 
 24
-00:00:52,067 --> 00:00:53,812
+00:00:54,098 --> 00:00:55,986
 dan latih rencananya sekali.
 
 25
-00:00:54,362 --> 00:00:57,166
+00:00:56,386 --> 00:00:59,203
 Kantor kamu ngapain waktu Outlook mati?
 
 26
-00:00:57,166 --> 00:00:58,460
+00:00:59,203 --> 00:01:00,503
 Tulis di komentar.

@@ -1,47 +1,45 @@
 # Outlook outage reel (TikTok / Reels)
 
-Audience: business users. Faceless: AI voiceover with animated graphics and burned-in captions.
-English is about 57s, Indonesian about 60s.
+Audience: business users. Fully animated and faceless: one animated scene per sentence, AI voiceover,
+headlines that animate in word by word, and burned-in captions.
 
 ## Finished videos (ready to upload)
 
-- `en/outlook-reel-en.mp4`
-- `id/outlook-reel-id.mp4`
+- `en/outlook-reel-en.mp4` (58s)
+- `id/outlook-reel-id.mp4` (62s)
 
-1080x1920, 30fps, captions burned in. Voice: OpenRouter `openai/gpt-audio-mini` ("sage"); English slowed 8% to about 142 words per minute.
+1080x1920, 30fps. Voice: OpenRouter `openai/gpt-audio-mini` ("sage"); English slowed 4%.
 
-## Other files (per language: `en/` and `id/`)
+## Scenes
+
+| # | Sentence (EN) | Animation |
+|---|---|---|
+| 1 | Outlook was down for about a day. | Inbox emails slide away, spinner, clock racing |
+| 2 | And it wasn't a hack. | Padlock drops in, shield, green check |
+| 3 | On November 12, ... dropped offline. | Calendar flips to 12, servers scanned, three fail |
+| 4 | The rest got overloaded and failed too. | Traffic pours in, load bars go red, servers shake and fail |
+| 5 | Outlook and Teams went down around the world. | Spinning globe with red outage pings, app tiles with X |
+| 6 | Microsoft hasn't published the full cause yet. | Magnifying glass over a redacted report, question mark |
+| 7 | Next time, check Microsoft's status page first. | Cursor clicks refresh on a status page |
+| 8 | Expect late emails. | Envelope crawling along a path, hourglass |
+| 9 | Move anything urgent to a call or WhatsApp. | Ringing phone, chat bubbles pop up |
+| 10 | Should you switch to Google? | Box hops between two clouds |
+| 11 | You can, but Google goes down too, and moving a company is expensive. | Cloud fails, coin stack grows |
+| 12 | A backup plan costs far less. | Scale tips: coins heavy, shield light |
+| 13 | You can't stop Microsoft from breaking, but you can keep your business running. | Storm cloud above, office lights and conveyor keep going |
+| 14 | Pick a second channel, keep key contacts offline, and practise it once. | Checklist ticks as each item is spoken |
+| 15 | What did your office do when Outlook went down? | Comment bubbles stream up, arrow to comments |
+
+## Other files (per language)
 
 | File | Use |
 |---|---|
-| `voiceover-*.wav` | Voice track alone, if you re-edit in CapCut and add music |
-| `captions-*.srt` | Captions timed to the voiceover (for TikTok's own caption tool, or re-editing) |
-| `script-*.txt` | The script text |
-| `overlays/*.png` | The on-screen text cards as transparent PNGs |
+| `voiceover-*.wav` | Voice track alone, e.g. to add music in CapCut |
+| `captions-*.srt` | Captions timed to the voiceover |
+| `script-*.txt` | Each sentence with its start time |
 
-To regenerate: `python3 tools/render_faceless.py reel-outlook` (needs the OpenRouter key; add `--reuse-audio` to keep the existing voice clips).
-
-Overlays sit in the upper third, clear of TikTok's right-side buttons and bottom caption area.
-List beats have one PNG per item (`-1`, `-2`, `-3`); switch to the next one when you say that item.
-
-## Beats
-
-| Time (EN) | Beat | Overlay |
-|---|---|---|
-| 0-5s | Hook | Not a hack. |
-| 5-20s | What happened | Nov 12 · Worldwide |
-| 20-32s | What to do | 1. Status page · 2. Late emails · 3. Call or WhatsApp |
-| 32-44s | Migrate? | Switch to Google? |
-| 44-55s | Avoid it next time | Second channel · Offline contacts · Practise once |
-| 55-60s | Closer | What did your office do? |
-
-Times in the table were the plan; the videos follow the real voiceover length.
-
-## Visuals per beat
-
-Hook: email with a red X · What happened: a grid of servers failing one after another · What to do: phone and chat bubble ·
-Migrate: two clouds that both fail, then a green shield (backup plan) · Avoid it: checklist ticking as each item is spoken ·
-Closer: comment bubble and an arrow pointing to the comments.
+To regenerate: `python3 tools/render_animated.py reel-outlook [en] [id]`. Needs the OpenRouter key;
+voice clips are cached per sentence in `*/audio/`, so only changed sentences are re-voiced.
 
 ## Post copy
 
