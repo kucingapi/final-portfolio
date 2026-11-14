@@ -10,11 +10,10 @@ import { LangProvider } from "@/lib/i18n/client";
 import type { Lang } from "@/lib/i18n/lang";
 import { PreviewBadge } from "@/components/PreviewBadge";
 import { ChillaxFont } from "@/components/ChillaxFont";
-import { SiteChat } from "@/components/chat/SiteChat";
 
 /**
  * The portfolio around its pages: the language, Freelance/Full-time mode, tailored links, smooth scroll,
- * the page transition, the navbar and the "Ask AI Novel" chat. The dashboard is an app of its own and leaves all of it out.
+ * the page transition and the navbar. The dashboard is an app of its own and leaves all of it out.
  */
 export async function SiteChrome({ lang, children }: { lang: Lang; children: ReactNode }) {
   const [{ site, modes }, cv, dict] = await Promise.all([getSiteContent(lang), getCvContent(), getTranslations(lang)]);
@@ -28,7 +27,6 @@ export async function SiteChrome({ lang, children }: { lang: Lang; children: Rea
             <Navbar owner={{ name: site.name, email: site.email }} modeLabels={{ freelance: modes.freelance.label, fulltime: modes.fulltime.label }} />
             <div className="page-canvas">{children}</div>
             <PreviewBadge />
-            <SiteChat />
           </PageTransitionProvider>
         </SmoothScroll>
       </ModeProvider>

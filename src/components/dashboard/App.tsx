@@ -53,7 +53,6 @@ function Shell({ projects }: { projects: ProjectExport[] }) {
   const enquiry = params.get("enquiry");
   const job = params.get("job");
   const chat = params.get("chat");
-  const sitechat = params.get("sitechat");
   const pushed = useRef(false);
 
   // Opening the app counts as a visit: the session gets a fresh week, or shows sign-in if it lapsed.
@@ -84,26 +83,19 @@ function Shell({ projects }: { projects: ProjectExport[] }) {
       p.delete("enquiry");
       p.delete("job");
       p.delete("chat");
-      p.delete("sitechat");
       if (id === "activity") p.delete("view");
       else p.set("view", id);
     });
   // A message in the feed opens in the Inbox; everything else is a link.
   const openLink = (ref: string) =>
-    ref.startsWith("sitechat:")
-      ? write((p) => {
-          p.set("view", "inbox");
-          p.delete("link");
-          p.set("sitechat", ref.slice("sitechat:".length));
-        }, true)
-      : ref.startsWith("enquiry:")
+    ref.startsWith("enquiry:")
       ? write((p) => {
           p.set("view", "inbox");
           p.delete("link");
           p.set("enquiry", ref.slice("enquiry:".length));
         }, true)
       : write((p) => p.set("link", ref), !open);
-  const close = (param: "link" | "enquiry" | "job" | "sitechat") => {
+  const close = (param: "link" | "enquiry" | "job") => {
     if (pushed.current) {
       pushed.current = false;
       window.history.back();
@@ -113,7 +105,6 @@ function Shell({ projects }: { projects: ProjectExport[] }) {
   const openEnquiry = (id: string) => write((p) => p.set("enquiry", id), !enquiry);
   const openJob = (target: string) => write((p) => p.set("job", target), !job);
   const openChat = (id: string) => write((p) => p.set("chat", id), !chat);
-  const openSiteChat = (id: string) => write((p) => p.set("sitechat", id), !sitechat);
 
   const current = VIEWS.find((v) => v.id === view)!;
 
@@ -148,16 +139,7 @@ function Shell({ projects }: { projects: ProjectExport[] }) {
           )}
         >
           {view === "activity" && <ActivityView onOpen={openLink} onShow={show} />}
-          {view === "inbox" && (
-            <InboxView
-              open={enquiry}
-              onOpen={openEnquiry}
-              onClose={() => close("enquiry")}
-              chat={sitechat}
-              onOpenChat={openSiteChat}
-              onCloseChat={() => close("sitechat")}
-            />
-          )}
+          {view === "inbox" && <InboxView open={enquiry} onOpen={openEnquiry} onClose={() => close("enquiry")} />}
           {view === "jobs" && <JobsView open={job} onOpen={openJob} onClose={() => close("job")} />}
           {view === "assistant" && <AssistantView chat={chat} onOpen={openChat} />}
           {view === "links" && <LinksView onOpen={openLink} />}

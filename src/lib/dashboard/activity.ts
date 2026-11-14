@@ -10,7 +10,7 @@ import { pushToList, readList, removeFromList, setValue } from "./state";
  * already left out link previews and Novel's own browser (`nb_test`). Server only.
  */
 
-export type ActivityKind = "click" | "open" | "cv" | "portfolio" | "rates" | "rateViews" | "enquiry" | "chat";
+export type ActivityKind = "click" | "open" | "cv" | "portfolio" | "rates" | "rateViews" | "enquiry";
 
 export type ActivityEvent = {
   at: string;
@@ -34,20 +34,9 @@ export const FEED_SIZE = 300;
 /** One ping per link a minute: a burst of clicks is one notification, and the feed has every one. */
 const QUIET_SECONDS = 60;
 
-const PREF: Record<ActivityKind, keyof Prefs> = {
-  click: "clicks",
-  open: "opens",
-  cv: "downloads",
-  portfolio: "downloads",
-  rates: "downloads",
-  rateViews: "opens",
-  enquiry: "enquiries",
-  // A visitor talking to the site's AI is as good as a message, so it rides on the same switch.
-  chat: "enquiries",
-};
+const PREF: Record<ActivityKind, keyof Prefs> = { click: "clicks", open: "opens", cv: "downloads", portfolio: "downloads", rates: "downloads", rateViews: "opens", enquiry: "enquiries" };
 const TITLE: Record<ActivityKind, string> = {
   enquiry: "New message",
-  chat: "New site chat",
   click: "Short link opened",
   open: "CV link opened",
   cv: "CV downloaded",
@@ -79,11 +68,6 @@ export function describe(e: ActivityEvent): Ping {
   if (e.kind === "enquiry") {
     const id = e.ref.slice("enquiry:".length);
     return { title: `New message from ${e.name}`, body: e.detail ?? "", url: `/dashboard?view=inbox&enquiry=${id}`, tag: e.ref };
-  }
-  if (e.kind === "chat") {
-    const id = e.ref.slice("sitechat:".length);
-    const where = e.country ? ` from ${countryName(e.country)}` : "";
-    return { title: `Someone is chatting with AI Novel${where}`, body: e.detail ?? "", url: `/dashboard?view=inbox&sitechat=${id}`, tag: e.ref };
   }
   const what = e.kind === "click" ? `/go/${e.name}` : e.name;
   const where = [e.country && countryName(e.country), e.device, e.referrer && `from ${e.referrer}`].filter(Boolean);

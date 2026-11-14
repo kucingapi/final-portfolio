@@ -1,6 +1,6 @@
 "use client";
 
-import { BellRing, Eye, FileDown, Mail, MessageCircle, MousePointerClick, PlayCircle, Presentation, Receipt, X } from "lucide-react";
+import { BellRing, Eye, FileDown, Mail, MousePointerClick, PlayCircle, Presentation, Receipt, X } from "lucide-react";
 import { useMemo, useState, useSyncExternalStore } from "react";
 import type { View } from "./App";
 import { type ActivityEvent, useDashboard } from "./data";
@@ -12,7 +12,6 @@ import { useNotifications } from "./useNotifications";
 
 export const KIND = {
   enquiry: { label: "Message", icon: Mail },
-  chat: { label: "Asked AI Novel", icon: MessageCircle },
   click: { label: "Short link opened", icon: MousePointerClick },
   open: { label: "CV link opened", icon: Eye },
   cv: { label: "CV downloaded", icon: FileDown },

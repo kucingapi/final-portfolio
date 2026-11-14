@@ -138,34 +138,6 @@ any model can write. A chat in the dashboard that writes from the published cont
   opened by address (`?view=assistant&chat=<id>`), so a draft started on the laptop carries on on the phone.
 - **Limits:** 60 turns an hour, 80 messages or 200k characters per chat, 16k output tokens per turn.
 
-## Ask AI Novel: visitors chat with an AI that answers as Novel
-
-Added 2026-11-14. An "Ask AI Novel" button in the corner of every page of the site (English and Bahasa), opening a
-chat (a panel on a computer, the whole screen on a phone) where visitors ask about Novel's work.
-
-- **Honest about being an AI:** it's called AI Novel, carries an "AI" badge and says it can be wrong, and its
-  instructions forbid claiming to be the human Novel or to do what it can't (book calls, send email). It answers in
-  the first person from the same profile as the Assistant (published content only, placeholder testimonials left
-  out), in the visitor's language, in a few sentences.
-- **It sends people to Novel:** no prices, dates, contracts or availability; for those, and whenever a visitor seems a
-  fit, it links the contact page. Case studies are linked by site path, and the widget localizes them for `/id`.
-- **It stays on topic:** anything that isn't Novel's work gets one friendly sentence and a nudge back, and what a
-  visitor writes is treated as conversation, never instructions (no revealing or changing its rules).
-- **The server keeps the transcript.** Each request brings only the visitor's new message (text, at most 1,000
-  characters); the history comes from the store, so no one can feed the model a made-up conversation.
-- **Limits that bound the bill:** 30 messages an hour and 80 a day per visitor (by IP, IPv6 by /64), 20 questions per
-  conversation, and 400 messages a day across the site (`SITE_CHAT_DAILY_CAP`). Requests from other sites and bots
-  are refused. With the default model a message costs about 4 cents, less while the profile is cached; a free model
-  costs nothing but caps out at 50 or 1,000 requests a day for the whole site.
-- **In the dashboard:** Settings → Ask AI Novel has the on/off switch, the model (the same picker, with the cost of a
-  visitor's message), and today's count against the cap. Every conversation is in the Inbox under Site chats, with
-  the visitor's country, device and language; it can be deleted. A new conversation goes on the activity feed and,
-  with "Messages and site chats" switched on, pings the phone. Novel's own browser (`nb_test`) doesn't ping.
-- **Privacy:** the widget says chats are saved so the real Novel can read them. Conversations are kept for 180 days
-  and the newest 300 are listed.
-- The button only shows when the chat can answer: an OpenRouter key is set and the switch is on (`GET /api/chat`,
-  asked after the page settles, cached for a minute).
-
 ## Content: the site's own CMS
 
 Chosen over a hosted CMS (Sanity) and one inside the app (Payload): the dashboard, the store and the MCP endpoint were
@@ -255,8 +227,7 @@ Neither platform can import a file, so the export is copy-ready fields plus the 
 | Jobs: store, totals, agent recording | `src/lib/dashboard/jobs.ts` (shared types in `job-types.ts`), `/api/dashboard/jobs`, `/api/dashboard/jobs/<id>`; view `src/components/dashboard/Jobs.tsx` |
 | Inbox: saving, listing, delete | `src/lib/dashboard/enquiries.ts`, `/api/contact`, `/api/dashboard/enquiries`, `/api/dashboard/enquiries/<id>`; view `src/components/dashboard/Inbox.tsx` |
 | Assistant: OpenRouter, profile, prompt, saved chats; templates; suggested models | `src/lib/dashboard/assistant.ts`, `src/lib/dashboard/assistant-templates.ts`, `src/lib/dashboard/assistant-models.ts`, `/api/dashboard/assistant` (stream and list), `/api/dashboard/assistant/<id>`, `/api/dashboard/assistant/models`; view `src/components/dashboard/Assistant.tsx` |
-| Ask AI Novel: settings, limits, persona prompt, conversations | `src/lib/dashboard/sitechat.ts`, `POST`/`GET /api/chat`, `/api/dashboard/sitechat`, `/api/dashboard/sitechat/<id>`; widget `src/components/chat/SiteChat.tsx` (in `SiteChrome`); its words in `src/lib/i18n/ui.ts` (`chat`) |
-| Model picker (Assistant and site chat) | `src/components/dashboard/ModelSheet.tsx` |
+| Assistant model picker (suggested, free, any) | `src/components/dashboard/ModelSheet.tsx` |
 | Content editor | `src/components/dashboard/Content.tsx`, `src/components/dashboard/content/Editor.tsx`; actions in `src/app/dashboard/content-actions.ts`; Preview at `/api/dashboard/preview` |
 | Shared Redis client (also used by the CV store) | `src/lib/kv.ts` |
 
