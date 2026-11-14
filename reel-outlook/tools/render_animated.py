@@ -19,8 +19,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from orclient import tts  # noqa: E402
 
 W, H, FPS = 1080, 1920, 30
-VOICE = "sage"
-TEMPO = {"en": 0.96, "id": 1.0}
+VOICE = "ash"
+TEMPO = {"en": 1.0, "id": 1.0}
 LANG_NAME = {"en": "English", "id": "Indonesian"}
 LEAD_IN, GAP_SENT, GAP_BEAT, TAIL = 0.3, 0.18, 0.4, 1.4
 TR = 0.4  # scene transition length (s)

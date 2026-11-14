@@ -1,15 +1,15 @@
 [00.30s] Outlook was down for about a day.
-[02.91s] And it wasn't a hack.
-[04.96s] On November 12, Microsoft's email servers started failing their own safety checks and dropped offline.
-[11.83s] The rest got overloaded and failed too.
-[15.28s] Outlook and Teams went down around the world.
-[18.75s] Microsoft hasn't published the full cause yet.
-[22.37s] Next time, check Microsoft's status page first.
-[26.02s] Expect late emails.
-[28.52s] Move anything urgent to a call or WhatsApp.
-[32.22s] Should you switch to Google?
-[34.00s] You can, but Google goes down too, and moving a company is expensive.
-[39.83s] A backup plan costs far less.
-[42.74s] You can't stop Microsoft from breaking, but you can keep your business running.
-[47.67s] Pick a second channel, keep key contacts offline, and practise it once.
-[53.94s] What did your office do when Outlook went down? Tell me in the comments.
+[03.05s] And it wasn't a hack.
+[05.59s] On November 12, Microsoft's email servers started failing their own safety checks and dropped offline.
+[12.46s] The rest got overloaded and failed too.
+[16.53s] Outlook and Teams went down around the world.
+[20.27s] Microsoft hasn't published the full cause yet.
+[23.65s] Next time, check Microsoft's status page first.
+[27.78s] Expect late emails.
+[30.21s] Move anything urgent to a call or WhatsApp.
+[33.63s] Should you switch to Google?
+[35.97s] You can, but Google goes down too, and moving a company is expensive.
+[41.57s] A backup plan costs far less.
+[44.85s] You can't stop Microsoft from breaking, but you can keep your business running.
+[50.20s] Pick a second channel, keep key contacts offline, and practise it once.
+[55.99s] What did your office do when Outlook went down? Tell me in the comments.
