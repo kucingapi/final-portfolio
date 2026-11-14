@@ -8,7 +8,7 @@ line draw, starburst rise, opposite marquees).
 
 ## Finished videos (ready to upload)
 
-- `en/outlook-reel-en.mp4` (58s)
+- `en/outlook-reel-en.mp4` (60s)
 - `id/outlook-reel-id.mp4` (62s)
 
 1080x1920, 30fps, captions burned in. Voice: OpenRouter `openai/gpt-audio-mini` ("sage").

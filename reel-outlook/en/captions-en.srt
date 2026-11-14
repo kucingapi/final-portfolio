@@ -95,9 +95,13 @@ keep key contacts offline,
 and practise it once.
 
 25
-00:00:53,944 --> 00:00:55,411
+00:00:53,944 --> 00:00:55,489
 What did your office do
 
 26
-00:00:55,411 --> 00:00:56,878
+00:00:55,489 --> 00:00:57,035
 when Outlook went down?
+
+27
+00:00:57,035 --> 00:00:58,648
+Tell me in the comments.

@@ -703,7 +703,7 @@ SCENES = [
                 "id": ["Jalur kedua", "Kontak offline", "Latih sekali"]},
      "keys": {"en": ["channel", "contacts", "practise"], "id": ["kedua", "kontak", "latih"]}},
     {"beat": 5, "fn": s_comments,
-     "say": {"en": "What did your office do when Outlook went down?",
+     "say": {"en": "What did your office do when Outlook went down? Tell me in the comments.",
              "id": "Kantor kamu ngapain waktu Outlook mati? Tulis di komentar."},
      "head": {"en": "What did *your office* do?", "id": "Kantor kamu *ngapain*?"}},
 ]

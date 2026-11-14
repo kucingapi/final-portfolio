@@ -72,7 +72,7 @@ function spinFor(e, t, dur, degPerSec = 9) {
   tl.to(e, { rotation: `+=${degPerSec * dur}`, duration: dur, ease: "none" }, t);
 }
 function repeatsIn(span, cycle) {
-  return Math.max(0, Math.floor(span / cycle) - 1);
+  return Math.max(0, Math.ceil(span / cycle));
 }
 function counter(t, dur, from, to, fmt, node, ease = "power1.inOut") {
   const o = { v: from };
@@ -107,8 +107,14 @@ function buildBackgrounds() {
       const { vb, paths } = assetPaths("starburst");
       const bs = svg(wrap, 620, EDGE + 110, 520, 520, vb);
       paths.forEach((d) => sv(bs, "path", { d, fill: "#1b3cff" }));
-      tl.fromTo(bs, { yPercent: 60, scale: 0.6, rotation: -30 }, { yPercent: 0, scale: 1, rotation: 0, duration: 1.2, ease: "power4.out" }, b.t + 0.2);
-      spinFor(bs, b.t + 1.4, Math.max(0.5, end - b.t), 9);
+      gsap.set(bs, { autoAlpha: 0 });
+      tl.fromTo(bs, { yPercent: 60, scale: 0.6, rotation: -30, autoAlpha: 0 }, { yPercent: 0, scale: 1, rotation: 0, autoAlpha: 1, duration: 1.1, ease: "power4.out" }, b.t + 0.75);
+      spinFor(bs, b.t + 1.85, Math.max(0.5, end - b.t), 9);
+      // 10. blue sections get the swoosh too, mirrored, in the lighter blue
+      const sw = assetPaths("swoosh");
+      const ss = svg(wrap, 540, EDGE + 1600, 560, 310, sw.vb);
+      ss.style.transform = "scaleX(-1)";
+      sw.paths.forEach((d) => draw(stroke(ss, d, "#4571ff", 9), b.t + 0.8, 1.4));
     } else {
       // hero's bottom-left swoosh, drawn on as the section arrives
       const { vb, paths } = assetPaths("swoosh");
@@ -138,13 +144,13 @@ function buildHeader() {
   const widths = labels.map((x) => x.offsetWidth);
   starts.forEach((b, k) => {
     const lab = labels[k];
-    gsap.set(lab, { autoAlpha: 0 });
-    tl.fromTo(lab, { yPercent: 60, autoAlpha: 0 }, { yPercent: 0, autoAlpha: 1, duration: 0.4, ease: "power4.out" }, b.t + (k ? 0.1 : 0.2));
+    gsap.set(lab, { autoAlpha: k ? 0 : 1 });
+    if (k) tl.fromTo(lab, { yPercent: 60, autoAlpha: 0 }, { yPercent: 0, autoAlpha: 1, duration: 0.4, ease: "power4.out" }, b.t + 0.1);
     if (k + 1 < starts.length) tl.to(lab, { yPercent: -60, autoAlpha: 0, duration: 0.25, ease: "power2.in" }, starts[k + 1].t - 0.15);
     tl.to(pill, { width: widths[k] + 28, duration: 0.4, ease: "power3.inOut" }, b.t - (k ? 0.1 : 0));
   });
   gsap.set(pill, { width: widths[0] + 28 });
-  tl.fromTo([logo, pill], { y: -40, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.8, ease: "power4.out", stagger: 0.1 }, 0);
+
 }
 
 function buildCaptions() {
@@ -211,17 +217,18 @@ function buildHead(sc, i) {
     inners.push(inner);
   });
   if (i === 0) {
-    // E1 headline assemble (hero): lines start spread apart and settle into the layout
+    // Hook: readable on frame one, then E1 settles the last few px (lines start slightly spread)
     inners.forEach((x) => (x.parentNode.style.overflow = "visible"));
-    tl.fromTo(inners, { x: (j) => (j % 2 ? 190 : -170), y: (j) => j * 70, autoAlpha: 0 },
-      { x: 0, y: 0, autoAlpha: 1, duration: 1.6, ease: "power4.out", stagger: 0.12 }, sc.start + 0.05);
+    tl.fromTo(inners, { x: (j) => (j % 2 ? 46 : -40), y: (j) => j * 14 }, { x: 0, y: 0, duration: 0.9, ease: "power4.out", stagger: 0.08 }, 0);
+    // 5. clip again before the exit so the old headline can't float over the next one
+    inners.forEach((x) => tl.set(x.parentNode, { overflow: "hidden" }, sc.end - 0.4));
   } else {
     tl.fromTo(inners, { yPercent: 110 }, { yPercent: 0, duration: 0.8, ease: "power4.out", stagger: 0.12 }, sc.start + 0.08);
   }
   if (i + 1 < R.scenes.length) tl.to(inners, { yPercent: -115, duration: 0.35, ease: "power3.in", stagger: 0.05 }, sc.end - 0.32);
   const key = box_.querySelector(".key");
   if (key) {
-    const tKey = sc.start + 0.08 + 0.8 * 0.6 + 0.12 * Math.max(0, inners.findIndex((x) => x.contains(key)));
+    const tKey = i === 0 ? 0.15 : sc.start + 0.08 + 0.8 * 0.6 + 0.12 * Math.max(0, inners.findIndex((x) => x.contains(key)));
     if (BLUE_BEATS.has(sc.beat)) {
       const hl = el("span", "hl", key);
       tl.fromTo(hl, { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "power4.out" }, tKey + 0.1);
@@ -240,7 +247,7 @@ function buildHead(sc, i) {
 // ------------------------------------------------------------------ scene stage helpers
 function stageFor(sc, i, opts = {}) {
   const st = el("div", "stage", document.getElementById("stages"));
-  gsap.set(st, { autoAlpha: 0 });
+  gsap.set(st, { autoAlpha: 0, scale: 0.86, transformOrigin: "50% 0%" });
   tl.set(st, { autoAlpha: 1 }, sc.start);
   const next = R.scenes[i + 1];
   if (next) {
@@ -270,7 +277,7 @@ S.inbox = (st, sc, d) => {
   const t0 = sc.start;
   const c = box(el("div", "pcard", st, { background: "var(--m50)" }), 270, 30, 520, 600);
   gsap.set(c, { rotation: -8 });
-  tl.fromTo(c, { y: 80, rotation: -16, autoAlpha: 0 }, { y: 0, rotation: -8, autoAlpha: 1, duration: 0.9, ease: "power4.out" }, t0);
+  tl.fromTo(c, { y: 24, rotation: -11 }, { y: 0, rotation: -8, duration: 0.8, ease: "power4.out" }, t0);
   const top = el("div", "", c, { position: "absolute", left: 0, top: 0, width: "100%", height: "86px", background: "var(--m100)" });
   [0, 1, 2].forEach((k) => disc(top, 34 + k * 36, 32, 22, "var(--m200)"));
   const rows = [];
@@ -281,28 +288,28 @@ S.inbox = (st, sc, d) => {
     bar(r, 118, 48, 210, 16, "var(--m100)");
     rows.push(r);
   }
-  tl.to(rows, { x: 160, autoAlpha: 0, duration: 0.45, ease: "power3.in", stagger: 0.16 }, t0 + 0.9);
+  tl.to(rows, { x: 160, autoAlpha: 0, duration: 0.4, ease: "power3.in", stagger: 0.12 }, t0 + 0.45);
   const sp = svg(c, 205, 245, 110, 110, "0 0 110 110");
   sv(sp, "circle", { cx: 55, cy: 55, r: 42, fill: "none", stroke: "#abcbff", "stroke-width": 12 });
   const arc = sv(sp, "circle", { cx: 55, cy: 55, r: 42, fill: "none", stroke: "#1b3cff", "stroke-width": 12, "stroke-linecap": "round", "stroke-dasharray": "80 300" });
   gsap.set(sp, { autoAlpha: 0 });
-  tl.to(sp, { autoAlpha: 1, duration: 0.3 }, t0 + 1.8);
-  tl.to(arc, { rotation: 360 * Math.max(1, Math.round(d)), svgOrigin: "55 55", duration: Math.max(0.5, d - 1.8), ease: "none" }, t0 + 1.8);
-  const off = chip(st, T("Offline", "Offline"), "olive", 690, 0);
+  tl.to(sp, { autoAlpha: 1, duration: 0.3 }, t0 + 1.2);
+  tl.to(arc, { rotation: 360 * Math.max(1, Math.round(d)), svgOrigin: "55 55", duration: Math.max(0.5, d - 1.2), ease: "none" }, t0 + 1.2);
+  const off = chip(st, T("Offline", "Mati"), "olive", 640, 0);
   gsap.set(off, { rotation: 12 });
-  pop(off, t0 + 1.9);
-  const clk = chip(st, "", "light chillax", 70, 520, { fontSize: "48px", fontFamily: "Chillax", fontWeight: 600 });
+  pop(off, t0 + 1.2);
+  // "24h" is the hook number: big and on screen from the first frame
+  const clk = chip(st, "24h", "light", 40, 470, { fontSize: "92px", height: "150px", padding: "0 54px", fontFamily: "Chillax", fontWeight: 600 });
   gsap.set(clk, { rotation: -10 });
-  pop(clk, t0 + 0.5);
-  counter(t0 + 0.6, Math.max(0.6, d - 1.0), 0, 24, (v) => `${Math.round(v)}h`, clk);
+  tl.fromTo(clk, { scale: 1.08 }, { scale: 1, duration: 0.5, repeat: repeatsIn(d, 1.0), repeatDelay: 0.5, yoyo: false, ease: "back.out(2)" }, t0);
   const ar = assetPaths("arrow");
   const as = svg(st, 70, 150, 180, 122, ar.vb);
   ar.paths.forEach((p) => draw(stroke(as, p, "#fff", 12), t0 + 0.4));
   const s20 = assetPaths("spark20");
-  const ss = svg(st, 840, 420, 64, 80, s20.vb);
+  const ss = svg(st, 800, 430, 64, 80, s20.vb);
   s20.paths.forEach((p) => draw(stroke(ss, p, "#fff", 10), t0 + 0.7, 0.5));
   const s21 = assetPaths("spark21");
-  const ss2 = svg(st, 880, 380, 44, 58, s21.vb);
+  const ss2 = svg(st, 840, 390, 44, 58, s21.vb);
   s21.paths.forEach((p) => draw(stroke(ss2, p, "#fff", 10), t0 + 0.8, 0.5));
 };
 
@@ -325,7 +332,7 @@ S.nohack = (st, sc, d) => {
   const c1 = chip(st, T("No sign of a cyberattack", "Tidak ada tanda serangan siber"), "light", 60, 20);
   gsap.set(c1, { rotation: -5 });
   pop(c1, t0 + 0.9);
-  const c2 = chip(st, "Microsoft", "teal", 700, 540);
+  const c2 = chip(st, "Microsoft", "teal", 620, 540);
   gsap.set(c2, { rotation: 8 });
   pop(c2, t0 + 1.2);
   const tv = assetPaths("tickV");
@@ -349,7 +356,7 @@ function failCard(s, t, k, st, instant) {
   tl.to(s.bars, { backgroundColor: "#1b212c", duration: dur }, t);
   tl.to(s.dot, { backgroundColor: "#705801", duration: dur }, t);
   tl.to(s.load, { autoAlpha: 0, duration: dur }, t);
-  const ch = chip(st, "Offline", "olive", s.x + 150, s.y - 34, { height: "70px", fontSize: "28px", padding: "0 26px" });
+  const ch = chip(st, T("Offline", "Mati"), "olive", s.x + 150, s.y - 34, { height: "70px", fontSize: "28px", padding: "0 26px" });
   gsap.set(ch, { rotation: k % 2 ? 8 : -8 });
   if (instant) tl.set(ch, { autoAlpha: 1 }, t);
   else pop(ch, t + 0.1);
@@ -438,13 +445,13 @@ S.globe = (st, sc, d) => {
   const o = chip(st, "Outlook", "light", 30, 150);
   gsap.set(o, { rotation: -8 });
   tl.fromTo(o, { x: -200, autoAlpha: 0 }, { x: 0, autoAlpha: 1, duration: 0.7, ease: "power4.out" }, t0 + 0.4);
-  const od = chip(st, T("Down", "Lumpuh"), "olive", 130, 250, { height: "76px", fontSize: "30px", padding: "0 28px" });
+  const od = chip(st, T("Down", "Mati"), "olive", 130, 250, { height: "76px", fontSize: "30px", padding: "0 28px" });
   gsap.set(od, { rotation: 6 });
   pop(od, t0 + 0.9);
-  const tm = chip(st, "Teams", "light", 800, 420);
+  const tm = chip(st, "Teams", "light", 700, 430);
   gsap.set(tm, { rotation: 7 });
   tl.fromTo(tm, { x: 200, autoAlpha: 0 }, { x: 0, autoAlpha: 1, duration: 0.7, ease: "power4.out" }, t0 + 0.6);
-  const td = chip(st, T("Down", "Lumpuh"), "olive", 820, 520, { height: "76px", fontSize: "30px", padding: "0 28px" });
+  const td = chip(st, T("Down", "Mati"), "olive", 720, 530, { height: "76px", fontSize: "30px", padding: "0 28px" });
   gsap.set(td, { rotation: -6 });
   pop(td, t0 + 1.1);
 };
@@ -478,17 +485,17 @@ S.cause = (st, sc, d) => {
 
 S.status = (st, sc, d) => {
   const t0 = sc.start;
-  const b = card(st, 60, 10, 960, 620, { borderRadius: "56px" });
+  const b = card(st, 60, 10, 860, 620, { borderRadius: "56px" });
   rise(b, t0);
   [0, 1, 2].forEach((k) => disc(b, 40 + k * 38, 36, 24, "var(--m200)"));
-  bar(b, 170, 26, 560, 46, "var(--m50)");
-  const rf = svg(b, 860, 22, 56, 56, "0 0 56 56", true);
+  bar(b, 170, 26, 480, 46, "var(--m50)");
+  const rf = svg(b, 760, 22, 56, 56, "0 0 56 56", true);
   stroke(rf, "M44 28 A16 16 0 1 1 38 15.5", "#010326", 6);
   stroke(rf, "M39 6 L39 16 L29 16", "#010326", 6);
   const names = ["Exchange Online", "Outlook.com", "Teams", "SharePoint"];
   const states = [["olive", T("Degraded", "Terganggu")], ["olive", T("Degraded", "Terganggu")], ["teal", T("Investigating", "Diselidiki")], ["blue", T("Healthy", "Normal")]];
   const rows = names.map((n, k) => {
-    const r = box(el("div", "", b, { position: "absolute", background: "var(--m50)", borderRadius: "30px" }), 40, 116 + k * 118, 880, 98);
+    const r = box(el("div", "", b, { position: "absolute", background: "var(--m50)", borderRadius: "30px" }), 40, 116 + k * 118, 780, 98);
     el("div", "", r, { position: "absolute", left: "36px", top: "28px", font: "600 40px/1 Cabin, sans-serif", color: "var(--navy)" }, n);
     const c = chip(r, states[k][1], states[k][0], undefined, undefined, { right: "18px", top: "14px", height: "70px", fontSize: "28px", padding: "0 26px" });
     c.style.position = "absolute";
@@ -497,23 +504,23 @@ S.status = (st, sc, d) => {
   rows.forEach((r, k) => rise(r, t0 + 0.25 + k * 0.1, 40, 0.7));
   const cur = svg(st, 0, 0, 60, 80, "0 0 60 80", true);
   sv(cur, "path", { d: "M4 4 L4 64 L19 50 L30 74 L41 69 L30 46 L50 46 Z", fill: "#fff", stroke: "#010326", "stroke-width": 5, "stroke-linejoin": "round" });
-  tl.fromTo(cur, { x: 980, y: 700, autoAlpha: 0 }, { x: 900, y: 50, autoAlpha: 1, duration: 0.9, ease: "power3.inOut" }, t0 + 0.4);
+  tl.fromTo(cur, { x: 880, y: 700, autoAlpha: 0 }, { x: 800, y: 50, autoAlpha: 1, duration: 0.9, ease: "power3.inOut" }, t0 + 0.4);
   const click = t0 + 1.35;
   tl.to(cur, { scale: 0.85, duration: 0.08, yoyo: true, repeat: 1 }, click);
-  const ring = disc(st, 948, 60, 60, "transparent");
+  const ring = disc(st, 848, 60, 60, "transparent");
   ring.style.border = "6px solid #1b3cff";
   gsap.set(ring, { autoAlpha: 0 });
   tl.fromTo(ring, { scale: 0.6, autoAlpha: 1 }, { scale: 2.4, autoAlpha: 0, duration: 0.6, ease: "power2.out" }, click);
   tl.to(rf, { rotation: 360, duration: 0.7, ease: "power3.inOut", transformOrigin: "50% 50%" }, click);
   tl.fromTo(rows, { backgroundColor: "#e5f0ff" }, { backgroundColor: "#abcbff", duration: 0.15, yoyo: true, repeat: 1, stagger: 0.07 }, click + 0.15);
-  const hi = box(el("div", "", b, { position: "absolute", border: "6px solid #1b3cff", borderRadius: "36px" }), 30, 106, 900, 118);
+  const hi = box(el("div", "", b, { position: "absolute", border: "6px solid #1b3cff", borderRadius: "36px" }), 30, 106, 800, 118);
   pop(hi, click + 0.7);
 };
 
 S.late = (st, sc, d) => {
   const t0 = sc.start;
   const sw = assetPaths("swoosh");
-  const s = svg(st, 60, 60, 900, 500, sw.vb);
+  const s = svg(st, 60, 60, 820, 500, sw.vb);
   const p = stroke(s, sw.paths[0], "rgba(229,240,255,.45)", 10, { "stroke-dasharray": "2 26" });
   const guide = stroke(s, sw.paths[0], "rgba(0,0,0,0)", 1);
   tl.fromTo(p, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.5 }, t0);
@@ -524,10 +531,10 @@ S.late = (st, sc, d) => {
   const dl = chip(env, T("Delayed", "Tertunda"), "olive", 120, -40, { height: "70px", fontSize: "28px", padding: "0 24px" });
   gsap.set(dl, { rotation: 8 });
   tl.fromTo(env, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.3 }, t0 + 0.2);
-  tl.to(env, { motionPath: { path: guide, align: guide, alignOrigin: [0.5, 0.5], start: 0.98, end: 0.25 }, duration: Math.max(1, d - 0.4), ease: "sine.inOut" }, t0 + 0.2);
+  tl.to(env, { motionPath: { path: guide, align: guide, alignOrigin: [0.5, 0.5], start: 0.06, end: 0.8 }, duration: Math.max(1, d - 0.4), ease: "sine.inOut" }, t0 + 0.2);
   tl.to(env, { rotation: 4, duration: 0.6, repeat: repeatsIn(d, 0.6), yoyo: true, ease: "sine.inOut" }, t0 + 0.2);
   pop(dl, t0 + 0.6);
-  const clk = chip(st, "", "light", 620, 540, { fontFamily: "Chillax", fontWeight: 600, fontSize: "46px" });
+  const clk = chip(st, "", "light", 80, 520, { fontFamily: "Chillax", fontWeight: 600, fontSize: "46px" });
   gsap.set(clk, { rotation: -6 });
   pop(clk, t0 + 0.4);
   counter(t0 + 0.5, Math.max(0.8, d - 0.8), 9 * 60, 11 * 60 + 40, (v) => {
@@ -538,10 +545,10 @@ S.late = (st, sc, d) => {
 
 S.call = (st, sc, d) => {
   const t0 = sc.start;
-  const dc = disc(st, 110, 170, 300);
+  const dc = disc(st, 70, 170, 300);
   pop(dc, t0, 0.6);
   for (let k = 0; k < 3; k++) {
-    const r = disc(st, 110, 170, 300, "transparent");
+    const r = disc(st, 70, 170, 300, "transparent");
     r.style.border = "6px solid #fff";
     gsap.set(r, { autoAlpha: 0 });
     tl.fromTo(r, { scale: 1, autoAlpha: 0.9 }, { scale: 1.9, autoAlpha: 0, duration: 1.3, repeat: repeatsIn(d - 0.3, 1.3), ease: "power2.out" }, t0 + 0.3 + k * 0.43);
@@ -560,8 +567,8 @@ S.call = (st, sc, d) => {
     [T("Got it, thanks!", "Oke, makasih!"), "#fff", "var(--navy)"],
   ];
   msgs.forEach(([m, bg, fg], k) => {
-    const b = el("div", "", st, { position: "absolute", left: k === 1 ? "520px" : "480px", top: 60 + k * 190 + "px", padding: "34px 44px",
-      background: bg, color: fg, borderRadius: k === 1 ? "48px 48px 12px 48px" : "48px 48px 48px 12px", font: "600 44px/1.1 Cabin, sans-serif", whiteSpace: "nowrap" }, m);
+    const b = el("div", "", st, { position: "absolute", left: k === 1 ? "470px" : "430px", top: 60 + k * 190 + "px", padding: "30px 40px",
+      maxWidth: "460px", background: bg, color: fg, borderRadius: k === 1 ? "48px 48px 12px 48px" : "48px 48px 48px 12px", font: "600 42px/1.12 Cabin, sans-serif" }, m);
     tl.fromTo(b, { x: 120, autoAlpha: 0 }, { x: 0, autoAlpha: 1, duration: 0.6, ease: "power4.out" }, t0 + 0.5 + k * 0.6);
   });
 };
@@ -573,24 +580,24 @@ function cloudDoodle(parent, x, y, w, color) {
 
 S.switch = (st, sc, d) => {
   const t0 = sc.start;
-  const lc = card(st, 60, 150, 400, 360, { borderRadius: "56px" });
-  const rc = card(st, 620, 150, 400, 360, { borderRadius: "56px" });
+  const lc = card(st, 70, 150, 380, 360, { borderRadius: "56px" });
+  const rc = card(st, 560, 150, 380, 360, { borderRadius: "56px" });
   rise(lc, t0);
   rise(rc, t0 + 0.12);
   chip(lc, "Microsoft 365", "blue", 30, 30, { height: "76px", fontSize: "30px", padding: "0 28px" });
   chip(rc, "Google Workspace", "blue", 30, 30, { height: "76px", fontSize: "30px", padding: "0 28px" });
-  draw(cloudDoodle(lc, 100, 160, 200, "#010326"), t0 + 0.4);
-  draw(cloudDoodle(rc, 100, 160, 200, "#010326"), t0 + 0.5);
+  draw(cloudDoodle(lc, 90, 160, 200, "#010326"), t0 + 0.4);
+  draw(cloudDoodle(rc, 90, 160, 200, "#010326"), t0 + 0.5);
   const s = svg(st, 0, 0, 1080, 680, "0 0 1080 680", true);
-  const arc = stroke(s, "M300 200 Q540 -60 780 200", "#fff", 8, { "stroke-dasharray": "3 24" });
-  const guide = stroke(s, "M300 200 Q540 -60 780 200", "rgba(0,0,0,0)", 1);
+  const arc = stroke(s, "M290 200 Q505 -60 720 200", "#fff", 8, { "stroke-dasharray": "3 24" });
+  const guide = stroke(s, "M290 200 Q505 -60 720 200", "rgba(0,0,0,0)", 1);
   tl.fromTo(arc, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.4 }, t0 + 0.5);
   const bx = el("div", "", st, { position: "absolute", left: 0, top: 0, width: "96px", height: "96px", borderRadius: "20px", background: "var(--navy)", border: "5px solid #fff" });
   el("div", "", bx, { position: "absolute", left: "38px", top: 0, width: "10px", height: "100%", background: "#fff" });
   gsap.set(bx, { autoAlpha: 0 });
   tl.set(bx, { autoAlpha: 1 }, t0 + 0.6);
   tl.to(bx, { motionPath: { path: guide, align: guide, alignOrigin: [0.5, 0.5] }, duration: 1.4, repeat: repeatsIn(d - 0.6, 1.4), ease: "power1.inOut" }, t0 + 0.6);
-  const q = el("div", "chillax", st, { position: "absolute", left: "500px", top: "-60px", fontSize: "150px", lineHeight: "1", color: "#fff" }, "?");
+  const q = el("div", "chillax", st, { position: "absolute", left: "468px", top: "-60px", fontSize: "150px", lineHeight: "1", color: "#fff" }, "?");
   pop(q, t0 + 0.3);
 };
 
@@ -607,10 +614,10 @@ S.costly = (st, sc, d) => {
   tl.set(gc, { x: 0 }, t0 + 0.9);
   const hs = [130, 220, 320, 440];
   hs.forEach((h, k) => {
-    const b = box(el("div", "", st, { position: "absolute", background: "var(--m100)", borderRadius: "26px", transformOrigin: "50% 100%" }), 600 + k * 105, 620 - h, 80, h);
+    const b = box(el("div", "", st, { position: "absolute", background: "var(--m100)", borderRadius: "26px", transformOrigin: "50% 100%" }), 560 + k * 95, 620 - h, 72, h);
     tl.fromTo(b, { scaleY: 0 }, { scaleY: 1, duration: 0.7, ease: "power4.out" }, t0 + 0.8 + k * 0.18);
   });
-  const lab = chip(st, T("Migration cost", "Biaya migrasi"), "light", 560, 60);
+  const lab = chip(st, T("Migration cost", "Biaya migrasi"), "light", 540, 60);
   pop(lab, t0 + 1.3);
   const money = el("div", "chillax", st, { position: "absolute", left: "120px", top: "440px", fontSize: "150px", lineHeight: "1", color: "#fff", letterSpacing: "0.02em" }, "");
   counter(t0 + 1.0, Math.max(0.6, d - 1.6), 0, 3, (v) => "$".repeat(Math.round(v)), money, "none");
@@ -618,23 +625,25 @@ S.costly = (st, sc, d) => {
 
 S.scale = (st, sc, d) => {
   const t0 = sc.start;
-  const big = box(el("div", "", st, { position: "absolute", background: "var(--navy)", border: "5px solid #edf0f7", borderRadius: "36px", transformOrigin: "50% 100%" }), 170, 60, 280, 480);
-  const small = box(el("div", "", st, { position: "absolute", background: "#fff", borderRadius: "36px", transformOrigin: "50% 100%" }), 630, 400, 280, 140);
+  const big = box(el("div", "", st, { position: "absolute", background: "var(--m100)", borderRadius: "36px", transformOrigin: "50% 100%" }), 150, 80, 300, 460);
+  const small = box(el("div", "", st, { position: "absolute", background: "#fff", borderRadius: "36px", transformOrigin: "50% 100%" }), 560, 400, 300, 140);
+  el("div", "chillax", big, { position: "absolute", left: 0, right: 0, top: "40px", textAlign: "center", fontSize: "96px", lineHeight: "1", color: "var(--navy)" }, "$$$$");
+  el("div", "chillax", small, { position: "absolute", left: 0, right: 0, top: "22px", textAlign: "center", fontSize: "96px", lineHeight: "1", color: "var(--m500)" }, "$");
   tl.fromTo(big, { scaleY: 0 }, { scaleY: 1, duration: 0.9, ease: "power4.out" }, t0 + 0.1);
   tl.fromTo(small, { scaleY: 0 }, { scaleY: 1, duration: 0.7, ease: "power4.out" }, t0 + 0.7);
-  const c1 = chip(st, T("Migrate", "Migrasi"), "outline", 180, 570, { height: "84px", fontSize: "32px" });
-  const c2 = chip(st, T("Backup plan", "Rencana cadangan"), "light", 610, 570, { height: "84px", fontSize: "32px" });
+  const c1 = chip(st, T("Migrate", "Migrasi"), "outline", 170, 570, { height: "84px", fontSize: "32px" });
+  const c2 = chip(st, T("Backup plan", "Rencana cadangan"), "light", 560, 570, { height: "84px", fontSize: "32px" });
   rise(c1, t0 + 0.3, 30, 0.6);
   rise(c2, t0 + 0.8, 30, 0.6);
-  const win = chip(st, T("Far cheaper", "Jauh lebih murah"), "teal", 600, 250);
+  const win = chip(st, T("Far cheaper", "Jauh lebih murah"), "teal", 520, 250);
   gsap.set(win, { rotation: -6 });
   pop(win, t0 + 1.3);
   const s19 = assetPaths("spark19");
-  const sp = svg(st, 840, 170, 110, 40, s19.vb);
+  const sp = svg(st, 780, 170, 110, 40, s19.vb);
   gsap.set(sp, { rotation: -30 });
   s19.paths.forEach((p) => draw(stroke(sp, p, "#fff", 10), t0 + 1.5, 0.4));
   const s18 = assetPaths("spark18");
-  const sp2 = svg(st, 560, 160, 40, 100, s18.vb);
+  const sp2 = svg(st, 490, 160, 40, 100, s18.vb);
   gsap.set(sp2, { rotation: -20 });
   s18.paths.forEach((p) => draw(stroke(sp2, p, "#fff", 10), t0 + 1.55, 0.4));
 };
@@ -667,12 +676,12 @@ S.running = (st, sc, d) => {
 S.checklist = (st, sc, d) => {
   const t0 = sc.start;
   sc.labels.forEach((lab, k) => {
-    const r = card(st, 60, 20 + k * 210, 960, 176, { borderRadius: "56px" });
+    const r = card(st, 60, 20 + k * 210, 840, 176, { borderRadius: "56px" });
     rise(r, t0 + 0.1 + k * 0.12);
     el("div", "chillax", r, { position: "absolute", left: "48px", top: "50px", fontSize: "72px", lineHeight: "1", color: "var(--m500)" }, `0${k + 1}`);
     el("div", "", r, { position: "absolute", left: "180px", top: "60px", font: "700 56px/1 Cabin, sans-serif", color: "var(--navy)" }, lab);
-    const ring = box(el("div", "", r, { position: "absolute", border: "6px solid #1b3cff", borderRadius: "50%" }), 820, 38, 100, 100);
-    const fill = disc(r, 820, 38, 100);
+    const ring = box(el("div", "", r, { position: "absolute", border: "6px solid #1b3cff", borderRadius: "50%" }), 700, 38, 100, 100);
+    const fill = disc(r, 700, 38, 100);
     const ck = svg(fill, 22, 24, 56, 52, "0 0 56 52", true);
     const cp = stroke(ck, "M6 28 L22 42 L50 10", "#fff", 10);
     const kt = t0 + sc.keys[k];
@@ -697,11 +706,11 @@ S.comments = (st, sc, d) => {
     bar(c, 128, 74, (w - 200) * 0.6, 16, "var(--m100)");
     const born = t0 + 0.2 + k * 0.85;
     gsap.set(c, { autoAlpha: 0 });
-    tl.fromTo(c, { y: 560, autoAlpha: 0, scale: 0.9 }, { y: 430, autoAlpha: 1, scale: 1, duration: 0.5, ease: "back.out(1.4)" }, born);
+    tl.fromTo(c, { y: 470, autoAlpha: 0, scale: 0.9 }, { y: 360, autoAlpha: 1, scale: 1, duration: 0.5, ease: "back.out(1.4)" }, born);
     tl.to(c, { y: -40, duration: 3.6, ease: "none" }, born + 0.5);
     tl.to(c, { autoAlpha: 0, duration: 0.6 }, born + 3.3);
   }
-  const btn = disc(st, 880, 480, 150);
+  const btn = disc(st, 465, 530, 150);
   btn.innerHTML = A.arrowLarge;
   const bs = btn.querySelector("svg");
   Object.assign(bs.style, { position: "absolute", left: "35px", top: "35px", width: "80px", height: "80px", transform: "rotate(90deg)" });
@@ -724,6 +733,8 @@ async function build() {
   });
   buildCaptions();
   tl.set({}, {}, R.total);
+  // render the timeline once so the state at t=0 is applied (zero-time sets otherwise wait for the playhead to move)
+  tl.seek(0.01, false).seek(0, false);
   window.seekTo = (t) => { tl.seek(t, false); };
   window.READY = true;
 }
