@@ -1,15 +1,25 @@
 # Outlook outage reel (TikTok / Reels)
 
-Audience: business users. One reel, two recordings: English (60s) and Indonesian (65s).
+Audience: business users. Faceless: AI voiceover with animated graphics and burned-in captions.
+English is about 57s, Indonesian about 60s.
 
-## Files (per language: `en/` and `id/`)
+## Finished videos (ready to upload)
+
+- `en/outlook-reel-en.mp4`
+- `id/outlook-reel-id.mp4`
+
+1080x1920, 30fps, captions burned in. Voice: OpenRouter `openai/gpt-audio-mini` ("sage"); English slowed 8% to about 142 words per minute.
+
+## Other files (per language: `en/` and `id/`)
 
 | File | Use |
 |---|---|
-| `script-*.txt` | Teleprompter script with timings per beat |
-| `captions-*.srt` | Timed captions; import into CapCut / Premiere, or upload to TikTok |
-| `overlays/*.png` | 1080x1920 transparent on-screen text; place over your footage for each beat |
-| `timing-preview-*.mp4` | Silent preview: shows when each overlay and caption appears |
+| `voiceover-*.wav` | Voice track alone, if you re-edit in CapCut and add music |
+| `captions-*.srt` | Captions timed to the voiceover (for TikTok's own caption tool, or re-editing) |
+| `script-*.txt` | The script text |
+| `overlays/*.png` | The on-screen text cards as transparent PNGs |
+
+To regenerate: `python3 tools/render_faceless.py reel-outlook` (needs the OpenRouter key; add `--reuse-audio` to keep the existing voice clips).
 
 Overlays sit in the upper third, clear of TikTok's right-side buttons and bottom caption area.
 List beats have one PNG per item (`-1`, `-2`, `-3`); switch to the next one when you say that item.
@@ -25,13 +35,13 @@ List beats have one PNG per item (`-1`, `-2`, `-3`); switch to the next one when
 | 44-55s | Avoid it next time | Second channel · Offline contacts · Practise once |
 | 55-60s | Closer | What did your office do? |
 
-Indonesian timings are the same beats stretched to 65s (see `script-id.txt`).
+Times in the table were the plan; the videos follow the real voiceover length.
 
-## Recording
+## Visuals per beat
 
-- Vertical 9:16, you on camera, calm pace with a short pause between beats.
-- Optional cutaways in the hook and "what happened": your own screenshot of Downdetector or a headline.
-  Use your own screenshots; don't reuse other people's memes or video.
+Hook: email with a red X · What happened: a grid of servers failing one after another · What to do: phone and chat bubble ·
+Migrate: two clouds that both fail, then a green shield (backup plan) · Avoid it: checklist ticking as each item is spoken ·
+Closer: comment bubble and an arrow pointing to the comments.
 
 ## Post copy
 
