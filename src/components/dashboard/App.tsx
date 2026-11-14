@@ -1,11 +1,12 @@
 "use client";
 
-import { Activity, ArrowUpRight, Briefcase, FolderOpen, Inbox as InboxIcon, Link2, PenLine, Plus, RefreshCw, Settings as SettingsIcon } from "lucide-react";
+import { Activity, ArrowUpRight, Briefcase, FolderOpen, Inbox as InboxIcon, Link2, PenLine, Plus, RefreshCw, Settings as SettingsIcon, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef } from "react";
 import type { ProjectExport } from "@/lib/dashboard/export";
 import { ActivityView } from "./Activity";
+import { AssistantView } from "./Assistant";
 import { ContentView } from "./Content";
 import { DashboardData, useDashboard } from "./data";
 import { InboxView, useUnread } from "./Inbox";
@@ -22,6 +23,7 @@ const VIEWS = [
   { id: "activity", label: "Activity", icon: Activity },
   { id: "inbox", label: "Inbox", icon: InboxIcon },
   { id: "jobs", label: "Jobs", icon: Briefcase },
+  { id: "assistant", label: "Assistant", icon: Sparkles },
   { id: "links", label: "Links", icon: Link2 },
   { id: "content", label: "Content", icon: PenLine },
   { id: "projects", label: "Projects", icon: FolderOpen },
@@ -29,7 +31,7 @@ const VIEWS = [
 ] as const;
 export type View = (typeof VIEWS)[number]["id"];
 /** On a phone these sit in the header rather than the tab bar, which keeps five tabs. */
-const HEADER_ON_PHONE: View[] = ["projects", "settings"];
+const HEADER_ON_PHONE: View[] = ["content", "projects", "settings"];
 
 /**
  * The signed-in dashboard: a sidebar on a desktop, a tab bar on a phone. The view and any open link live
@@ -50,6 +52,7 @@ function Shell({ projects }: { projects: ProjectExport[] }) {
   const open = params.get("link");
   const enquiry = params.get("enquiry");
   const job = params.get("job");
+  const chat = params.get("chat");
   const pushed = useRef(false);
 
   // Opening the app counts as a visit: the session gets a fresh week, or shows sign-in if it lapsed.
@@ -79,6 +82,7 @@ function Shell({ projects }: { projects: ProjectExport[] }) {
       p.delete("link");
       p.delete("enquiry");
       p.delete("job");
+      p.delete("chat");
       if (id === "activity") p.delete("view");
       else p.set("view", id);
     });
@@ -100,6 +104,7 @@ function Shell({ projects }: { projects: ProjectExport[] }) {
   const closeLink = () => close("link");
   const openEnquiry = (id: string) => write((p) => p.set("enquiry", id), !enquiry);
   const openJob = (target: string) => write((p) => p.set("job", target), !job);
+  const openChat = (id: string) => write((p) => p.set("chat", id), !chat);
 
   const current = VIEWS.find((v) => v.id === view)!;
 
@@ -112,6 +117,12 @@ function Shell({ projects }: { projects: ProjectExport[] }) {
             <h1 className="text-lg font-semibold tracking-[-0.01em] text-foreground md:text-xl">{current.label}</h1>
             <div className="ml-auto flex items-center gap-1">
               <Actions view={view} onNew={() => (view === "jobs" ? openJob("new") : openLink("new"))} />
+              {view === "assistant" && chat && (
+                <Button variant="ghost" onClick={() => show("assistant")} className="max-md:size-10 max-md:px-0">
+                  <Plus className="size-5" />
+                  <span className="max-md:sr-only">New chat</span>
+                </Button>
+              )}
               {VIEWS.filter((v) => HEADER_ON_PHONE.includes(v.id) && v.id !== view).map(({ id, label, icon: Icon }) => (
                 <Button key={id} variant="ghost" size="icon" onClick={() => show(id)} aria-label={label} className="md:hidden">
                   <Icon className="size-[1.125rem]" />
@@ -120,10 +131,17 @@ function Shell({ projects }: { projects: ProjectExport[] }) {
             </div>
           </div>
         </header>
-        <main className="mx-auto w-full max-w-3xl flex-1 px-4 pt-5 pb-[calc(6rem+env(safe-area-inset-bottom))] md:px-8 md:pt-7 md:pb-16">
+        <main
+          className={cn(
+            "mx-auto w-full max-w-3xl flex-1 px-4 pt-5 md:px-8 md:pt-7",
+            // The Assistant's message box sits on the tab bar (or the window's foot), so the page ends there.
+            view === "assistant" ? "flex flex-col pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0" : "pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-16",
+          )}
+        >
           {view === "activity" && <ActivityView onOpen={openLink} onShow={show} />}
           {view === "inbox" && <InboxView open={enquiry} onOpen={openEnquiry} onClose={() => close("enquiry")} />}
           {view === "jobs" && <JobsView open={job} onOpen={openJob} onClose={() => close("job")} />}
+          {view === "assistant" && <AssistantView chat={chat} onOpen={openChat} />}
           {view === "links" && <LinksView onOpen={openLink} />}
           {view === "content" && <ContentView />}
           {view === "projects" && <Projects projects={projects} />}

@@ -81,6 +81,36 @@ it gained Content: the site's copy, the master CV and the projects became editab
   entry in the activity feed; both open the message.
 - The latest 500 are kept. On a phone, Settings moved to the header so the tab bar keeps five tabs.
 
+## Assistant: proposals written from the CV
+
+Added 2026-11-14. A chat in the dashboard that writes Upwork cover letters, screening answers, interview prep and
+replies to clients, from the published content only.
+
+- **Vercel's AI SDK** (`ai` and `@ai-sdk/react`'s `useChat`), the library Vercel's chat template is built on. (Vercel's
+  separate "Chat SDK" package is for bots on Slack, Teams and the like, not a chat inside a web page.)
+- **The model:** Claude Opus 5.5 (`claude-opus-5-5`) at medium effort, through Anthropic's API when `ANTHROPIC_API_KEY`
+  is set, else through Vercel's AI Gateway (`AI_GATEWAY_API_KEY`, or the deployment's OIDC token).
+  `ASSISTANT_MODEL` picks another. On Anthropic's API, a turn the safety classifiers decline is retried on
+  Anthropic's recommended fallback model (`fallbacks: "default"`).
+- **What it knows:** the published CV (every entry, line, stack and summary), every project's case study (summary,
+  my part, each chapter's problem, work, result and figure, with its link), About, How I work, and the testimonials
+  that aren't placeholders. Built per request from the cached content reads, so a publish reaches it at once. It's
+  about 15k tokens, sent as a cached system prompt, so later turns in a chat cost a fraction.
+- **Rules it writes by:** only what the profile says (gaps are named in Notes, never papered over); no contact
+  details or off-Upwork talk, as Upwork bars them before a contract; the job post's language; no greeting cliches;
+  the first two lines answer the client's problem, as they are all Upwork shows in the proposal list.
+- **Templates:** Cover letter (short, standard or detailed), Screening questions, Cover letter + questions,
+  Interview prep, Reply to a client. Each is a short form whose answers become the first message ("Task: …"); a
+  chat can also start from a plain message. Under the latest answer, chips ask for common changes.
+- **Copy-ready sections:** answers are laid out under `### ` headings, and each one shows as a card with its word
+  and character count and its own Copy button. "Notes" is for Novel only and has none.
+- **On the phone:** the Assistant is in the tab bar (Activity, Inbox, Jobs, Assistant, Links); Content joined
+  Projects and Settings in the header. The message box sits on the tab bar; Enter sends with a keyboard, and is a new
+  line on a touch screen.
+- **Saved chats:** the newest 60, in the dashboard's store (`dash:assistant:*`), listed under the templates and
+  opened by address (`?view=assistant&chat=<id>`), so a proposal started on the laptop carries on on the phone.
+- **Limits:** 60 turns an hour, 80 messages or 200k characters per chat, 16k output tokens per turn.
+
 ## Content: the site's own CMS
 
 Chosen over a hosted CMS (Sanity) and one inside the app (Payload): the dashboard, the store and the MCP endpoint were
@@ -169,6 +199,7 @@ Neither platform can import a file, so the export is copy-ready fields plus the 
 | Content: schema, store, cached reads, defaults | `src/lib/content/` (`schema.ts`, `store.ts`, `read.ts`, `defaults.ts`, `changes.ts`) |
 | Jobs: store, totals, agent recording | `src/lib/dashboard/jobs.ts` (shared types in `job-types.ts`), `/api/dashboard/jobs`, `/api/dashboard/jobs/<id>`; view `src/components/dashboard/Jobs.tsx` |
 | Inbox: saving, listing, delete | `src/lib/dashboard/enquiries.ts`, `/api/contact`, `/api/dashboard/enquiries`, `/api/dashboard/enquiries/<id>`; view `src/components/dashboard/Inbox.tsx` |
+| Assistant: model, profile, prompt, saved chats; templates | `src/lib/dashboard/assistant.ts`, `src/lib/dashboard/assistant-templates.ts`, `/api/dashboard/assistant` (stream and list), `/api/dashboard/assistant/<id>`; view `src/components/dashboard/Assistant.tsx` |
 | Content editor | `src/components/dashboard/Content.tsx`, `src/components/dashboard/content/Editor.tsx`; actions in `src/app/dashboard/content-actions.ts`; Preview at `/api/dashboard/preview` |
 | Shared Redis client (also used by the CV store) | `src/lib/kv.ts` |
 
