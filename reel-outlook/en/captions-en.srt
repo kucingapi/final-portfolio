@@ -19,7 +19,7 @@ Microsoft's email servers started failing their
 own safety checks and dropped offline.
 
 6
-00:00:11,830 --> 00:00:15,103
+00:00:11,831 --> 00:00:15,103
 The rest got overloaded and failed too.
 
 7

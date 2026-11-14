@@ -1,0 +1,86 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Outlook reel</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+  :root {
+    --navy: #010326;      /* midnight-950 */
+    --blue: #0411ab;      /* midnight-900, section blue */
+    --m600: #0017ff;
+    --m500: #1b3cff;
+    --m400: #4571ff;
+    --m200: #abcbff;
+    --m100: #d0e3ff;
+    --m50: #e5f0ff;
+    --base200: #edf0f7;
+    --base800: #1b212c;
+    --base900: #090c10;
+    --teal: #0e3044;
+    --olive: #705801;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; background: var(--navy); }
+  body { font-family: Cabin, system-ui, sans-serif; color: var(--m50); position: relative; }
+  .abs { position: absolute; }
+  .layer { position: absolute; inset: 0; }
+
+  /* section backgrounds sweep up with a curved top edge (MOTION_SPEC E6) */
+  .bg { position: absolute; left: 0; top: 0; width: 1080px; height: 2400px; will-change: transform; }
+  .bg svg.edge { position: absolute; left: 0; top: 0; width: 1080px; height: 2400px; }
+
+  /* header, like the site's navbar */
+  .header { position: absolute; left: 60px; right: 60px; top: 84px; height: 110px; display: flex; align-items: center; justify-content: space-between; z-index: 50; }
+  .logo { width: 72px; height: 78px; }
+  .pill { height: 104px; border: 4px solid rgba(229,240,255,.55); border-radius: 999px; padding: 10px; display: flex; align-items: center; position: relative; min-width: 120px; }
+  .pill .lab { position: absolute; right: 10px; top: 10px; height: 76px; padding: 0 34px; border-radius: 999px; background: var(--m50); color: var(--navy);
+               font: 700 34px/76px Inter, sans-serif; letter-spacing: -0.01em; white-space: nowrap; }
+
+  /* headline */
+  .head { position: absolute; left: 60px; top: 300px; width: 960px; z-index: 20; }
+  .num { font: 600 84px/1 Chillax, sans-serif; color: var(--m400); margin-bottom: 26px; }
+  .htext { font-weight: 700; font-size: 104px; line-height: 1.16; color: #fff; letter-spacing: -0.005em; }
+  .htext .key { position: relative; display: inline-block; z-index: 1; }
+  .hl { position: absolute; left: -0.12em; right: -0.18em; top: 0.52em; height: 0.62em; background: var(--m400); z-index: -1;
+        border-start-end-radius: 70px; border-end-start-radius: 70px; transform-origin: left center; }
+  .ul { position: absolute; left: -0.17em; width: calc(100% + 0.3em); top: 1.02em; height: 0.25em; overflow: visible; }
+
+  /* stage (illustrations) */
+  .stage { position: absolute; left: 0; top: 760px; width: 1080px; height: 680px; z-index: 10; }
+
+  /* shared components */
+  .chip { position: absolute; display: inline-flex; align-items: center; height: 96px; padding: 0 40px; border-radius: 999px;
+          font: 700 38px/1 Inter, sans-serif; letter-spacing: -0.01em; white-space: nowrap; }
+  .chip.light { background: #fff; color: var(--base900); }
+  .chip.teal { background: var(--teal); color: #fff; border: 5px solid #fff; }
+  .chip.olive { background: var(--olive); color: #fff; border: 5px solid #fff; }
+  .chip.blue { background: var(--m500); color: #fff; }
+  .chip.outline { background: transparent; color: #fff; border: 4px solid #fff; }
+  .lcard { position: absolute; background: var(--m100); border-radius: 64px; overflow: hidden; }
+  .pcard { position: absolute; border: 5px solid var(--base200); border-radius: 48px; overflow: hidden; background: var(--base800); }
+  .disc { position: absolute; border-radius: 50%; background: var(--m500); }
+  .bar { position: absolute; border-radius: 999px; }
+  .chillax { font-family: Chillax, sans-serif; font-weight: 600; }
+  svg { overflow: visible; }
+
+  /* captions */
+  .cap { position: absolute; left: 110px; width: 860px; top: 1462px; text-align: center; z-index: 40; opacity: 0;
+         font-weight: 600; font-size: 54px; line-height: 1.22; color: #fff; text-shadow: 0 2px 14px rgba(1,3,38,.55); }
+</style>
+</head>
+<body>
+  <div id="bgs" class="layer"></div>
+  <div class="header">
+    <div class="logo" id="logo"></div>
+    <div class="pill" id="pill"></div>
+  </div>
+  <div id="heads" class="layer"></div>
+  <div id="stages" class="layer"></div>
+  <div id="caps" class="layer"></div>
+  <script src="gsap.min.js"></script>
+  <script src="DrawSVGPlugin.min.js"></script>
+  <script src="MotionPathPlugin.min.js"></script>
+  <script src="reel.js"></script>
+</body>
+</html>

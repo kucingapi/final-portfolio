@@ -1,34 +1,27 @@
 # Outlook outage reel (TikTok / Reels)
 
-Audience: business users. Fully animated and faceless: one animated scene per sentence, AI voiceover,
-headlines that animate in word by word, and burned-in captions.
+Audience: business users. Fully animated and faceless, in the portfolio's visual language: navy and
+electric-blue sections that hand over on a curved edge, Cabin headlines with the hand-drawn underline
+(navy) or the highlight bar (blue), white / teal / olive chips, light-blue cards, the starburst, doodles
+and swoosh from `public/figma/`, and motion from `MOTION_SPEC.md` (headline assemble, line reveals,
+line draw, starburst rise, opposite marquees).
 
 ## Finished videos (ready to upload)
 
 - `en/outlook-reel-en.mp4` (58s)
 - `id/outlook-reel-id.mp4` (62s)
 
-1080x1920, 30fps. Voice: OpenRouter `openai/gpt-audio-mini` ("sage"); English slowed 4%.
+1080x1920, 30fps, captions burned in. Voice: OpenRouter `openai/gpt-audio-mini` ("sage").
 
-## Scenes
+## How it is made
 
-| # | Sentence (EN) | Animation |
-|---|---|---|
-| 1 | Outlook was down for about a day. | Inbox emails slide away, spinner, clock racing |
-| 2 | And it wasn't a hack. | Padlock drops in, shield, green check |
-| 3 | On November 12, ... dropped offline. | Calendar flips to 12, servers scanned, three fail |
-| 4 | The rest got overloaded and failed too. | Traffic pours in, load bars go red, servers shake and fail |
-| 5 | Outlook and Teams went down around the world. | Spinning globe with red outage pings, app tiles with X |
-| 6 | Microsoft hasn't published the full cause yet. | Magnifying glass over a redacted report, question mark |
-| 7 | Next time, check Microsoft's status page first. | Cursor clicks refresh on a status page |
-| 8 | Expect late emails. | Envelope crawling along a path, hourglass |
-| 9 | Move anything urgent to a call or WhatsApp. | Ringing phone, chat bubbles pop up |
-| 10 | Should you switch to Google? | Box hops between two clouds |
-| 11 | You can, but Google goes down too, and moving a company is expensive. | Cloud fails, coin stack grows |
-| 12 | A backup plan costs far less. | Scale tips: coins heavy, shield light |
-| 13 | You can't stop Microsoft from breaking, but you can keep your business running. | Storm cloud above, office lights and conveyor keep going |
-| 14 | Pick a second channel, keep key contacts offline, and practise it once. | Checklist ticks as each item is spoken |
-| 15 | What did your office do when Outlook went down? | Comment bubbles stream up, arrow to comments |
+- `tools/web/reel.html` + `reel.js`: the reel as a web page, one GSAP timeline, one scene per sentence.
+- `tools/record.cjs`: seeks the timeline frame by frame in headless Chromium and encodes with ffmpeg.
+- `tools/render_web.py`: voiceover and timing (via `render_animated.py`, which caches a clip per sentence), then records.
+
+Regenerate: from the repo root run `npm ci`, put the fonts in `tools/web/fonts/` (Cabin variable as `Cabin.woff2`,
+`Inter-700.woff2`, `Chillax-600.woff2`, `Chillax-700.woff2`, from Google Fonts and Fontshare), then
+`python3 reel-outlook/tools/render_web.py reel-outlook [en] [id]`. New sentences need the OpenRouter key.
 
 ## Other files (per language)
 
@@ -37,9 +30,6 @@ headlines that animate in word by word, and burned-in captions.
 | `voiceover-*.wav` | Voice track alone, e.g. to add music in CapCut |
 | `captions-*.srt` | Captions timed to the voiceover |
 | `script-*.txt` | Each sentence with its start time |
-
-To regenerate: `python3 tools/render_animated.py reel-outlook [en] [id]`. Needs the OpenRouter key;
-voice clips are cached per sentence in `*/audio/`, so only changed sentences are re-voiced.
 
 ## Post copy
 
