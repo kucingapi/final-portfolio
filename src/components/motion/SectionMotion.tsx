@@ -60,8 +60,8 @@ const presets: Record<string, Preset> = {
     // One starburst straddles the seam into Projects: its white top half lives here and its
     // blue lower half in Projects, each clipped by its own section. Moving both halves together
     // makes it read as one shape that rises out of the seam on load and sinks into it on scroll.
-    // Projects and Career (one per mode) each carry the lower half; move both.
-    const lower = Array.from(document.querySelectorAll<HTMLElement>("#projects [data-burst], #career [data-burst]"));
+    // Projects, Career and Speaking (one per mode) each carry the lower half; move both.
+    const lower = Array.from(document.querySelectorAll<HTMLElement>("#projects [data-burst], #career [data-burst], #speaking [data-burst]"));
     const bursts = [one(q, "[data-burst]"), ...lower].filter((el): el is HTMLElement => !!el);
     if (!reduced) {
       const strokes = (sel: string) => q(`${sel} path[stroke]`);
@@ -116,6 +116,16 @@ const presets: Record<string, Preset> = {
     q("[data-spin]").forEach((el) =>
       gsap.to(el, { rotate: 180, ease: "none", scrollTrigger: { trigger: section, start: "top bottom", end: "bottom top", scrub: 1 } }),
     );
+    return magnets(q);
+  },
+
+  /** Home Rate card request (Speaker mode): the heading and intro, the formats, then the fields rise in. */
+  rateRequest(root, q) {
+    headings(q);
+    q("[data-lines]").forEach((el) => revealLines(el, { delay: 0.2 }));
+    const form = one(q, "form");
+    q("[data-row]").forEach((row) => revealUp(row, { trigger: row, y: 40, start: "top 88%" }));
+    if (form) revealUp(q("[data-field]"), { trigger: form, y: 40, stagger: 0.08 });
     return magnets(q);
   },
 

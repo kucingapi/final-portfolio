@@ -125,7 +125,8 @@ export function PageTransitionProvider({ children }: { children: ReactNode }) {
       const target = new URL(href, location.href);
       if (busy.current) return;
       if (samePage(target.pathname) === pathname) {
-        if (lenis.current) lenis.current.scrollTo(target.hash || 0);
+        // `force`: the navbar menu has stopped Lenis while it is open.
+        if (lenis.current) lenis.current.scrollTo(target.hash || 0, { force: true });
         else window.scrollTo({ top: 0, behavior: "smooth" });
         return;
       }

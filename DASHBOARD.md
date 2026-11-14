@@ -88,8 +88,8 @@ already here, every CMS's admin is a separate app with its own login, and Payloa
 Components until its version 4.
 
 - **Three documents** under Content: Projects (every case study, in the site's order), CV (the master CV that tailored
-  links pick from) and Site (the basics, About, How I work, testimonials, the Freelance and Full-time copy, and both
-  career lists). Each testimonial says where it shows: Freelance mode, Full-time mode, or both.
+  links pick from) and Site (the basics, About, How I work, testimonials, the Freelance, Full-time and Speaker / Teacher copy, both
+  career lists and the Speaking & teaching list). Each testimonial says where it shows: one mode, or every mode. Rate card requests from Speaker / Teacher mode land in the Inbox, with their organisation and event.
 - **Drafts, then Publish.** Saving writes a draft that only the dashboard sees. Publish puts it on the site and
   expires that document's cache tag, so the next visit renders it. Preview opens the site with the drafts showing
   (Next's Draft Mode) and a "Showing drafts · Exit" pill.

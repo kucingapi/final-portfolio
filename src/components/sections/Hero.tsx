@@ -6,6 +6,7 @@ import { ByMode } from "@/components/mode/Mode";
 import { getSiteContent } from "@/lib/content/read";
 import { getLang } from "@/lib/i18n/server";
 import { ui } from "@/lib/i18n/ui";
+import { MODES } from "@/lib/modes";
 
 /**
  * Hero (Figma 186:1436). Desktop positions are Figma canvas px on the 1440 frame;
@@ -34,7 +35,7 @@ export async function Hero() {
             <InlineSvg src="/figma/hero/swoosh-bottom.svg" className="absolute -inset-y-[1.36%] -inset-x-[0.75%]" />
           </div>
 
-          {(["freelance", "fulltime"] as const).map((m) => {
+          {MODES.map((m) => {
             const { lead, mark, rest } = modes[m].hero;
             return (
               <h1
@@ -48,11 +49,12 @@ export async function Hero() {
                 <span className="block">
                   <span className="relative inline-block">
                     {mark}
-                    {/* The hand-drawn underline is sized for "Software"; "Freelance" runs a little wider. */}
+                    {/* The hand-drawn underline is sized for "Software" (about 0.52em a letter); a longer word runs wider. */}
                     <span
                       aria-hidden
                       data-underline
-                      className={`pointer-events-none absolute top-[1.13em] left-[-0.166em] h-[0.25em] ${m === "freelance" ? "w-[4.6em]" : "w-[4.15em]"}`}
+                      className="pointer-events-none absolute top-[1.13em] left-[-0.166em] h-[0.25em]"
+                      style={{ width: `${(mark.length * 0.52).toFixed(2)}em` }}
                     >
                       <InlineSvg src="/figma/hero/underline.svg" className="absolute -inset-y-[27.12%] -inset-x-[1.46%]" />
                     </span>
@@ -113,7 +115,7 @@ export async function Hero() {
             </div>
             <div data-chip className="absolute top-616 left-506 flex h-73 w-101 items-center justify-center">
               <Chip tone="olive" className="flex-none rotate-[22.5deg]">
-                <ByMode freelance={modes.freelance.chip} fulltime={modes.fulltime.chip} />
+                <ByMode values={{ freelance: modes.freelance.chip, fulltime: modes.fulltime.chip, speaker: modes.speaker.chip }} />
               </Chip>
             </div>
 

@@ -1,6 +1,7 @@
 import { applyPatch, createPatch, type Operation } from "rfc6902";
 import { deleteValue, getValue, pushToList, readList, setValue } from "@/lib/dashboard/state";
 import { redis } from "@/lib/kv";
+import { backfill } from "./backfill";
 import { DEFAULTS } from "./defaults";
 import { CONTENT_DOCS, type DocContent, type DocId } from "./schema";
 
@@ -67,7 +68,7 @@ async function records<D extends DocId>(doc: D) {
 function stateOf<D extends DocId>(doc: D, published: Stored<D> | null, draft: Stored<D> | null): DocState<D> {
   return {
     doc,
-    value: draft?.value ?? published?.value ?? DEFAULTS[doc],
+    value: backfill(doc, draft?.value ?? published?.value ?? DEFAULTS[doc]),
     rev: draft?.rev ?? published?.rev ?? 0,
     published: { rev: published?.rev ?? 0, at: published?.at ?? null },
     draft: draft ? { at: draft.at, by: draft.by } : null,
@@ -83,7 +84,7 @@ const bundledOnly = () => !redis && process.env.NODE_ENV === "production";
 /** What the public site shows. */
 export async function publishedValue<D extends DocId>(doc: D): Promise<DocContent[D]> {
   if (bundledOnly()) return DEFAULTS[doc];
-  return (await getValue<Stored<D>>(key(doc, "published")))?.value ?? DEFAULTS[doc];
+  return backfill(doc, (await getValue<Stored<D>>(key(doc, "published")))?.value ?? DEFAULTS[doc]);
 }
 
 /** What a preview of the draft shows: the draft when there is one. */
@@ -123,7 +124,7 @@ export async function saveDraft<D extends DocId>(doc: D, value: unknown, rev: nu
   const { published, draft } = await records(doc);
   const current = stateOf(doc, published, draft);
   if (rev !== current.rev) throw conflict(doc, rev, current.rev);
-  if (same(data, published?.value ?? DEFAULTS[doc])) {
+  if (same(data, backfill(doc, published?.value ?? DEFAULTS[doc]))) {
     if (draft) await deleteValue(key(doc, "draft"));
     return stateOf(doc, published, null);
   }
@@ -180,6 +181,6 @@ export async function restore<D extends DocId>(doc: D, version: number, rev: num
 /** The draft's changes against the published copy, as JSON Patch operations. Empty without a draft. */
 export async function changes(doc: DocId): Promise<{ ops: Operation[]; before: unknown }> {
   const { published, draft } = await records(doc);
-  const before = published?.value ?? DEFAULTS[doc];
+  const before = backfill(doc, published?.value ?? DEFAULTS[doc]);
   return { ops: draft ? createPatch(before, draft.value) : [], before };
 }
