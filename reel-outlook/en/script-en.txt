@@ -1,0 +1,18 @@
+[00.0s - 05.0s] HOOK
+Outlook was down for about a day. And it wasn't a hack.
+
+[05.0s - 20.0s] WHAT HAPPENED
+On November 12, Microsoft's email servers started failing their own safety checks and dropped offline. The rest got overloaded and failed too. Outlook and Teams went down around the world. Microsoft hasn't published the full cause yet.
+
+[20.0s - 32.0s] WHAT TO DO
+Next time, check Microsoft's status page first. Expect late emails. Move anything urgent to a call or WhatsApp.
+
+[32.0s - 44.0s] MIGRATE?
+Should you switch to Google? You can, but Google goes down too, and moving a company is expensive. A backup plan costs far less.
+
+[44.0s - 55.0s] AVOID IT NEXT TIME
+You can't stop Microsoft from breaking, but you can keep your business running. Pick a second channel, keep key contacts offline, and practise it once.
+
+[55.0s - 60.0s] CLOSER
+What did your office do when Outlook went down?
+

@@ -1,0 +1,103 @@
+1
+00:00:00,000 --> 00:00:02,683
+Outlook was down for about a day.
+
+2
+00:00:02,683 --> 00:00:04,600
+And it wasn't a hack.
+
+3
+00:00:05,000 --> 00:00:06,184
+On November 12,
+
+4
+00:00:06,184 --> 00:00:08,551
+Microsoft's email servers started failing their
+
+5
+00:00:08,551 --> 00:00:10,919
+own safety checks and dropped offline.
+
+6
+00:00:10,919 --> 00:00:13,681
+The rest got overloaded and failed too.
+
+7
+00:00:13,681 --> 00:00:15,259
+Outlook and Teams went
+
+8
+00:00:15,259 --> 00:00:16,838
+down around the world.
+
+9
+00:00:16,838 --> 00:00:19,600
+Microsoft hasn't published the full cause yet.
+
+10
+00:00:20,000 --> 00:00:21,289
+Next time,
+
+11
+00:00:21,289 --> 00:00:24,511
+check Microsoft's status page first.
+
+12
+00:00:24,511 --> 00:00:26,444
+Expect late emails.
+
+13
+00:00:26,444 --> 00:00:29,022
+Move anything urgent to
+
+14
+00:00:29,022 --> 00:00:31,600
+a call or WhatsApp.
+
+15
+00:00:32,000 --> 00:00:34,417
+Should you switch to Google?
+
+16
+00:00:34,417 --> 00:00:35,383
+You can,
+
+17
+00:00:35,383 --> 00:00:37,800
+but Google goes down too,
+
+18
+00:00:37,800 --> 00:00:40,700
+and moving a company is expensive.
+
+19
+00:00:40,700 --> 00:00:43,600
+A backup plan costs far less.
+
+20
+00:00:44,000 --> 00:00:46,544
+You can't stop Microsoft from breaking,
+
+21
+00:00:46,544 --> 00:00:49,512
+but you can keep your business running.
+
+22
+00:00:49,512 --> 00:00:51,208
+Pick a second channel,
+
+23
+00:00:51,208 --> 00:00:52,904
+keep key contacts offline,
+
+24
+00:00:52,904 --> 00:00:54,600
+and practise it once.
+
+25
+00:00:55,000 --> 00:00:57,556
+What did your office do
+
+26
+00:00:57,556 --> 00:00:59,600
+when Outlook went down?
