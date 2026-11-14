@@ -5,7 +5,6 @@ import { DefaultChatTransport, generateId, type UIMessage } from "ai";
 import {
   ArrowUp,
   Briefcase,
-  Check,
   ChevronDown,
   ChevronLeft,
   FileText,
@@ -21,17 +20,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import type { ChatSummary, StoredChat } from "@/lib/dashboard/assistant";
-import {
-  DEFAULT_MODEL,
-  PICKS,
-  money,
-  perDraft,
-  priceLabel,
-  shortName,
-  validModelId,
-  type AnswerMeta,
-  type ModelInfo,
-} from "@/lib/dashboard/assistant-models";
+import { DEFAULT_MODEL, money, shortName, validModelId, type AnswerMeta, type ModelInfo } from "@/lib/dashboard/assistant-models";
 import { FOLLOW_UPS, TEMPLATES, TEMPLATE_GROUPS, buildPrompt, type Template } from "@/lib/dashboard/assistant-templates";
 import { send, useApi } from "./api";
 import { CopyButton } from "./Copy";
@@ -40,8 +29,8 @@ import { Problem } from "./Problem";
 import { Button } from "./ui/button";
 import { cn } from "./ui/cn";
 import { Confirm } from "./ui/confirm";
-import { Field, Input } from "./ui/input";
-import { Sheet, SheetBody, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "./ui/sheet";
+import { DRAFT, ModelSheet, costLabel, type Picker } from "./ModelSheet";
+import { Field } from "./ui/input";
 import { Skeleton } from "./ui/skeleton";
 import { toast } from "./ui/toaster";
 
@@ -141,7 +130,7 @@ export function AssistantView({ chat, onOpen }: { chat: string | null; onOpen: (
   return <Saved key={chat} id={chat} onSettled={list.reload} picker={picker} />;
 }
 
-type Picker = { model: string; onModel: (id: string) => void; models?: ModelInfo[]; modelsError?: string | null };
+
 
 /** A chat from the list: loaded, then carried on where it stopped. */
 function Saved({ id, onSettled, picker }: { id: string; onSettled: () => void; picker: Picker }) {
@@ -321,7 +310,7 @@ function Composer({
       >
         <Sparkles className="size-3.5 shrink-0 text-primary" />
         <span className="truncate font-medium text-foreground">{shortName(picker.model, picker.models)}</span>
-        {info && <span className="shrink-0 tabular-nums">≈{money(perDraft(info))} a draft</span>}
+        {info && <span className="shrink-0 tabular-nums">{costLabel(info, DRAFT)}</span>}
         <ChevronDown className="size-3.5 shrink-0" />
       </button>
       <ModelSheet open={choosing} onOpenChange={setChoosing} picker={picker} />
@@ -663,108 +652,5 @@ function Recent({ list, onOpen }: { list: ReturnType<typeof useApi<ChatList>>; o
         onConfirm={remove}
       />
     </section>
-  );
-}
-
-/* ── Choosing the model ───────────────────────────────────────────────── */
-
-function ModelSheet({ open, onOpenChange, picker }: { open: boolean; onOpenChange: (open: boolean) => void; picker: Picker }) {
-  const [query, setQuery] = useState("");
-  const choose = (id: string) => {
-    picker.onModel(id);
-    onOpenChange(false);
-  };
-  const byId = new Map(picker.models?.map((m) => [m.id, m]));
-  const words = query.toLowerCase().split(/\s+/).filter(Boolean);
-  const found = words.length
-    ? (picker.models ?? []).filter((m) => words.every((w) => `${m.id} ${m.name}`.toLowerCase().includes(w))).slice(0, 60)
-    : [];
-  // A typed id that isn't in the list (or with no list at all) can still be used.
-  const typed = query.trim();
-  const custom = validModelId(typed) && !byId.has(typed) ? typed : null;
-
-  return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent>
-        <SheetHeader>
-          <SheetTitle>Model</SheetTitle>
-          <SheetDescription>Any model on OpenRouter. Prices are per million tokens in / out; a draft is about 16k in and 1k out.</SheetDescription>
-        </SheetHeader>
-        <SheetBody>
-          <section className="flex flex-col gap-2">
-            <h3 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Suggested</h3>
-            <ul className="flex flex-col gap-2">
-              {PICKS.map((p) => {
-                const info = byId.get(p.id);
-                const missing = picker.models?.length && !info;
-                return (
-                  <li key={p.id}>
-                    <button
-                      type="button"
-                      onClick={() => choose(p.id)}
-                      aria-pressed={picker.model === p.id}
-                      className="flex w-full flex-col gap-1 rounded-xl border border-border bg-card p-3.5 text-left transition-colors duration-150 hover:bg-accent aria-pressed:border-primary"
-                    >
-                      <span className="flex items-center gap-2">
-                        <span className="text-[0.9375rem] font-semibold text-foreground">{p.label}</span>
-                        <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[0.6875rem] font-semibold text-primary">{p.tag}</span>
-                        {picker.model === p.id && <Check className="ml-auto size-4 text-primary" />}
-                      </span>
-                      <span className="text-[0.8125rem] leading-snug text-muted-foreground">{p.why}</span>
-                      <span className="text-xs text-foreground/80 tabular-nums">
-                        {info ? `${priceLabel(info)} · ≈${money(perDraft(info))} a draft` : missing ? "Not on OpenRouter under this id right now" : p.id}
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-            <p className="text-xs leading-snug text-muted-foreground">
-              Picked on 14 Nov 2026 from LMArena&apos;s creative-writing ranking, weighed against price.
-            </p>
-          </section>
-
-          <section className="flex flex-col gap-2">
-            <h3 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">All models</h3>
-            <label htmlFor="model-search" className="sr-only">
-              Search models
-            </label>
-            <Input id="model-search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search, or paste an id like openai/gpt-6.1-sol" />
-            {picker.modelsError && <p className="text-[0.8125rem] text-muted-foreground">{picker.modelsError}</p>}
-            {custom && (
-              <Button variant="secondary" className="self-start" onClick={() => choose(custom)}>
-                Use {custom}
-              </Button>
-            )}
-            {found.length > 0 && (
-              <ul className="flex flex-col overflow-hidden rounded-xl border border-border bg-card">
-                {found.map((m) => (
-                  <li key={m.id} className="border-b border-border last:border-b-0">
-                    <button
-                      type="button"
-                      onClick={() => choose(m.id)}
-                      className="flex w-full items-center gap-3 px-3.5 py-2.5 text-left transition-colors duration-150 hover:bg-accent"
-                    >
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-medium text-foreground">{m.name}</span>
-                        <span className="block truncate text-xs text-muted-foreground">{m.id}</span>
-                      </span>
-                      <span className="shrink-0 text-right text-xs text-muted-foreground tabular-nums">
-                        {priceLabel(m)}
-                        <span className="block">≈{money(perDraft(m))}</span>
-                      </span>
-                      {picker.model === m.id && <Check className="size-4 shrink-0 text-primary" />}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-            {words.length > 0 && !found.length && !custom && picker.models?.length ? (
-              <p className="text-[0.8125rem] text-muted-foreground">No model matches.</p>
-            ) : null}
-          </section>
-        </SheetBody>
-      </SheetContent>
-    </Sheet>
   );
 }

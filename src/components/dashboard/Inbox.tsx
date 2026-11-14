@@ -1,13 +1,15 @@
 "use client";
 
-import { Inbox as InboxIcon, Mail, Phone, Trash2 } from "lucide-react";
+import { Inbox as InboxIcon, Mail, MessageCircle, Phone, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Enquiry } from "@/lib/dashboard/enquiries";
-import { send } from "./api";
+import type { SiteChat, SiteChatSummary } from "@/lib/dashboard/sitechat";
+import { send, useApi } from "./api";
 import { CopyButton } from "./Copy";
 import { useDashboard } from "./data";
 import { ago, clock, countryName, date } from "./format";
 import { Problem } from "./Problem";
+import type { SiteChatData } from "./Settings";
 import { Button } from "./ui/button";
 import { cn } from "./ui/cn";
 import { Confirm } from "./ui/confirm";
@@ -20,7 +22,51 @@ import { toast } from "./ui/toaster";
  * the messages that were new stay marked until you leave. A message opens in a panel with its sender,
  * a reply link and delete.
  */
-export function InboxView({ open, onOpen, onClose }: { open: string | null; onOpen: (id: string) => void; onClose: () => void }) {
+export function InboxView({
+  open,
+  onOpen,
+  onClose,
+  chat,
+  onOpenChat,
+  onCloseChat,
+}: {
+  open: string | null;
+  onOpen: (id: string) => void;
+  onClose: () => void;
+  chat: string | null;
+  onOpenChat: (id: string) => void;
+  onCloseChat: () => void;
+}) {
+  const [tab, setTab] = useState<"messages" | "chats">(chat ? "chats" : "messages");
+  // A notification or the feed opening a site chat shows its tab.
+  if (chat && tab !== "chats") setTab("chats");
+  return (
+    <div className="flex flex-col gap-4">
+      <div role="tablist" aria-label="Inbox" className="grid grid-cols-2 gap-1 rounded-xl bg-secondary p-1">
+        {(
+          [
+            ["messages", "Messages"],
+            ["chats", "Site chats"],
+          ] as const
+        ).map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            role="tab"
+            aria-selected={tab === id}
+            onClick={() => setTab(id)}
+            className="h-9 rounded-lg text-sm font-medium text-muted-foreground transition-colors duration-150 aria-selected:bg-card aria-selected:text-foreground aria-selected:shadow-sm"
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      {tab === "messages" ? <Messages open={open} onOpen={onOpen} onClose={onClose} /> : <SiteChats open={chat} onOpen={onOpenChat} onClose={onCloseChat} />}
+    </div>
+  );
+}
+
+function Messages({ open, onOpen, onClose }: { open: string | null; onOpen: (id: string) => void; onClose: () => void }) {
   const { enquiries } = useDashboard();
   const { reload } = enquiries;
   // What was new when the Inbox opened; marking it read below doesn't unmark these.
@@ -203,4 +249,146 @@ export function useUnread() {
   const data = enquiries.data;
   if (!data) return 0;
   return data.enquiries.filter((e) => !data.seen || e.at > data.seen).length;
+}
+
+/* ── Site chats: visitors talking to AI Novel ─────────────────────────── */
+
+function SiteChats({ open, onOpen, onClose }: { open: string | null; onOpen: (id: string) => void; onClose: () => void }) {
+  const data = useApi<SiteChatData>("/api/dashboard/sitechat");
+  const rows = data.data?.chats;
+  return (
+    <>
+      {data.error && !rows ? (
+        <Problem message={data.error} onRetry={data.reload} />
+      ) : !rows ? (
+        <ListSkeleton />
+      ) : rows.length ? (
+        <ol className="flex flex-col overflow-hidden rounded-xl border border-border bg-card">
+          {rows.map((c) => (
+            <ChatRow key={c.id} c={c} onOpen={() => onOpen(c.id)} />
+          ))}
+        </ol>
+      ) : (
+        <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border px-6 py-12 text-center">
+          <MessageCircle className="size-6 text-muted-foreground" />
+          <p className="font-semibold text-foreground">No site chats yet</p>
+          <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
+            When a visitor asks AI Novel something, the whole conversation lands here. It&apos;s switched on and off in Settings.
+          </p>
+        </div>
+      )}
+      <ChatSheet open={open} onClose={onClose} onDeleted={data.reload} />
+    </>
+  );
+}
+
+function ChatRow({ c, onOpen }: { c: SiteChatSummary; onOpen: () => void }) {
+  const where = [c.country && countryName(c.country), c.device, c.lang === "id" ? "Bahasa" : null].filter(Boolean).join(" · ");
+  return (
+    <li className="border-b border-border last:border-b-0">
+      <button type="button" onClick={onOpen} className="flex w-full flex-col gap-1 px-4 py-3.5 text-left transition-colors duration-150 hover:bg-accent">
+        <span className="flex items-baseline gap-2">
+          <span className="line-clamp-2 min-w-0 flex-1 text-[0.9375rem] font-medium text-foreground">{c.first || "(no question)"}</span>
+          <span className="shrink-0 text-xs text-muted-foreground">{ago(c.updatedAt)}</span>
+        </span>
+        <span className="text-[0.8125rem] text-muted-foreground">
+          {c.turns} {c.turns === 1 ? "question" : "questions"}
+          {where && ` · ${where}`}
+        </span>
+      </button>
+    </li>
+  );
+}
+
+function ChatSheet({ open, onClose, onDeleted }: { open: string | null; onClose: () => void; onDeleted: () => void }) {
+  // Keep showing the chat while the panel slides away.
+  const [shown, setShown] = useState(open);
+  if (open && open !== shown) setShown(open);
+  return (
+    <Sheet open={Boolean(open)} onOpenChange={(next) => !next && onClose()}>
+      <SheetContent>{shown && <Transcript key={shown} id={shown} onDeleted={() => (onClose(), onDeleted())} />}</SheetContent>
+    </Sheet>
+  );
+}
+
+function Transcript({ id, onDeleted }: { id: string; onDeleted: () => void }) {
+  const chat = useApi<SiteChat>(`/api/dashboard/sitechat/${id}`);
+  const [asking, setAsking] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const c = chat.data;
+
+  const remove = async () => {
+    setBusy(true);
+    try {
+      await send(`/api/dashboard/sitechat/${id}`, "DELETE");
+      toast.success("Chat deleted.");
+      onDeleted();
+    } catch (err) {
+      toast.error((err as Error).message);
+      setBusy(false);
+    }
+  };
+
+  if (!c) {
+    return (
+      <SheetHeader>
+        <SheetTitle>{chat.error ? "This chat is gone" : "Loading the chat"}</SheetTitle>
+        <SheetDescription>{chat.error ?? "One moment."}</SheetDescription>
+      </SheetHeader>
+    );
+  }
+  const where = [c.country && countryName(c.country), c.device, c.lang === "id" ? "in Bahasa" : "in English"].filter(Boolean).join(" · ");
+  return (
+    <>
+      <SheetHeader>
+        <SheetTitle>Site chat</SheetTitle>
+        <SheetDescription>
+          {date(c.startedAt)}, {clock(c.startedAt)} · {where}
+        </SheetDescription>
+      </SheetHeader>
+      <SheetBody>
+        <ol className="flex flex-col gap-3">
+          {c.messages.map((m) => {
+            // The answer's markdown, read as text: **bold** plain, links as "words (/path)".
+            const text = m.parts
+              .map((p) => (p.type === "text" ? p.text : ""))
+              .join("")
+              .replace(/\*\*(.+?)\*\*/g, "$1")
+              .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, "$1 ($2)");
+            const visitor = m.role === "user";
+            return (
+              <li key={m.id} className={cn("flex flex-col gap-1", visitor ? "items-end" : "items-start")}>
+                <span className="px-1 text-[0.6875rem] font-semibold tracking-wide text-muted-foreground uppercase">{visitor ? "Visitor" : "AI Novel"}</span>
+                <p
+                  className={cn(
+                    "max-w-[90%] rounded-2xl px-3.5 py-2.5 text-[0.9375rem] leading-relaxed break-words whitespace-pre-wrap text-foreground",
+                    visitor ? "rounded-br-md bg-secondary" : "rounded-bl-md border border-border bg-card",
+                  )}
+                >
+                  {text || <span className="text-muted-foreground">(no answer)</span>}
+                </p>
+              </li>
+            );
+          })}
+        </ol>
+        <p className="text-[0.8125rem] leading-snug text-muted-foreground">
+          Visitors aren&apos;t asked for an email here: AI Novel points anyone who wants a reply to the contact form, so a good lead usually arrives in Messages too.
+        </p>
+        <Button variant="destructive" className="self-start" onClick={() => setAsking(true)}>
+          <Trash2 />
+          Delete
+        </Button>
+      </SheetBody>
+      <Confirm
+        open={asking}
+        onOpenChange={setAsking}
+        title="Delete this chat?"
+        description="The conversation is removed for good."
+        action={busy ? "Deleting…" : "Delete"}
+        busy={busy}
+        destructive
+        onConfirm={remove}
+      />
+    </>
+  );
 }

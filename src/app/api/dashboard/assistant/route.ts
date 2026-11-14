@@ -1,4 +1,4 @@
-import { APICallError, convertToModelMessages, createUIMessageStreamResponse, safeValidateUIMessages, streamText, toUIMessageStream, type TextStreamPart, type ToolSet, type UIMessage } from "ai";
+import { APICallError, convertToModelMessages, createUIMessageStreamResponse, generateId, safeValidateUIMessages, streamText, toUIMessageStream, type TextStreamPart, type ToolSet, type UIMessage } from "ai";
 import { signedIn, unauthorized } from "@/lib/dashboard/auth";
 import { assistantModel, assistantReady, defaultModel, listChats, saveChat, systemPrompt, validChatId, withinLimit } from "@/lib/dashboard/assistant";
 import { validModelId, type AnswerMeta } from "@/lib/dashboard/assistant-models";
@@ -73,6 +73,8 @@ export async function POST(request: Request) {
     stream: toUIMessageStream<ToolSet, UIMessage<AnswerMeta>>({
       stream: watched,
       originalMessages: messages,
+      // Answers are stored, so each gets its own id here (left out, it would be saved without one).
+      generateMessageId: generateId,
       sendReasoning: false,
       messageMetadata: ({ part }) => (part.type === "start" ? { model } : part.type === "finish" ? { model, cost } : undefined),
       onError: (error) => {

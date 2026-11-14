@@ -1,9 +1,13 @@
 "use client";
 
-import { Smartphone, Trash2 } from "lucide-react";
+import { MessageCircle, Smartphone, Trash2 } from "lucide-react";
+import type { ModelInfo } from "@/lib/dashboard/assistant-models";
+import { shortName } from "@/lib/dashboard/assistant-models";
+import type { SiteChatConfig, SiteChatSummary } from "@/lib/dashboard/sitechat";
 import { useRouter } from "next/navigation";
 import { useId, useState, useSyncExternalStore } from "react";
-import { send } from "./api";
+import { send, useApi } from "./api";
+import { ModelSheet, costLabel, type Usage } from "./ModelSheet";
 import { useDashboard } from "./data";
 import { installApp, isIOS, isStandalone, onDisplayMode, onInstallable, canInstall } from "./device";
 import { date } from "./format";
@@ -17,6 +21,7 @@ import { type Prefs, useNotifications } from "./useNotifications";
 export function SettingsView() {
   return (
     <div className="flex flex-col gap-10">
+      <SiteChatSettings />
       <Notifications />
       <Install />
       <SignInSettings />
@@ -54,10 +59,96 @@ function Row({ children, action }: { children: React.ReactNode; action?: React.R
 
 const Muted = ({ children }: { children: React.ReactNode }) => <span className="mt-0.5 block text-muted-foreground">{children}</span>;
 
+// --- Site chat ----------------------------------------------------------------------------------------
+
+export type SiteChatData = { config: SiteChatConfig; ready: boolean; today: number; cap: number; chats: SiteChatSummary[] };
+/** A visitor's message: the profile (about 15k tokens, much of it cached on Claude models) and a short answer. */
+const MESSAGE: Usage = { label: "a message", input: 16_000, output: 300 };
+
+function SiteChatSettings() {
+  const data = useApi<SiteChatData>("/api/dashboard/sitechat");
+  const models = useApi<{ models: ModelInfo[]; error?: string }>("/api/dashboard/assistant/models");
+  const [choosing, setChoosing] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const config = data.data?.config;
+  const info = config && models.data?.models.find((m) => m.id === config.model);
+
+  const save = async (patch: Partial<SiteChatConfig>) => {
+    setBusy(true);
+    try {
+      await send("/api/dashboard/sitechat", "POST", patch);
+      await data.reload();
+      toast.success(patch.model ? `AI Novel now answers with ${shortName(patch.model, models.data?.models)}.` : patch.enabled ? "AI Novel is on the site." : "AI Novel is off.");
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Section
+      title="Ask AI Novel"
+      intro="A chat on every page of the site, where visitors ask an AI that answers as you, from your published CV, projects and testimonials. It says it's an AI, sends prices and dates to the contact page, and every chat lands in your Inbox."
+    >
+      {data.data && !data.data.ready && (
+        <p role="alert" className="rounded-xl border border-destructive/30 bg-destructive/8 p-4 text-sm leading-relaxed text-foreground">
+          It needs <code className="font-mono text-[0.8125rem]">OPENROUTER_API_KEY</code> in the environment before it shows on the site.
+        </p>
+      )}
+      <Group>
+        {!config ? (
+          <Row>
+            <Skeleton className="h-5 w-2/3" />
+          </Row>
+        ) : (
+          <>
+            <Row action={<Switch id="sitechat-on" checked={config.enabled} disabled={busy} onCheckedChange={(enabled) => save({ enabled })} />}>
+              <label htmlFor="sitechat-on" className="font-medium">
+                On the site
+              </label>
+              <Muted>The &ldquo;Ask AI Novel&rdquo; button in the corner of every page, in English and Bahasa.</Muted>
+            </Row>
+            <Row
+              action={
+                <Button size="sm" variant="secondary" onClick={() => setChoosing(true)} disabled={busy}>
+                  Change
+                </Button>
+              }
+            >
+              <span className="font-medium">Model: {shortName(config.model, models.data?.models)}</span>
+              <Muted>{info ? `${costLabel(info, MESSAGE)} from a visitor` : config.model}</Muted>
+            </Row>
+            <Row>
+              <span className="font-medium">
+                {data.data!.today} of {data.data!.cap} messages today
+              </span>
+              <Muted>Past the day&apos;s cap, the chat asks visitors to come back tomorrow or use the contact page. Each visitor also has an hourly limit.</Muted>
+            </Row>
+          </>
+        )}
+      </Group>
+      {config && (
+        <ModelSheet
+          open={choosing}
+          onOpenChange={setChoosing}
+          use={MESSAGE}
+          title="AI Novel's model"
+          picker={{ model: config.model, onModel: (model) => save({ model }), models: models.data?.models, modelsError: models.data?.error ?? models.error }}
+        />
+      )}
+      <p className="flex items-center gap-2 text-[0.8125rem] text-muted-foreground">
+        <MessageCircle className="size-4" />
+        Visitors&apos; chats are in the Inbox, under Site chats.
+      </p>
+    </Section>
+  );
+}
+
 // --- Notifications ------------------------------------------------------------------------------------
 
 const KINDS: { key: keyof Prefs; label: string; hint: string }[] = [
-  { key: "enquiries", label: "Contact form messages", hint: "Someone sent the contact form." },
+  { key: "enquiries", label: "Messages and site chats", hint: "Someone sent the contact form, or started a chat with AI Novel." },
   { key: "clicks", label: "Short-link clicks", hint: "Someone opened a /go/ link." },
   { key: "opens", label: "Tailored CV links opened", hint: "Someone opened a ?v= link." },
   { key: "downloads", label: "CV, portfolio and rate card downloads", hint: "From a tailored link." },

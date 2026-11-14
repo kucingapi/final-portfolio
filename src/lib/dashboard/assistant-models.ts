@@ -55,6 +55,40 @@ export const PICKS: Pick[] = [
 
 export const DEFAULT_MODEL = PICKS[0].id;
 
+/**
+ * Free models, found in OpenRouter's live list by pattern: free variants come and go (their ids end in
+ * ":free"), so these are matched rather than named exactly, and any that isn't served just doesn't show.
+ * Chosen on 14 Nov 2026: the free router, which keeps working as models rotate; Nemotron 3 Ultra, which
+ * wrote the best of the free models in a fiction test (KudoWrite, Oct 2026); Gemma 4 31B for clean,
+ * plain sentences.
+ */
+export const FREE_PICKS: { match: RegExp; label: string; tag: string; why: string }[] = [
+  {
+    match: /^openrouter\/free$/,
+    label: "Free router",
+    tag: "Always on",
+    why: "OpenRouter picks a free model that is up right now. Quality varies from answer to answer.",
+  },
+  {
+    match: /nemotron-3-ultra.*:free$/,
+    label: "Nemotron 3 Ultra",
+    tag: "Best free writer",
+    why: "The strongest free writer in recent tests, with a 1M-token context.",
+  },
+  {
+    match: /gemma-4-31b.*:free$/,
+    label: "Gemma 4 31B",
+    tag: "Clean prose",
+    why: "Plain, tidy sentences; a good second choice when Nemotron is busy.",
+  },
+];
+
+/** Free models' limits and catch, said wherever one can be picked. */
+export const FREE_NOTE =
+  "Free models allow 20 requests a minute and 50 a day (1,000 a day once the account has bought $10 of credits), and some of their providers log or train on what is sent. Fine for what's already public; think twice before pasting a private email.";
+
+export const isFree = (m: ModelInfo) => m.input === 0 && m.output === 0;
+
 /** What each answer carries: which model wrote it and what it cost on OpenRouter, in dollars. */
 export type AnswerMeta = { model?: string; cost?: number };
 
@@ -78,8 +112,10 @@ export function priceLabel(m: ModelInfo | undefined) {
  */
 export const perDraft = (m: ModelInfo) => (16_000 * m.input + 1_000 * m.output) / 1_000_000;
 
-export const money = (usd: number) => (usd < 0.01 ? "<$0.01" : `$${usd.toFixed(2)}`);
+export const money = (usd: number) => (usd === 0 ? "free" : usd < 0.01 ? "<$0.01" : `$${usd.toFixed(2)}`);
 
 /** A name for an id without the live list: the pick's label, else the part after the slash. */
 export const shortName = (id: string, models?: ModelInfo[]) =>
-  PICKS.find((p) => p.id === id)?.label ?? models?.find((m) => m.id === id)?.name.replace(/^[^:]+:\s*/, "") ?? id.split("/").pop() ?? id;
+  PICKS.find((p) => p.id === id)?.label ??
+  FREE_PICKS.find((p) => p.match.test(id))?.label ??
+  models?.find((m) => m.id === id)?.name.replace(/^[^:]+:\s*/, "") ?? id.split("/").pop() ?? id;
