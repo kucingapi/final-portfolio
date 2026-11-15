@@ -1,6 +1,8 @@
 import { Hero } from "@/components/sections/Hero";
 import { Projects } from "@/components/sections/Projects";
 import { Career } from "@/components/sections/Career";
+import { Speaking } from "@/components/sections/Speaking";
+import { RateCardRequest } from "@/components/sections/RateCardRequest";
 import { ModeSlot } from "@/components/mode/ModeSlot";
 import { Philosophy } from "@/components/sections/Philosophy";
 import { MoreDetail } from "@/components/sections/MoreDetail";
@@ -21,14 +23,16 @@ export default function Home() {
     <>
       <main>
         <Hero />
-        {/* Freelance mode leads with projects, Full-time with the career. */}
+        {/* Freelance mode leads with projects, Full-time with the career, Speaker / Teacher with talks and classes. */}
         <ModeSlot>
           <Projects />
           <Career />
+          <Speaking />
         </ModeSlot>
         <Philosophy />
         <MoreDetail />
         <Testimonials />
+        <RateCardRequest />
         <LetsTalk />
       </main>
       <Footer />

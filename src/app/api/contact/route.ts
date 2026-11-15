@@ -5,6 +5,8 @@ import { countWithin, redis } from "@/lib/kv";
 import { clientIp, senderKey } from "@/lib/rate";
 import { report } from "@/lib/dashboard/activity";
 import { saveEnquiry } from "@/lib/dashboard/enquiries";
+import { RATE_CARD } from "@/lib/dashboard/enquiry-types";
+import { isLang } from "@/lib/i18n/lang";
 import { describeClick } from "@/lib/dashboard/visitor";
 import { visitFrom } from "@/lib/dashboard/posthog";
 
@@ -15,7 +17,19 @@ import { visitFrom } from "@/lib/dashboard/posthog";
  * shows the "email me directly" fallback.
  */
 
-type Payload = { service?: string; name?: string; email?: string; phone?: string; message?: string; company?: string };
+type Payload = {
+  service?: string;
+  name?: string;
+  email?: string;
+  phone?: string;
+  message?: string;
+  company?: string;
+  /** "rate-card": a request for the rate card from the Speaker / Teacher section, with an organisation, an event and the language asked in. */
+  topic?: string;
+  org?: string;
+  event?: string;
+  lang?: string;
+};
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const clip = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) : "");
@@ -67,7 +81,7 @@ async function overLimit(request: Request, email: string): Promise<string | null
 const oneLine = (v: string) => v.replace(/[\r\n\u2028\u2029]+/g, " ");
 
 /** true sent, false failed, null not set up. */
-async function emailCopy(fields: { service: string; name: string; email: string; text: string }): Promise<boolean | null> {
+async function emailCopy(fields: { service: string; subject: string; name: string; email: string; text: string }): Promise<boolean | null> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return null;
   try {
@@ -79,7 +93,7 @@ async function emailCopy(fields: { service: string; name: string; email: string;
         // The address in the code, not the editable copy, so an edit can't redirect enquiries.
         to: [process.env.CONTACT_TO_EMAIL ?? site.email],
         reply_to: fields.email,
-        subject: oneLine(`New ${fields.service} enquiry from ${fields.name}`),
+        subject: oneLine(fields.subject),
         text: fields.text,
       }),
     });
@@ -111,7 +125,11 @@ export async function POST(request: Request) {
   const email = clip(body.email, 200);
   const phone = clip(body.phone, 40);
   const message = clip(body.message, 5000);
-  const service = services.includes(body.service as (typeof services)[number]) ? body.service! : "Others";
+  const rateCard = body.topic === "rate-card";
+  const org = rateCard ? clip(body.org, 160) : "";
+  const event = rateCard ? clip(body.event, 300) : "";
+  const lang = rateCard && isLang(body.lang) ? body.lang : undefined;
+  const service = rateCard ? RATE_CARD : services.includes(body.service as (typeof services)[number]) ? body.service! : "Others";
 
   if (!name) return Response.json({ error: "Please tell me your name." }, { status: 422 });
   if (!EMAIL.test(email)) return Response.json({ error: "Please use a valid email address." }, { status: 422 });
@@ -120,18 +138,24 @@ export async function POST(request: Request) {
 
   const details = [`Service: ${service}`, `Name: ${name}`, `Email: ${email}`];
   if (phone) details.push(`Phone: ${phone}`);
+  if (org) details.push(`Organisation: ${org}`);
+  if (event) details.push(`Event: ${event}`);
+  if (lang) details.push(`Language: ${lang === "id" ? "Bahasa Indonesia" : "English"}`);
   const text = `${details.join("\n")}\n\n${message || "(no message)"}`;
 
-  const emailed = await emailCopy({ service, name, email, text });
+  const subject = rateCard ? `Rate card request from ${name}${org ? ` (${org})` : ""}` : `New ${service} enquiry from ${name}`;
+  const emailed = await emailCopy({ service, subject, name, email, text });
   if (emailed === null && process.env.NODE_ENV !== "production") console.info(`[contact] RESEND_API_KEY not set, so no email copy:\n${text}`);
 
   let saved = false;
   try {
     const { country, device } = describeClick(request);
     const visit = visitFrom(request);
-    const row = await saveEnquiry({ service, name, email, phone: phone || undefined, message, country, device, emailed: emailed === true });
+    const row = await saveEnquiry({ service, name, email, phone: phone || undefined, message, org: org || undefined, event: event || undefined, lang, country, device, emailed: emailed === true });
     saved = true;
-    const detail = message ? `${service} · ${message.length > 120 ? `${message.slice(0, 117)}…` : message}` : service;
+    const first = message || event;
+    const label = rateCard ? `Rate card request${org ? ` · ${org}` : ""}` : service;
+    const detail = first ? `${label} · ${first.length > 120 ? `${first.slice(0, 117)}…` : first}` : label;
     after(() => report({ at: row.at, kind: "enquiry", ref: `enquiry:${row.id}`, name, detail, country, device, ...visit }));
   } catch (e) {
     console.error("[contact] couldn't save the message", e);

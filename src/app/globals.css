@@ -27,7 +27,6 @@
     --text-lead: max(14px, calc(var(--s) * 16));
     --text-body: max(12px, calc(var(--s) * 14));
     --text-chip: max(11px, calc(var(--s) * 12));
-    --text-clock: calc(var(--s) * 18);
     --text-mega: calc(var(--s) * 96);
     --text-service: calc(var(--s) * 44);
   }
@@ -77,8 +76,6 @@
   --text-body--line-height: 1.2;
   --text-chip: max(12px, calc(var(--s) * 16));
   --text-chip--line-height: 1.5;
-  --text-clock: calc(var(--s) * 40);
-  --text-clock--line-height: 1.2;
   --text-mega: calc(var(--s) * 200);
   --text-mega--line-height: 1.2;
   --text-mega--letter-spacing: -0.005em;
@@ -200,13 +197,14 @@ html.lenis body {
   }
 
   /*
-   * Freelance / Full-time. Copy that differs is rendered once per mode with `data-for`, and
+   * Freelance / Full-time / Speaker. Copy that differs is rendered once per mode with `data-for`, and
    * <html data-mode> (set before first paint) decides which shows. On a switch the old copy
    * fades up and out, the mode flips, and the new copy rises in. The home Projects/Career
-   * slot (`data-slot`) runs its own GSAP swap instead.
+   * slot (`data-slot`) runs its own GSAP swap instead. `data-for` may list several modes, separated by spaces.
    */
-  html:not([data-mode="fulltime"]) [data-for="fulltime"],
-  html[data-mode="fulltime"] [data-for="freelance"] {
+  html:not([data-mode="fulltime"]):not([data-mode="speaker"]) [data-for]:not([data-for~="freelance"]),
+  html[data-mode="fulltime"] [data-for]:not([data-for~="fulltime"]),
+  html[data-mode="speaker"] [data-for]:not([data-for~="speaker"]) {
     display: none !important;
   }
   html.mode-leaving [data-for]:not([data-slot]) {

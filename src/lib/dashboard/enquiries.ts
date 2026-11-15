@@ -1,5 +1,5 @@
 import { forget } from "./activity";
-import type { Device } from "./links";
+import type { Enquiry } from "./enquiry-types";
 import { getValue, pushToList, readList, removeFromList, setValue } from "./state";
 
 /**
@@ -8,19 +8,7 @@ import { getValue, pushToList, readList, removeFromList, setValue } from "./stat
  * than the last time the Inbox was opened counts as unread. The latest 500 are kept. Server only.
  */
 
-export type Enquiry = {
-  id: string;
-  at: string;
-  service: string;
-  name: string;
-  email: string;
-  phone?: string;
-  message: string;
-  country?: string;
-  device?: Device;
-  /** Whether the email copy reached the inbox. */
-  emailed: boolean;
-};
+export type { Enquiry };
 
 const LIST = "dash:enquiries";
 const SEEN = "dash:enquiries:seen";

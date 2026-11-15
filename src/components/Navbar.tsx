@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { gsap, ScrollTrigger, useGSAP, prefersReducedMotion } from "@/lib/gsap";
 import { useLenis } from "@/components/providers/SmoothScroll";
@@ -8,10 +9,12 @@ import {
   TransitionLink,
   onPageReveal,
 } from "@/components/transition/PageTransition";
-import { TIME_ZONE, mailto, type Mode } from "@/content/site";
-import { ModeToggle } from "@/components/mode/Mode";
+import { mailto } from "@/content/site";
+import type { Mode } from "@/lib/modes";
+import { ModeMenu } from "@/components/mode/ModeMenu";
 import { LangSwitch } from "@/components/LangSwitch";
 import { useUi } from "@/lib/i18n/client";
+import { splitLang } from "@/lib/i18n/lang";
 
 const MENU = [
   { key: "home", href: "/", icon: "/figma/nav/icon-home.svg" },
@@ -20,21 +23,14 @@ const MENU = [
   { key: "contact", href: "/contact", icon: "/figma/nav/icon-contact.svg" },
 ] as const;
 
-function useJakartaTime(locale: string) {
-  const [time, setTime] = useState<string | null>(null);
-  useEffect(() => {
-    const fmt = new Intl.DateTimeFormat(locale, {
-      timeZone: TIME_ZONE,
-      hour: "numeric",
-      minute: "2-digit",
-    });
-    const update = () => setTime(fmt.format(new Date()));
-    update();
-    const id = setInterval(update, 15_000);
-    return () => clearInterval(id);
-  }, [locale]);
-  return time;
-}
+/** The bar's links on wide screens; Rate card is Speaker / Teacher mode's. The menu overlay below keeps its four. */
+const LINKS = [
+  { key: "home", href: "/" },
+  { key: "projects", href: "/projects" },
+  { key: "career", href: "/career" },
+  { key: "rateCard", href: "/#rate-card", mode: "speaker" },
+  { key: "contact", href: "/contact" },
+] as const;
 
 export function Logo({ className = "" }: { className?: string }) {
   return (
@@ -61,7 +57,7 @@ export function Navbar({ owner, modeLabels }: { owner: { name: string; email: st
   const site = owner;
   const mailHref = mailto(owner.email);
   const t = useUi();
-  const time = useJakartaTime(t.nav.clockLocale);
+  const { path } = splitLang(usePathname());
   const lenis = useLenis();
   const [open, setOpen] = useState(false);
   const bar = useRef<HTMLElement>(null);
@@ -203,6 +199,14 @@ export function Navbar({ owner, modeLabels }: { owner: { name: string; email: st
     }
   }, [open, lenis]);
 
+  // The overlay is for phones and tablets: widening the window past that closes it.
+  useEffect(() => {
+    const wide = window.matchMedia("(min-width: 64rem)");
+    const onChange = () => wide.matches && setOpen(false);
+    wide.addEventListener("change", onChange);
+    return () => wide.removeEventListener("change", onChange);
+  }, []);
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
@@ -212,40 +216,53 @@ export function Navbar({ owner, modeLabels }: { owner: { name: string; email: st
 
   return (
     <>
-      {/* Sits above the menu overlay (z-70 vs z-60) so the logo, clock and toggle stay put when it opens. */}
+      {/* Sits above the menu overlay (z-70 vs z-60) so the logo, mode menu and toggle stay put when it opens. */}
       <header
         ref={bar}
         className="fixed inset-x-0 top-0 z-[70] invisible"
         data-node-id="348:12162"
       >
-        <div className="container-x flex h-100 items-center justify-between max-md:h-64">
+        <div className="container-x flex h-100 items-center justify-between gap-32 max-md:h-64 max-md:gap-12">
           <TransitionLink
             href="/"
             onClick={() => setOpen(false)}
             aria-label={t.nav.homeLabel(site.name)}
-            className="flex items-end gap-20 max-md:gap-12"
+            className="flex shrink-0 items-end"
           >
             <Logo />
-            <span
-              className="font-display text-clock tracking-[-0.005em] whitespace-nowrap text-white"
-              suppressHydrationWarning
-            >
-              <span className={time ? "" : "invisible"}>
-                {time ?? t.nav.clockPlaceholder}
-              </span>
-              <span className="max-md:hidden"> {t.nav.clockZone}</span>
-            </span>
           </TransitionLink>
-          <div className="flex items-center gap-28 max-md:gap-10">
+          <nav aria-label={t.nav.primary} className="mr-auto ml-16 max-md:hidden">
+            <ul className="flex items-center gap-4">
+              {LINKS.map((item) => {
+                const current = item.href === "/" ? path === "/" : !item.href.includes("#") && (path === item.href || path.startsWith(`${item.href}/`));
+                return (
+                  <li key={item.key} data-for={"mode" in item ? item.mode : undefined}>
+                    <TransitionLink
+                      href={item.href}
+                      aria-current={current ? "page" : undefined}
+                      className="group relative block px-16 py-8 text-lead font-semibold whitespace-nowrap text-midnight-50"
+                    >
+                      <span
+                        aria-hidden
+                        className="highlight-bar absolute inset-x-10 bottom-6 h-[0.45em] origin-left scale-x-0 transition-transform duration-400 ease-[var(--ease-out)] group-hover:scale-x-100 group-aria-[current=page]:scale-x-100 motion-reduce:transition-none"
+                      />
+                      <span className="relative">{t.nav[item.key]}</span>
+                    </TransitionLink>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
+          <div className="flex items-center gap-16 max-md:gap-10">
             <LangSwitch className="max-md:hidden" />
-            <ModeToggle labels={modeLabels} />
+            <ModeMenu labels={modeLabels} />
             <button
               type="button"
               onClick={() => setOpen((o) => !o)}
               aria-expanded={open}
               aria-controls="site-menu"
               aria-label={open ? t.nav.closeMenu : t.nav.openMenu}
-              className="relative size-110 transition-[rotate] duration-300 aria-expanded:hover:rotate-90 max-md:size-56"
+              className="relative size-110 transition-[rotate] duration-300 aria-expanded:hover:rotate-90 max-md:size-56 md:hidden"
             >
               {/*
               GSAP morphs the outer spans into the X (see the menu timeline); the hover nudge lives on the
@@ -347,6 +364,14 @@ export function Navbar({ owner, modeLabels }: { owner: { name: string; email: st
                 </a>
               </div>
               {/* On phones the bar has no room for it, so the language switch lives here. */}
+              <TransitionLink
+                data-for="speaker"
+                href="/#rate-card"
+                onClick={() => setOpen(false)}
+                className="mt-20 inline-block text-lead font-semibold underline underline-offset-4"
+              >
+                {t.nav.requestRateCard}
+              </TransitionLink>
               <LangSwitch className="mt-28 w-max md:hidden" />
             </div>
           </div>

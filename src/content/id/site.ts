@@ -1,8 +1,27 @@
+/** Speaker / Teacher mode's copy, which a site document published before the mode existed backfills (see src/lib/content/backfill.ts). */
+export const speakerId: Record<string, string> = {
+  "Speaker / Teacher":
+    "Pembicara / Pengajar",
+  "Speaker":
+    "Pembicara",
+  "or Teacher?":
+    "atau Pengajar?",
+  "For Events":
+    "Untuk Acara",
+  "Every talk and class I give comes from work I have shipped. See the roles behind them on my career page.":
+    "Setiap talk dan kelas yang saya bawakan berangkat dari pekerjaan yang sudah saya rilis. Lihat peran di baliknya di halaman karier saya.",
+  "Planning a talk, workshop or class?":
+    "Sedang merencanakan talk, workshop, atau kelas?",
+  "Tell me about the audience, the topic and the date. For prices, request the rate card above.":
+    "Ceritakan audiens, topik, dan tanggalnya. Untuk harga, minta rate card di atas.",
+};
+
 /**
  * Bahasa Indonesia for the site's copy (src/content/site.ts, and the published site document): each English string, exactly as written, and its Bahasa.
  * A string missing here shows in English. Collected in src/content/id/index.ts.
  */
 export const siteId: Record<string, string> = {
+  ...speakerId,
   "Software Engineer":
     "Software Engineer",
   "Novel Bafagih | Software Engineer":

@@ -1,4 +1,5 @@
 import type { Context, CvSectionId, Platform, RateUnit } from "@/lib/content/schema";
+import type { Mode } from "@/lib/modes";
 import type { Lang } from "./lang";
 
 /**
@@ -25,12 +26,12 @@ const en = {
     closeMenu: "Close menu",
     menu: "Site menu",
     getInTouch: "Get in touch",
-    /** The clock's locale and the zone after it. */
-    clockLocale: "en-US",
-    clockZone: "(GMT+7)",
-    clockPlaceholder: "0:00 AM",
+    primary: "Main",
+    rateCard: "Rate card",
+    requestRateCard: "Request a rate card",
     viewAs: "View as",
     language: "Language",
+    modeHints: { freelance: "Projects for clients", fulltime: "Roles for employers", speaker: "Talks, classes, mentoring" } as Record<Mode, string>,
   },
   hero: {
     label: "Intro",
@@ -49,6 +50,11 @@ const en = {
       heading: "Career",
       intro: "Two years at Multimodal, and the roles, programs and degree that led there.",
       more: "See my full career",
+    },
+    speaking: {
+      heading: "Speaking & teaching",
+      intro: "Classes, workshops and mentoring, built on the engineering I do every day.",
+      more: "Request my rate card",
     },
     philosophyCovers: "What I cover",
     detail: "More Detail",
@@ -69,9 +75,10 @@ const en = {
     readCase: "Read the case study",
     cursor: "View case study",
     seeProof: "See certificate",
-    kinds: { "Full-time": "Full-time", Freelance: "Freelance", Program: "Program", Degree: "Degree" } as Record<string, string>,
+    kinds: { "Full-time": "Full-time", Freelance: "Freelance", Program: "Program", Degree: "Degree", Talk: "Talk", Workshop: "Workshop", Teaching: "Teaching", Mentoring: "Mentoring" } as Record<string, string>,
     page: {
       subtitle: "Freelance & Full-time",
+      subtitleSpeaker: "Speaker & Teacher",
       resume: "Resume",
       portrait: "Portrait of Novel Bafagih",
       history: "Career history",
@@ -193,6 +200,29 @@ const en = {
     sent: "Your message is on its way. I’ll get back to you within a couple of days.",
     home: "Back home",
   },
+  /** The home page's Rate card request (Speaker / Teacher mode): prices are never shown, only asked for. */
+  rateRequest: {
+    heading: "Rate card",
+    intro: "Every event is different, so I make each rate card by hand. Tell me who you are and where I would speak or teach, and I will email you one.",
+    formats: "What I can do",
+    fields: {
+      name: { label: "Your name *", placeholder: "Name" },
+      email: { label: "Your work email *", placeholder: "Email" },
+      org: { label: "Organisation (optional)", placeholder: "Company, school or community" },
+      event: { label: "Event or topic (optional)", placeholder: "e.g. a 2-hour React workshop in March" },
+      message: { label: "Anything else? (optional)", placeholder: "Audience, format, dates, budget" },
+    },
+    submit: "Request the rate card",
+    sending: "Sending…",
+    failed: "Something went wrong.",
+    /** In place of the server's own (English) message for a refused send, by status; none in English. */
+    refused: {} as Record<number, string>,
+    orEmail: "You can also email me at",
+    thanks: (name: string) => `Thanks${name ? `, ${name}` : ""}!`,
+    sent: (email: string) => `Your request is in. I will put a rate card together and send it to ${email}, usually within two working days.`,
+    another: "Send another request",
+    privacy: "Only I see these details, and only to reply to you.",
+  },
   notFound: "This page could not be found.",
   /** The rate card PDF. */
   rateCard: {
@@ -200,6 +230,7 @@ const en = {
     documentTitle: (name: string) => `${name} – Rate card`,
     intro: "Prices for the work we talked about, set for you. The PDF is the same, ready to forward.",
     private: "This rate card is made for one client and opens only from their link.",
+    request: "Request a rate card",
     download: "Download PDF",
     home: "Back home",
     format: "Format",
@@ -229,11 +260,12 @@ const id: Ui = {
     closeMenu: "Tutup menu",
     menu: "Menu situs",
     getInTouch: "Hubungi saya",
-    clockLocale: "id-ID",
-    clockZone: "WIB",
-    clockPlaceholder: "00.00",
+    primary: "Utama",
+    rateCard: "Rate card",
+    requestRateCard: "Minta rate card",
     viewAs: "Lihat sebagai",
     language: "Bahasa",
+    modeHints: { freelance: "Proyek untuk klien", fulltime: "Posisi untuk perusahaan", speaker: "Talk, kelas, mentoring" },
   },
   hero: {
     label: "Perkenalan",
@@ -252,6 +284,11 @@ const id: Ui = {
       heading: "Karier",
       intro: "Dua tahun di Multimodal, serta pekerjaan, program, dan kuliah yang membawa saya ke sana.",
       more: "Lihat karier lengkap saya",
+    },
+    speaking: {
+      heading: "Mengajar & berbicara",
+      intro: "Kelas, workshop, dan mentoring, dari pekerjaan engineering yang saya lakukan setiap hari.",
+      more: "Minta rate card saya",
     },
     philosophyCovers: "Yang saya kerjakan",
     detail: "Selengkapnya",
@@ -272,9 +309,10 @@ const id: Ui = {
     readCase: "Baca studi kasusnya",
     cursor: "Lihat studi kasus",
     seeProof: "Lihat sertifikat",
-    kinds: { "Full-time": "Penuh waktu", Freelance: "Freelance", Program: "Program", Degree: "Kuliah" },
+    kinds: { "Full-time": "Penuh waktu", Freelance: "Freelance", Program: "Program", Degree: "Kuliah", Talk: "Talk", Workshop: "Workshop", Teaching: "Mengajar", Mentoring: "Mentoring" },
     page: {
       subtitle: "Freelance & Penuh Waktu",
+      subtitleSpeaker: "Pembicara & Pengajar",
       resume: "CV",
       portrait: "Potret Novel Bafagih",
       history: "Riwayat karier",
@@ -398,12 +436,38 @@ const id: Ui = {
     sent: "Pesan Anda sudah terkirim. Saya akan membalasnya dalam satu atau dua hari.",
     home: "Kembali ke beranda",
   },
+  rateRequest: {
+    heading: "Rate card",
+    intro: "Setiap acara berbeda, jadi setiap rate card saya buat sendiri. Ceritakan siapa Anda dan di mana saya akan berbicara atau mengajar, lalu saya kirimkan rate card-nya lewat email.",
+    formats: "Yang bisa saya bawakan",
+    fields: {
+      name: { label: "Nama Anda *", placeholder: "Nama" },
+      email: { label: "Email kantor Anda *", placeholder: "Email" },
+      org: { label: "Organisasi (opsional)", placeholder: "Perusahaan, kampus, atau komunitas" },
+      event: { label: "Acara atau topik (opsional)", placeholder: "mis. workshop React 2 jam di bulan Maret" },
+      message: { label: "Ada hal lain? (opsional)", placeholder: "Audiens, format, tanggal, anggaran" },
+    },
+    submit: "Minta rate card",
+    sending: "Mengirim…",
+    failed: "Terjadi kesalahan.",
+    refused: {
+      403: "Silakan gunakan formulir di situs ini.",
+      422: "Periksa lagi nama dan alamat email Anda.",
+      429: "Terlalu banyak pesan dalam waktu singkat. Coba lagi nanti.",
+    },
+    orEmail: "Anda juga bisa mengirim email ke",
+    thanks: (name) => `Terima kasih${name ? `, ${name}` : ""}!`,
+    sent: (email) => `Permintaan Anda sudah masuk. Saya akan menyusun rate card dan mengirimkannya ke ${email}, biasanya dalam dua hari kerja.`,
+    another: "Kirim permintaan lain",
+    privacy: "Hanya saya yang melihat data ini, dan hanya untuk membalas Anda.",
+  },
   notFound: "Halaman ini tidak ditemukan.",
   rateCard: {
     title: "Rate card",
     documentTitle: (name) => `${name} – Rate card`,
     intro: "Tarif untuk pekerjaan yang kita bicarakan, khusus untuk Anda. PDF-nya berisi hal yang sama, siap diteruskan.",
     private: "Rate card ini dibuat untuk satu klien dan hanya terbuka lewat link miliknya.",
+    request: "Minta rate card",
     download: "Unduh PDF",
     home: "Kembali ke beranda",
     format: "Format",

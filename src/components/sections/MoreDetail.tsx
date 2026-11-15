@@ -5,6 +5,7 @@ import { Downloads } from "@/components/cv/Downloads";
 import { getSiteContent } from "@/lib/content/read";
 import { getLang } from "@/lib/i18n/server";
 import { ui } from "@/lib/i18n/ui";
+import { MODES } from "@/lib/modes";
 
 /** "More Detail" CTA band (Figma 245:2581). */
 export async function MoreDetail() {
@@ -24,15 +25,15 @@ export async function MoreDetail() {
               <Heading size="text-h3" barTop="0.69em" barHeight="0.53em" barLeft="0" barRight="-0.1em">
                 <span id="detail-title" className="text-white">{ui(lang).home.detail}</span>
               </Heading>
-              {(["freelance", "fulltime"] as const).map((m) => (
+              {MODES.map((m) => (
                 <p key={m} data-for={m} data-lines className="w-813 text-h4 font-semibold text-justify text-midnight-100 max-md:w-full max-md:text-left">
                   {modes[m].detail.body}
                 </p>
               ))}
               <Downloads className="mt-32 max-md:mt-24" />
             </div>
-            {/* Each mode points at the other side of the site: Freelance at the career, Full-time at the projects. */}
-            {(["freelance", "fulltime"] as const).map((m) => (
+            {/* Each mode points at the other side of the site: Freelance at the career, Full-time at the projects, Speaker / Teacher at the career. */}
+            {MODES.map((m) => (
               <TransitionLink
                 key={m}
                 data-for={m}

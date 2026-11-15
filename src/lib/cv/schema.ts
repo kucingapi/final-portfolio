@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { CV_SECTIONS } from "@/lib/content/schema";
 import { LANGS } from "@/lib/i18n/lang";
+import { MODES } from "@/lib/modes";
 
 /**
  * Size caps, all well above what the master CV holds (about 20 entries, 15 bullets and a dozen stack items
@@ -28,8 +29,8 @@ export const variantSchema = z.object({
   summary: z.string().trim().max(700).optional(),
   /** One of the stock summaries, by id. */
   summaryId: id.optional(),
-  /** Which way the site opens: Freelance leads with projects, Full-time with career. */
-  mode: z.enum(["freelance", "fulltime"]).optional(),
+  /** Which way the site opens: Freelance leads with projects, Full-time with career, Speaker / Teacher with talks and classes. */
+  mode: z.enum(MODES).optional(),
   /**
    * The language the link opens the site in, and of the CV and portfolio PDFs: "id" for Bahasa Indonesia.
    * The headline and summary are written in it; read in the other language, a stock summary stands in.

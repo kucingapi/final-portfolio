@@ -1,8 +1,8 @@
 "use client";
 
-import { Inbox as InboxIcon, Mail, Phone, Trash2 } from "lucide-react";
+import { Building2, CalendarDays, Inbox as InboxIcon, Languages, Mail, Phone, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import type { Enquiry } from "@/lib/dashboard/enquiries";
+import { RATE_CARD, type Enquiry } from "@/lib/dashboard/enquiry-types";
 import { send } from "./api";
 import { CopyButton } from "./Copy";
 import { useDashboard } from "./data";
@@ -53,6 +53,9 @@ export function InboxView({ open, onOpen, onClose }: { open: string | null; onOp
   );
 }
 
+/** What the row and the panel call a message: a rate card request is not a project enquiry. */
+const kindOf = (e: Enquiry) => (e.service === RATE_CARD ? `Rate card request${e.org ? ` · ${e.org}` : ""}` : e.service);
+
 function Row({ e, unread, onOpen }: { e: Enquiry; unread: boolean; onOpen: () => void }) {
   return (
     <li className="border-b border-border last:border-b-0">
@@ -66,8 +69,8 @@ function Row({ e, unread, onOpen }: { e: Enquiry; unread: boolean; onOpen: () =>
             </span>
             <span className="shrink-0 text-xs text-muted-foreground">{ago(e.at)}</span>
           </span>
-          <span className="mt-0.5 block text-[0.8125rem] text-muted-foreground">{e.service}</span>
-          {e.message && <span className="mt-1 line-clamp-2 block text-sm leading-snug text-foreground/85">{e.message}</span>}
+          <span className="mt-0.5 block text-[0.8125rem] text-muted-foreground">{kindOf(e)}</span>
+          {(e.message || e.event) && <span className="mt-1 line-clamp-2 block text-sm leading-snug text-foreground/85">{e.event || e.message}</span>}
         </span>
       </button>
     </li>
@@ -90,7 +93,7 @@ function Empty() {
       <InboxIcon className="size-6 text-muted-foreground" />
       <p className="font-semibold text-foreground">No messages yet</p>
       <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
-        When someone sends the contact form, the message lands here, and on your phone if notifications are on.
+        When someone sends the contact form or requests your rate card, it lands here, and on your phone if notifications are on.
       </p>
     </div>
   );
@@ -120,7 +123,8 @@ function EnquirySheet({ open, rows, onClose, onDeleted }: { open: string | null;
 function Detail({ e, onDeleted }: { e: Enquiry; onDeleted: () => void }) {
   const [asking, setAsking] = useState(false);
   const [busy, setBusy] = useState(false);
-  const subject = encodeURIComponent(`Re: your ${e.service.toLowerCase()} enquiry`);
+  const rateCard = e.service === RATE_CARD;
+  const subject = encodeURIComponent(rateCard ? "Your rate card" : `Re: your ${e.service.toLowerCase()} enquiry`);
   const when = `${date(e.at)}, ${clock(e.at)}`;
   const where = [e.country && countryName(e.country), e.device].filter(Boolean).join(" · ");
 
@@ -141,7 +145,7 @@ function Detail({ e, onDeleted }: { e: Enquiry; onDeleted: () => void }) {
       <SheetHeader>
         <SheetTitle>{e.name}</SheetTitle>
         <SheetDescription>
-          {e.service} · {when}
+          {kindOf(e)} · {when}
           {where && ` · ${where}`}
         </SheetDescription>
       </SheetHeader>
@@ -153,7 +157,16 @@ function Detail({ e, onDeleted }: { e: Enquiry; onDeleted: () => void }) {
         <div className="flex flex-col overflow-hidden rounded-xl border border-border">
           <Contact icon={Mail} href={`mailto:${e.email}`} value={e.email} />
           {e.phone && <Contact icon={Phone} href={`tel:${e.phone.replace(/[^\d+]/g, "")}`} value={e.phone} />}
+          {e.org && <Fact icon={Building2} value={e.org} />}
+          {e.event && <Fact icon={CalendarDays} value={e.event} />}
+          {e.lang === "id" && <Fact icon={Languages} value="Asked in Bahasa Indonesia" />}
         </div>
+
+        {rateCard && (
+          <p className="text-[0.8125rem] leading-snug text-muted-foreground">
+            To answer, make a tailored link with rates (the MCP tool save_cv_variant, with mode &quot;speaker&quot;, and lang &quot;id&quot; if they asked in Bahasa), then email its /rates?v=… link.
+          </p>
+        )}
 
         <Button asChild size="lg">
           <a href={`mailto:${e.email}?subject=${subject}`}>
@@ -193,6 +206,15 @@ function Contact({ icon: Icon, href, value }: { icon: typeof Mail; href: string;
         {value}
       </a>
       <CopyButton text={value} />
+    </div>
+  );
+}
+
+function Fact({ icon: Icon, value }: { icon: typeof Mail; value: string }) {
+  return (
+    <div className="flex items-start gap-3 border-b border-border py-2.5 pr-3.5 pl-3.5 last:border-b-0">
+      <Icon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+      <span className="min-w-0 flex-1 text-sm break-words text-foreground">{value}</span>
     </div>
   );
 }

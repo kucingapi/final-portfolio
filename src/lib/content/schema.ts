@@ -1,4 +1,7 @@
 import { z } from "zod";
+import { MODES } from "@/lib/modes";
+
+export { MODES, type Mode } from "@/lib/modes";
 
 /**
  * The editable content: the site's copy, the master CV and the projects. These schemas check every save
@@ -39,10 +42,9 @@ export const SECTION_TITLES: Record<(typeof CV_SECTIONS)[number], string> = {
 export const MAX_BULLETS = 5;
 export const PLATFORMS = ["Web", "Mobile", "Desktop"] as const;
 export const CONTEXTS = ["Multimodal", "Client work", "Side project", "Study"] as const;
-export const CAREER_KINDS = ["Full-time", "Freelance", "Program", "Degree"] as const;
-export const MODES = ["freelance", "fulltime"] as const;
-/** Where a testimonial shows: one mode or both. */
-export const SHOWN_IN = ["both", "freelance", "fulltime"] as const;
+export const CAREER_KINDS = ["Full-time", "Freelance", "Program", "Degree", "Talk", "Workshop", "Teaching", "Mentoring"] as const;
+/** Where a testimonial shows: one mode, or every mode ("both"). */
+export const SHOWN_IN = ["both", ...MODES] as const;
 /** What a rate card's price is per; the words come from src/lib/i18n/ui.ts. */
 export const RATE_UNITS = ["session", "day", "hour", "module"] as const;
 
@@ -148,18 +150,27 @@ export const siteSchema = z
         avatar: image({ description: "Optional; without one the card shows initials." }).optional(),
         mode: z.enum(SHOWN_IN).meta({
           title: "Shown in",
-          description: "Which way of reading the site shows it: Freelance, Full-time, or both.",
-          labels: { both: "Both modes", freelance: "Freelance", fulltime: "Full-time" },
+          description: "Which way of reading the site shows it: one mode, or every mode.",
+          labels: { both: "Every mode", freelance: "Freelance", fulltime: "Full-time", speaker: "Speaker / Teacher" },
         }),
       }),
     ),
     modes: z
-      .object({ freelance: modeCopySchema, fulltime: modeCopySchema })
-      .meta({ description: "The copy that changes with Freelance and Full-time mode." }),
+      .object({
+        freelance: modeCopySchema,
+        fulltime: modeCopySchema,
+        // Optional so a site document published before Speaker / Teacher existed still parses; readers backfill it.
+        speaker: modeCopySchema.optional(),
+      })
+      .meta({ description: "The copy that changes with Freelance, Full-time and Speaker / Teacher mode." }),
     career: z.array(careerRoleSchema).meta({ title: "Career (home page)", description: "Full-time mode's career list, newest first." }),
     careerDetail: z
       .array(z.object({ id: id(), heading: line(), roles: z.array(careerRoleSchema) }))
       .meta({ title: "Career page", description: "Every role with what you did there, in groups." }),
+    speaking: z
+      .array(careerRoleSchema)
+      .meta({ title: "Speaking & teaching (home page)", description: "Speaker / Teacher mode's list: talks, workshops, classes and mentoring, newest first." })
+      .optional(),
     // Optional so a site document published before it existed still parses; readers fall back to DEFAULTS.
     rateCard: z
       .object({
@@ -447,7 +458,13 @@ export type DocContent = { site: SiteContent; cv: CvContent; projects: ProjectsC
 export const SOURCE_DOCS = ["site", "cv", "projects"] as const;
 export type SourceDocId = (typeof SOURCE_DOCS)[number];
 
-export type Mode = (typeof MODES)[number];
+export type ModeCopy = z.infer<typeof modeCopySchema>;
+/** The site document as pages read it: the fields added after launch are always there (see backfill.ts). */
+export type SiteView = Omit<SiteContent, "modes" | "speaking" | "rateCard"> & {
+  modes: Record<(typeof MODES)[number], ModeCopy>;
+  speaking: CareerRole[];
+  rateCard: RateCard;
+};
 export type CareerRole = z.infer<typeof careerRoleSchema>;
 export type RateCard = NonNullable<SiteContent["rateCard"]>;
 export type RateUnit = (typeof RATE_UNITS)[number];

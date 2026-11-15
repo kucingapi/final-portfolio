@@ -8,7 +8,7 @@ export type { CareerRole, Mode, Testimonial } from "@/lib/content/schema";
  * Anything marked TODO is still placeholder content from the Figma file.
  */
 
-/** Not content: the navbar clock and the dashboard's days run on Jakarta time. */
+/** Not content: the dashboard's days (clicks, jobs) run on Jakarta time. */
 export const TIME_ZONE = "Asia/Jakarta";
 /** The CV page; it tailors itself when the visitor came through a `?v=` link. */
 export const RESUME_URL = "/cv";
@@ -104,10 +104,11 @@ export const testimonials: SiteContent["testimonials"] = [
 ];
 
 /**
- * Two ways to read the site, switched from the navbar. Freelance (the default) leads with projects
- * for clients; Full-time leads with the career for employers. Only the copy below changes.
+ * Three ways to read the site, switched from the navbar. Freelance (the default) leads with projects
+ * for clients; Full-time leads with the career for employers; Speaker / Teacher leads with talks,
+ * classes and mentoring for event organisers and schools. Only the copy below changes.
  */
-export const modes: SiteContent["modes"] = {
+export const modes: Required<SiteContent["modes"]> = {
   freelance: {
     label: "Freelance",
     hero: { lead: "Looking for a", mark: "Freelance", rest: "Developer?" },
@@ -136,7 +137,56 @@ export const modes: SiteContent["modes"] = {
       body: "I am open to full-time roles. Let’s talk about your team and the work.",
     },
   },
+  speaker: {
+    label: "Speaker / Teacher",
+    hero: { lead: "Looking for a", mark: "Speaker", rest: "or Teacher?" },
+    chip: "For Events",
+    detail: {
+      body: "Every talk and class I give comes from work I have shipped. See the roles behind them on my career page.",
+      href: "/career",
+      cta: "See my career",
+    },
+    talk: {
+      title: "Planning a talk, workshop or class?",
+      body: "Tell me about the audience, the topic and the date. For prices, request the rate card above.",
+    },
+  },
 };
+
+/**
+ * The home page's Speaking & teaching section, shown in Speaker / Teacher mode. Newest first. Only
+ * what has really happened belongs here (the same entries as the Career page's Volunteering and
+ * Leadership groups).
+ * TODO: add real talks and workshops here, or in the dashboard (Content → Site → Speaking & teaching),
+ * as they happen. A sample entry, to copy:
+ *   { period: "Mar 2027", role: "Speaker", org: "Event name", place: "City", kind: "Talk", points: ["What the talk covered."] }
+ */
+export const speaking: NonNullable<SiteContent["speaking"]> = [
+  {
+    period: "2025",
+    role: "Instructor",
+    org: "Asah, led by Dicoding with Accenture",
+    place: "Online",
+    kind: "Teaching",
+    points: ["Taught an instructor-led training session; participants rated it 4.77, and the program graduated 95% of its learners."],
+    proof: "/certificates/asah-2025-instructor.webp",
+  },
+  {
+    period: "16–20 Jun 2025",
+    role: "Mentor, Software Engineering Introduction",
+    org: "Tech Voice Indonesia, Tech Week 2025",
+    kind: "Mentoring",
+    points: ["Mentored the Software Engineering Introduction course."],
+    proof: "/certificates/tech-voice-indonesia-mentor.webp",
+  },
+  {
+    period: "Apr 2021 – Aug 2023",
+    role: "Head of Talent Development",
+    org: "BCC",
+    place: "Malang",
+    points: ["Created a learning event that drew 100+ attendees, 50% more than the year before."],
+  },
+];
 
 /** The home page's Career section, shown in Full-time mode. Newest first. */
 export const career: SiteContent["career"] = [

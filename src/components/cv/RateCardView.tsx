@@ -38,6 +38,9 @@ export function RateCardView({ rateCard }: { rateCard?: RateCard }) {
         <a href={localePath(lang, "/")} className={`${pill} border-2 border-midnight-50 text-midnight-50 hover:bg-midnight-50 hover:text-midnight-950`}>
           {t.home}
         </a>
+        <a href={localePath(lang, "/?mode=speaker#rate-card")} className={`${pill} bg-midnight-500 text-white hover:bg-midnight-400`}>
+          {t.request}
+        </a>
       </div>
     );
   }

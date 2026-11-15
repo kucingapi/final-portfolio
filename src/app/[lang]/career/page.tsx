@@ -26,7 +26,7 @@ const round = "relative block size-100 shrink-0 rounded-full bg-midnight-500 tra
 export default async function CareerPage() {
   const lang = await getLang();
   const t = ui(lang).career.page;
-  const [{ site, about, careerDetail }, cv, en, cvEn] = await Promise.all([
+  const [{ site, about, careerDetail, speaking }, cv, en, cvEn] = await Promise.all([
     getSiteContent(lang),
     getCvContent(lang),
     getSiteContent(),
@@ -38,7 +38,8 @@ export default async function CareerPage() {
     en.careerDetail.flatMap((g) => g.roles),
     cvEn,
   );
-  const lines = roleLines(cv, allLinks);
+  const speakingLinks = linkRoles(en.speaking, cvEn);
+  const lines = { ...roleLines(cv, allLinks), ...roleLines(cv, speakingLinks) };
   const starts = careerDetail.map((_, i) => careerDetail.slice(0, i).reduce((n, g) => n + g.roles.length, 0));
   const LINKS = [
     { label: "GitHub", href: site.social.github, icon: "/figma/icons/github-large.svg", box: "size-63" },
@@ -58,7 +59,12 @@ export default async function CareerPage() {
                 </h1>
                 <p className="flex flex-col text-h2 font-semibold">
                   <span data-subline>{site.role}</span>
-                  <span data-subline>{t.subtitle}</span>
+                  <span data-subline data-for="freelance fulltime">
+                    {t.subtitle}
+                  </span>
+                  <span data-subline data-for="speaker">
+                    {t.subtitleSpeaker}
+                  </span>
                 </p>
               </div>
 
@@ -136,6 +142,13 @@ export default async function CareerPage() {
               <p data-lines className="w-980 text-h4 font-semibold text-midnight-50 max-md:w-full">
                 {about}
               </p>
+              {/* Speaker / Teacher mode leads with what the visitor came for. */}
+              <div data-for="speaker" aria-labelledby="speaking-title" role="group" className="mt-100 max-md:mt-64">
+                <Heading barTop="0.875em" size="text-h2 max-md:text-h3">
+                  <span id="speaking-title">{ui(lang).home.speaking.heading}</span>
+                </Heading>
+                <TailoredCareerList roles={speaking} links={speakingLinks} lines={lines} className="mt-48 max-md:mt-28" />
+              </div>
               {/* The same timeline as the home page's Career section, in full. */}
               {careerDetail.map((group, i) => (
                 <div key={group.id} aria-labelledby={`${group.id}-title`} role="group" className={i ? "mt-140 max-md:mt-80" : "mt-100 max-md:mt-64"}>

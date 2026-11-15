@@ -67,7 +67,8 @@ async function ping(event: ActivityEvent) {
 export function describe(e: ActivityEvent): Ping {
   if (e.kind === "enquiry") {
     const id = e.ref.slice("enquiry:".length);
-    return { title: `New message from ${e.name}`, body: e.detail ?? "", url: `/dashboard?view=inbox&enquiry=${id}`, tag: e.ref };
+    const what = e.detail?.startsWith("Rate card request") ? "rate card request" : "message";
+    return { title: `New ${what} from ${e.name}`, body: e.detail ?? "", url: `/dashboard?view=inbox&enquiry=${id}`, tag: e.ref };
   }
   const what = e.kind === "click" ? `/go/${e.name}` : e.name;
   const where = [e.country && countryName(e.country), e.device, e.referrer && `from ${e.referrer}`].filter(Boolean);
