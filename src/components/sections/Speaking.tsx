@@ -19,14 +19,17 @@ function Arrow({ className = "" }: { className?: string }) {
 /**
  * The home slot in Speaker / Teacher mode: the talks, classes and mentoring, newest first. Built like
  * Career, so switching modes reads as one section changing its contents (see ModeSlot). It points at
- * the rate card request below it instead of a longer list.
+ * the rate card request below it, then shows the career behind the talks, the same list Full-time
+ * mode leads with.
  */
 export async function Speaking() {
   const lang = await getLang();
-  const t = ui(lang).home.speaking;
-  const [{ speaking }, cv, en, cvEn] = await Promise.all([getSiteContent(lang), getCvContent(lang), getSiteContent(), getCvContent()]);
+  const home = ui(lang).home;
+  const t = home.speaking;
+  const [{ speaking, career }, cv, en, cvEn] = await Promise.all([getSiteContent(lang), getCvContent(lang), getSiteContent(), getCvContent()]);
   // Roles are matched to CV entries in English; a translation keeps every list in the same order.
   const links = linkRoles(en.speaking, cvEn);
+  const careerLinks = linkRoles(en.career, cvEn);
   return (
     <SectionMotion preset="career">
       <section id="speaking" data-for="speaker" data-slot aria-labelledby="speaking-title" className="relative overflow-clip bg-midnight-900">
@@ -51,6 +54,30 @@ export async function Speaking() {
               className="inline-flex items-center gap-12 rounded-full border-2 border-midnight-50 px-28 py-10 text-lead font-semibold text-midnight-50 transition-colors hover:bg-midnight-50 hover:text-midnight-950"
             >
               {t.more}
+              <Arrow className="size-22" />
+            </TransitionLink>
+          </div>
+
+          <div className="mx-100 mt-140 max-md:mx-0 max-md:mt-80">
+            <div data-swap>
+              <Heading as="h3" barTop="0.875em" size="text-h2 max-md:text-h3">
+                <span id="speaking-career-title">{home.career.heading}</span>
+              </Heading>
+            </div>
+            <p data-swap data-lines className="mt-16 w-760 text-h4 font-semibold text-midnight-100 max-md:mt-12 max-md:w-full">
+              {t.careerIntro}
+            </p>
+          </div>
+
+          <TailoredCareerList roles={career} links={careerLinks} lines={roleLines(cv, careerLinks)} summary className="mx-100 mt-56 max-md:mx-0 max-md:mt-32" />
+
+          <div data-swap className="mx-100 mt-56 flex justify-end max-md:mx-0 max-md:mt-40 max-md:justify-center">
+            <TransitionLink
+              href="/career"
+              data-magnetic="8"
+              className="inline-flex items-center gap-12 rounded-full border-2 border-midnight-50 px-28 py-10 text-lead font-semibold text-midnight-50 transition-colors hover:bg-midnight-50 hover:text-midnight-950"
+            >
+              {home.career.more}
               <Arrow className="size-22" />
             </TransitionLink>
           </div>
