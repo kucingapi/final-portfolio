@@ -23,7 +23,7 @@ export const KIND = {
 /** The visit's session replay. With the project id set it opens straight in that project. */
 function replayUrl(session: string) {
   const project = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_ID;
-  return project ? `https://eu.posthog.com/project/${project}/replay/${session}` : `https://eu.posthog.com/replay/${session}`;
+  return project ? `https://us.posthog.com/project/${project}/replay/${session}` : `https://us.posthog.com/replay/${session}`;
 }
 
 const PAGE = 40;

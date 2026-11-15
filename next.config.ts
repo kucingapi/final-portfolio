@@ -44,9 +44,9 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       // PostHog through this site (src/lib/analytics.ts), so ad blockers don't drop it. Assets first.
-      { source: "/relay/static/:path*", destination: "https://eu-assets.i.posthog.com/static/:path*" },
-      { source: "/relay/array/:path*", destination: "https://eu-assets.i.posthog.com/array/:path*" },
-      { source: "/relay/:path*", destination: "https://eu.i.posthog.com/:path*" },
+      { source: "/relay/static/:path*", destination: "https://us-assets.i.posthog.com/static/:path*" },
+      { source: "/relay/array/:path*", destination: "https://us-assets.i.posthog.com/array/:path*" },
+      { source: "/relay/:path*", destination: "https://us.i.posthog.com/:path*" },
       // The site's pages live under app/[lang]: Bahasa Indonesia at /id/…, English at the plain addresses,
       // served from /en/…. These run after files and fixed routes (public/, the dashboard, API routes), so
       // only page addresses reach them; the dynamic routes outside [lang] are named so they keep theirs.

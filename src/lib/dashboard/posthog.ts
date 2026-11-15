@@ -36,7 +36,7 @@ const NAME: Record<ActivityEvent["kind"], string> = {
 export async function capture(e: ActivityEvent) {
   if (!KEY || !e.person) return;
   const code = e.ref.startsWith("cv:") ? e.ref.slice(3) : undefined;
-  const res = await fetch("https://eu.i.posthog.com/i/v0/e/", {
+  const res = await fetch("https://us.i.posthog.com/i/v0/e/", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({

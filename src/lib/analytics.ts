@@ -1,7 +1,7 @@
 import type { PostHog } from "posthog-js";
 
 /**
- * Product analytics: PostHog's EU cloud, sent through this site's own `/relay` path (see the rewrites
+ * Product analytics: PostHog's US cloud, sent through this site's own `/relay` path (see the rewrites
  * in next.config.ts) so ad blockers leave it alone. Off unless NEXT_PUBLIC_POSTHOG_KEY is set. The
  * library loads once the browser is idle, and calls made before then wait for it.
  *
@@ -83,7 +83,7 @@ export function loadAnalytics(tags?: Record<string, string>): Promise<PostHog | 
             .then(({ default: posthog }) => {
               posthog.init(KEY, {
                 api_host: "/relay",
-                ui_host: "https://eu.posthog.com",
+                ui_host: "https://us.posthog.com",
                 defaults: "2026-08-30",
                 ...(ids && { bootstrap: ids }),
                 person_profiles: "identified_only",
