@@ -1,6 +1,7 @@
 import { getActivity, listVariants } from "@/lib/cv/store";
 import { signedIn, unauthorized } from "@/lib/dashboard/auth";
 import { createLink, getStats, listLinks } from "@/lib/dashboard/links";
+import { videosOf } from "@/lib/proposal/proposal";
 
 const noStore = { "Cache-Control": "no-store" };
 
@@ -22,6 +23,7 @@ export async function GET(request: Request) {
         code: v.code,
         label: v.label,
         lang: v.variant.lang ?? "en",
+        proposal: v.variant.proposal ? { videos: videosOf(v.variant.proposal), note: v.variant.proposal.note } : undefined,
         createdAt: v.createdAt,
         updatedAt: v.updatedAt,
         activity: activity[i],

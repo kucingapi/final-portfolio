@@ -61,6 +61,7 @@ const KINDS: { key: keyof Prefs; label: string; hint: string }[] = [
   { key: "clicks", label: "Short-link clicks", hint: "Someone opened a /go/ link." },
   { key: "opens", label: "Tailored CV links opened", hint: "Someone opened a ?v= link." },
   { key: "downloads", label: "CV, portfolio and rate card downloads", hint: "From a tailored link." },
+  { key: "proposals", label: "Proposals watched", hint: "Someone started a proposal's videos, and how far they got." },
 ];
 
 function Notifications() {

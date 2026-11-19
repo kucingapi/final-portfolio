@@ -16,6 +16,9 @@ import { variantSchema } from "@/lib/cv/schema";
 import { checkVariant, cvToText, normalizeVariant, type Variant } from "@/lib/cv/variant";
 import { cvIn, cvPdfIn, namesIn, otherLang, rateCardIn } from "@/lib/cv/localized";
 import { rateCardToText } from "@/lib/cv/rate-card";
+import { normalizeProposal, videosOf } from "@/lib/proposal/proposal";
+import { readWatch } from "@/lib/proposal/posthog-read";
+import { viewingDetail } from "@/lib/proposal/viewing";
 import { translationRows, saveTranslations } from "@/lib/content/translations";
 import { LANGS, localePath } from "@/lib/i18n/lang";
 import { JOB_STATUSES, JobError, createJob, listJobs, recordApplication, updateJob, withTotals } from "@/lib/dashboard/jobs";
@@ -42,6 +45,7 @@ const GUIDE = `How to tailor:
 - For Upwork and other platforms that bar sharing contact details, set "contact": false. It hides the email, GitHub and LinkedIn on the CV and both PDFs.
 - For an Indonesian employer, set "lang": "id". The link then opens the site in Bahasa Indonesia (/id), and the CV and the portfolio deck come in Bahasa. Write "headline" and "summary" in Bahasa; everything else is picked by id as usual, and titles and skills may be named in English or in Bahasa (get_cv_master with lang "id" shows the Bahasa). Preview it: the 2-page limit holds in Bahasa too, and Bahasa runs longer.
 - Rate cards: add "rates" only when the client asked for prices (a rate card, a quote). Pick formats from get_cv_master's rateCard by id, in the order the client cares about; set one price per format in the client's currency (IDR for Indonesian clients, otherwise USD or EUR); add notes by id. The link then gets a rate card page ("rateCard" in links: send that one; only links with "rates" have it, and its views are counted) with a one-page PDF to download ("rateCardPdf"), in the variant's language, honouring "contact". Prices are Novel's call: propose them from market research, say which numbers are estimates, and save only after Novel agrees. A new kind of format goes into the master first (edit_content), never into the variant.
+- Proposals: when Novel has recorded videos for one client, add "proposal": "videos" in watching order, each { url, title } (he uploads them to YouTube as unlisted; any YouTube URL works, anything else is refused), and an optional "note" from him. Titles and note show exactly as typed, so write them in the link's language. The link then opens straight on its proposal page ("proposal" in links; "site" goes there too), with one button: to the rate card when the link has "rates", otherwise to the contact form, tagged with this link. How the client watched (per viewing and video) shows on the link in the dashboard and in get_cv_variant's "proposalWatch".
 - The label is private (e.g. "Acme, Senior Frontend, 2026-11"); the visitor never sees it.`;
 
 const JOBS_GUIDE = `Tracking applications:
@@ -59,9 +63,12 @@ const CONTENT_GUIDE = `Editing the site's content:
 const json = (data: unknown) => ({ content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }] });
 const fail = (message: string) => ({ content: [{ type: "text" as const, text: message }], isError: true });
 
-function links(origin: string, code: string, { lang = "en", rates }: Variant) {
+function links(origin: string, code: string, { lang = "en", rates, proposal }: Variant) {
+  const proposalPage = `${origin}${localePath(lang, "/proposal")}?v=${code}`;
   return {
-    site: `${origin}${lang === "en" ? "/" : localePath(lang, "/")}?v=${code}`,
+    // A link with a proposal opens on it (the home page would move there anyway).
+    site: proposal ? proposalPage : `${origin}${lang === "en" ? "/" : localePath(lang, "/")}?v=${code}`,
+    proposal: proposal ? proposalPage : undefined,
     cv: `${origin}${localePath(lang, "/cv")}?v=${code}`,
     pdf: `${origin}/api/cv?v=${code}&download=1`,
     portfolio: `${origin}/api/portfolio?v=${code}&download=1`,
@@ -95,7 +102,8 @@ async function sitePreview(variant: Variant) {
 }
 
 /** A variant with any Bahasa titles, skills or headline named in English, as the master CV has them. */
-async function normalized(variant: Variant): Promise<Variant> {
+async function normalized(given: Variant): Promise<Variant> {
+  const variant = given.proposal ? { ...given, proposal: normalizeProposal(given.proposal) } : given;
   return variant.lang && variant.lang !== "en" ? normalizeVariant(variant, await namesIn(variant.lang)) : variant;
 }
 
@@ -206,7 +214,7 @@ function buildServer(origin: string) {
     {
       title: "Save a CV variant",
       description:
-        "Create a variant (omit code; pass claim to choose its code) or replace one (pass its code). Refuses invalid ids. Returns the code, the links to send (site, CV page, CV PDF, portfolio PDF, and the rate card page and PDF when it has rates) and the page count.",
+        "Create a variant (omit code; pass claim to choose its code) or replace one (pass its code). Refuses invalid ids. Returns the code, the links to send (site, CV page, CV PDF, portfolio PDF, the rate card page and PDF when it has rates, and the proposal page when it has a proposal) and the page count.",
       inputSchema: {
         label: z.string().trim().min(1).max(120).describe("Private note: who this is for."),
         variant: variantSchema,
@@ -271,15 +279,21 @@ function buildServer(origin: string) {
     "get_cv_variant",
     {
       title: "Get a CV variant",
-      description: "One saved variant by code, with its label, fields and activity.",
+      description:
+        "One saved variant by code, with its label, fields and activity, and for a link with a proposal, how it was watched (proposalWatch: per viewing and video, from PostHog).",
       inputSchema: { code: z.string().max(16) },
       annotations: { readOnlyHint: true },
     },
     async ({ code }) => {
       const row = await getVariant(code);
-      return row
-        ? json({ ...row, activity: await getActivity(row.code), links: links(origin, row.code, row.variant) })
-        : fail(`No variant with code "${code}".`);
+      if (!row) return fail(`No variant with code "${code}".`);
+      const watch = row.variant.proposal ? await readWatch(row.code, videosOf(row.variant.proposal).length) : undefined;
+      return json({
+        ...row,
+        activity: await getActivity(row.code),
+        links: links(origin, row.code, row.variant),
+        proposalWatch: watch && (watch.status === "ok" ? watch.viewings.map((v) => ({ started: v.started, summary: viewingDetail(v.summary), videos: v.videos })) : watch),
+      });
     },
   );
 

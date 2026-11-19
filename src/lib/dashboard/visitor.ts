@@ -51,6 +51,11 @@ const PREVIEWS = new RegExp(
 
 export function isPreview(request: Request) {
   if (request.method !== "GET") return true;
+  return isBot(request);
+}
+
+/** A machine rather than a person, whatever the method (a page's own POSTs come from browsers too). */
+export function isBot(request: Request) {
   const ua = request.headers.get("user-agent") ?? "";
   if (!ua || PREVIEWS.test(ua)) return true;
   // Prefetches by browsers and link-unfurling proxies are not visits either.

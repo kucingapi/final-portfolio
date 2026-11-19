@@ -17,6 +17,31 @@ const byId = <T extends z.ZodType>(value: T) =>
 export const RATE_CURRENCIES = ["IDR", "USD", "EUR"] as const;
 
 /**
+ * Videos Novel recorded for this client, uploaded to YouTube as unlisted, in the order to watch them. Each
+ * is given as any YouTube URL and stored as its video id (see normalizeProposal); a saved variant read
+ * back carries ids, which are accepted as they are. Only the ids and the text are kept, never the videos.
+ */
+export const proposalSchema = z.object({
+  videos: z
+    .array(
+      z
+        .object({
+          /** Any YouTube URL: watch?v=, youtu.be/, shorts/ or embed/. */
+          url: z.string().trim().max(300).optional(),
+          /** The video id, as stored. */
+          id: z.string().max(64).optional(),
+          /** Shown as typed, numbered: "1. The problem". */
+          title: z.string().trim().min(1).max(120),
+        })
+        .refine((v) => v.url || v.id, { message: "Give each video its YouTube url." }),
+    )
+    .min(1)
+    .max(10),
+  /** A short note from Novel under the videos, shown as typed. */
+  note: z.string().trim().max(1200).optional(),
+});
+
+/**
  * A variant is one tailored version of the CV and the site, made for one application. It only picks,
  * orders and chooses between lines that already exist in the master CV (src/content/cv.ts); the free
  * text it may carry is a headline and a summary. Everything is optional: leave a field out and the
@@ -81,4 +106,6 @@ export const variantSchema = z.object({
       notes: ids(8).optional(),
     })
     .optional(),
+  /** A proposal for this link: its videos open on /proposal, and the link opens straight there. */
+  proposal: proposalSchema.optional(),
 });

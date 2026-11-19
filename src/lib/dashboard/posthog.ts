@@ -19,7 +19,8 @@ export function visitFrom(request: Request): Visit {
   return { session: session && ID.test(session) ? session : undefined, person: person && ID.test(person) ? person : undefined };
 }
 
-const NAME: Record<ActivityEvent["kind"], string> = {
+/** Proposal events are left out: the visitor's browser already sent them, with every detail. */
+const NAME: Partial<Record<ActivityEvent["kind"], string>> = {
   click: "short_link_opened",
   open: "cv_link_opened",
   cv: "cv_downloaded",
@@ -34,7 +35,7 @@ const NAME: Record<ActivityEvent["kind"], string> = {
  * for, nor a message's sender or words). Events without a person are skipped: they'd make a new one.
  */
 export async function capture(e: ActivityEvent) {
-  if (!KEY || !e.person) return;
+  if (!KEY || !e.person || !NAME[e.kind]) return;
   const code = e.ref.startsWith("cv:") ? e.ref.slice(3) : undefined;
   const res = await fetch("https://us.i.posthog.com/i/v0/e/", {
     method: "POST",

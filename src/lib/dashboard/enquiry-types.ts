@@ -17,6 +17,8 @@ export type Enquiry = {
   org?: string;
   event?: string;
   lang?: Lang;
+  /** Sent from a proposal's page: that tailored link's code and who it was made for. */
+  proposal?: { code: string; label: string };
   country?: string;
   device?: Device;
   /** Whether the email copy reached the inbox. */

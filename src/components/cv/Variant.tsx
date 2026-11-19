@@ -6,7 +6,8 @@ import { leading } from "@/content/projects";
 import { isTester, track } from "@/lib/analytics";
 import type { PublicVariant } from "@/lib/cv/variant";
 import { useLang } from "@/lib/i18n/client";
-import { DEFAULT_LANG, localePath, splitLang } from "@/lib/i18n/lang";
+import { DEFAULT_LANG } from "@/lib/i18n/lang";
+import { arrivalMove } from "@/lib/proposal/arrival";
 
 /**
  * Tailored links. A link carries only an opaque code (`/?v=k7qx2pmd`); on arrival the code leaves the
@@ -79,7 +80,8 @@ export function useVariantStat(slug: string): string | undefined {
 
 /**
  * Picks up `?v=` once per page load. Lives inside ModeProvider so a variant can set the mode. A variant in
- * the other language opens the same page in its language; after that the visitor's own switch decides.
+ * the other language opens the same page in its language; after that the visitor's own switch decides. A
+ * variant with a proposal, opened on the home page, opens on /proposal.
  */
 export function VariantLoader() {
   const { setMode } = useMode();
@@ -106,12 +108,14 @@ export function VariantLoader() {
       .then((r) => (r.ok ? (r.json() as Promise<PublicVariant>) : null))
       .then((found) => {
         const wanted = found?.variant.lang ?? DEFAULT_LANG;
-        if (found && wanted !== lang && !pinned) {
-          // The link is in the other language: open the same page there, code and all, so it is tailored
-          // (and tagged for analytics) without relying on storage. Counted here, tracked there.
-          const there = new URL(localePath(wanted, splitLang(url.pathname).path) + url.search + url.hash, url.origin);
+        const move = found && arrivalMove({ path: url.pathname, lang, wanted, pinned, proposal: Boolean(found.variant.proposal) });
+        if (move) {
+          // The link is in the other language, or has a proposal and was opened on the home page: open that
+          // page, code and all, so it is tailored (and tagged for analytics) without relying on storage.
+          // Counted here, tracked there.
+          const there = new URL(move + url.search + url.hash, url.origin);
           there.searchParams.set(PARAM, code);
-          there.searchParams.set("lang", wanted);
+          there.searchParams.set("lang", pinned ? lang : wanted);
           there.searchParams.set("moved", "1");
           window.location.replace(there);
           return;

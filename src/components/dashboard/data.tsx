@@ -9,7 +9,16 @@ import type { LinkStats, ShortLink } from "@/lib/dashboard/links";
 import { useApi } from "./api";
 
 export type LinkRow = ShortLink & { stats: LinkStats };
-export type CvRow = { code: string; label: string; lang?: "en" | "id"; createdAt: string; updatedAt: string; activity: LinkActivity };
+export type CvRow = {
+  code: string;
+  label: string;
+  lang?: "en" | "id";
+  /** Its proposal's videos (YouTube ids and titles) and note, when it has one. */
+  proposal?: { videos: { id: string; title: string }[]; note?: string };
+  createdAt: string;
+  updatedAt: string;
+  activity: LinkActivity;
+};
 export type { ActivityEvent };
 
 type Data = {
@@ -42,9 +51,10 @@ export function useDashboard() {
   return data;
 }
 
-/** A tailored link's path, in the language it was made in. */
-export const cvPath = (code: string, lang?: string) => `${lang === "id" ? "/id" : "/"}?v=${code}`;
+/** A tailored link's path, in the language it was made in; a link with a proposal opens on it. */
+export const cvPath = (code: string, lang?: string, proposal = false) =>
+  proposal ? `${lang === "id" ? "/id" : ""}/proposal?v=${code}` : `${lang === "id" ? "/id" : "/"}?v=${code}`;
 
 /** The full address of a link, as it's shared. */
-export const linkUrl = (origin: string, ref: string, lang?: string) =>
-  ref.startsWith("go:") ? `${origin}/go/${ref.slice(3)}` : `${origin}${cvPath(ref.slice(3), lang)}`;
+export const linkUrl = (origin: string, ref: string, lang?: string, proposal = false) =>
+  ref.startsWith("go:") ? `${origin}/go/${ref.slice(3)}` : `${origin}${cvPath(ref.slice(3), lang, proposal)}`;

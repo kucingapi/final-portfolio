@@ -102,7 +102,8 @@ export function ContactFlow({ email }: { email: string }) {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, service }),
+        // Opened from a proposal's button (`?proposal=<code>`): the message is tagged with that link.
+        body: JSON.stringify({ ...data, service, proposal: new URLSearchParams(window.location.search).get("proposal") ?? undefined }),
       });
       const body = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) throw new Error(t.refused[res.status] ?? (Object.keys(t.refused).length ? t.failed : body.error) ?? t.failed);

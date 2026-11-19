@@ -239,6 +239,19 @@ const en = {
     rate: "Rate",
     units: { session: "per session", day: "per day", hour: "per hour", module: "per module" } as Record<RateUnit, string>,
   },
+  proposal: {
+    title: "Your proposal",
+    intro: (n: number) => (n === 1 ? "A short video I recorded for you." : `${n} short videos I recorded for you. Watch them in order.`),
+    private: "This proposal is made for one client and opens only from their link.",
+    home: "Back home",
+    videoOf: (i: number, n: number) => `Video ${i} of ${n}`,
+    play: (title: string) => `Play “${title}”`,
+    note: "A note from me",
+    next: "Next video",
+    toRates: "See the rate card",
+    toContact: "Reply to this proposal",
+    youtube: "Watch on YouTube",
+  },
 };
 
 export type Ui = typeof en;
@@ -476,6 +489,19 @@ const id: Ui = {
     duration: "Durasi",
     rate: "Tarif",
     units: { session: "per sesi", day: "per hari", hour: "per jam", module: "per modul" },
+  },
+  proposal: {
+    title: "Proposal untuk Anda",
+    intro: (n) => (n === 1 ? "Video singkat yang saya rekam untuk Anda." : `${n} video singkat yang saya rekam untuk Anda. Tonton berurutan.`),
+    private: "Proposal ini dibuat untuk satu klien dan hanya terbuka lewat link miliknya.",
+    home: "Kembali ke beranda",
+    videoOf: (i, n) => `Video ${i} dari ${n}`,
+    play: (title) => `Putar “${title}”`,
+    note: "Catatan dari saya",
+    next: "Video berikutnya",
+    toRates: "Lihat rate card",
+    toContact: "Balas proposal ini",
+    youtube: "Tonton di YouTube",
   },
 };
 
