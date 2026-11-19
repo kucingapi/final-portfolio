@@ -1,6 +1,6 @@
 "use client";
 
-import { BellRing, Eye, FileDown, Mail, MousePointerClick, PlayCircle, Presentation, Receipt, X } from "lucide-react";
+import { BellRing, Clapperboard, Eye, FileDown, Mail, MousePointerClick, PlayCircle, Presentation, Receipt, X } from "lucide-react";
 import { useMemo, useState, useSyncExternalStore } from "react";
 import type { View } from "./App";
 import { type ActivityEvent, useDashboard } from "./data";
@@ -18,10 +18,12 @@ export const KIND = {
   portfolio: { label: "Portfolio downloaded", icon: Presentation },
   rateViews: { label: "Rate card viewed", icon: Receipt },
   rates: { label: "Rate card downloaded", icon: Receipt },
+  proposalStart: { label: "Proposal started", icon: Clapperboard },
+  proposalViewing: { label: "Proposal watched", icon: Clapperboard },
 } as const;
 
 /** The visit's session replay. With the project id set it opens straight in that project. */
-function replayUrl(session: string) {
+export function replayUrl(session: string) {
   const project = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_ID;
   return project ? `https://us.posthog.com/project/${project}/replay/${session}` : `https://us.posthog.com/replay/${session}`;
 }
@@ -57,11 +59,18 @@ function Week({ events }: { events: ActivityEvent[] }) {
   const recent = events.filter((e) => now - Date.parse(e.at) < WEEK);
   const clicks = recent.filter((e) => e.kind === "click").length;
   const opens = recent.filter((e) => e.kind === "open").length;
-  const downloads = recent.length - clicks - opens;
+  const viewings = recent.filter((e) => e.kind === "proposalViewing").length;
+  const downloads = recent.length - clicks - opens - recent.filter((e) => e.kind.startsWith("proposal")).length;
   return (
     <p className="text-[0.9375rem] leading-relaxed text-muted-foreground">
       In the last 7 days: <N n={clicks} /> short-link {clicks === 1 ? "click" : "clicks"}, <N n={opens} /> CV link{" "}
-      {opens === 1 ? "open" : "opens"} and <N n={downloads} /> PDF {downloads === 1 ? "download" : "downloads"}.
+      {opens === 1 ? "open" : "opens"}
+      {viewings > 0 && (
+        <>
+          , <N n={viewings} /> proposal {viewings === 1 ? "viewing" : "viewings"}
+        </>
+      )}{" "}
+      and <N n={downloads} /> PDF {downloads === 1 ? "download" : "downloads"}.
     </p>
   );
 }

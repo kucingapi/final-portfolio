@@ -108,8 +108,9 @@ export function loadAnalytics(tags?: Record<string, string>): Promise<PostHog | 
   return window.__nbAnalytics;
 }
 
-export function track(event: string, properties?: Record<string, unknown>) {
-  void loadAnalytics().then((ph) => ph?.capture(event, properties));
+/** `beacon` sends at once with sendBeacon, for an event captured as the page is hidden or left. */
+export function track(event: string, properties?: Record<string, unknown>, { beacon = false } = {}) {
+  void loadAnalytics().then((ph) => ph?.capture(event, properties, beacon ? { transport: "sendBeacon", send_instantly: true } : undefined));
 }
 
 /** Add properties to this visitor's every later event (kept across visits). */

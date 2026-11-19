@@ -6,6 +6,7 @@ import type { Click, ShortLink } from "@/lib/dashboard/links";
 import { KIND } from "./Activity";
 import { send, useApi } from "./api";
 import { ClicksChart } from "./ClicksChart";
+import { ProposalWatch } from "./ProposalWatch";
 import { CopyButton } from "./Copy";
 import { type CvRow, type LinkRow, linkUrl, useDashboard } from "./data";
 import { canShare, share } from "./device";
@@ -306,10 +307,12 @@ function CvDetail({ cv }: { cv: CvRow }) {
     <>
       <SheetHeader>
         <SheetTitle>{cv.label}</SheetTitle>
-        <SheetDescription>Tailored CV link, made {date(cv.createdAt)}</SheetDescription>
+        <SheetDescription>
+          {cv.proposal ? `Tailored link with a proposal (${count(cv.proposal.videos.length, "video")})` : "Tailored CV link"}, made {date(cv.createdAt)}
+        </SheetDescription>
       </SheetHeader>
       <SheetBody>
-        <Address url={linkUrl(origin, `cv:${cv.code}`, cv.lang)} title="CV" />
+        <Address url={linkUrl(origin, `cv:${cv.code}`, cv.lang, Boolean(cv.proposal))} title={cv.proposal ? "Proposal" : "CV"} />
         <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-border bg-border">
           {facts.map((f) => (
             <div key={f.label} className="flex flex-col gap-1 bg-popover px-4 py-3">
@@ -318,6 +321,12 @@ function CvDetail({ cv }: { cv: CvRow }) {
             </div>
           ))}
         </dl>
+        {cv.proposal && (
+          <section className="flex flex-col gap-3">
+            <Heading>How they watched</Heading>
+            <ProposalWatch code={cv.code} videos={cv.proposal.videos} />
+          </section>
+        )}
         <section className="flex flex-col gap-3">
           <Heading>Recent activity</Heading>
           {events.length ? (

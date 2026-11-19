@@ -15,6 +15,7 @@ import {
   type RateCard,
 } from "@/lib/content/schema";
 import { checkRates } from "./rate-card";
+import { proposalErrors } from "@/lib/proposal/proposal";
 
 /** One tailored version of the CV and the site; see `variantSchema` in ./schema for the fields. */
 export type Variant = z.infer<typeof variantSchema>;
@@ -45,6 +46,7 @@ export function checkVariant(cv: CvContent, v: Variant, projects: Pick<Project, 
   const projectSlugs = projects.map((p) => p.slug);
   const getCvEntry = (id: string) => cv.entries.find((e) => e.id === id);
   const errors: string[] = [];
+  if (v.proposal) errors.push(...proposalErrors(v.proposal));
   if (v.rates) errors.push(...(rateCard ? checkRates(rateCard, v.rates) : ["rates: the site has no rate card formats yet."]));
   if (v.summaryId && !cv.summaries.some((s) => s.id === v.summaryId)) errors.push(`Unknown summaryId "${v.summaryId}".`);
   for (const id of v.entries ?? []) if (!getCvEntry(id)) errors.push(`Unknown entry "${id}".`);

@@ -9,6 +9,7 @@ import { RATE_CARD } from "@/lib/dashboard/enquiry-types";
 import { isLang } from "@/lib/i18n/lang";
 import { describeClick } from "@/lib/dashboard/visitor";
 import { visitFrom } from "@/lib/dashboard/posthog";
+import { getVariant, isCode } from "@/lib/cv/store";
 
 /**
  * Contact form endpoint. Every message is saved for the dashboard's Inbox and pings the phone, and a
@@ -29,6 +30,8 @@ type Payload = {
   org?: string;
   event?: string;
   lang?: string;
+  /** The tailored link's code, when the form was opened from its proposal (`/contact?proposal=<code>`). */
+  proposal?: string;
 };
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -135,15 +138,23 @@ export async function POST(request: Request) {
   if (!EMAIL.test(email)) return Response.json({ error: "Please use a valid email address." }, { status: 422 });
   const limited = await overLimit(request, email);
   if (limited) return Response.json({ error: limited }, { status: 429 });
+  // Tagged only with a real link that has a proposal; anything else is ignored, never refused.
+  const tagged = typeof body.proposal === "string" && isCode(body.proposal) ? await getVariant(body.proposal).catch(() => null) : null;
+  const proposal = tagged?.variant.proposal ? { code: tagged.code, label: tagged.label } : undefined;
 
   const details = [`Service: ${service}`, `Name: ${name}`, `Email: ${email}`];
   if (phone) details.push(`Phone: ${phone}`);
   if (org) details.push(`Organisation: ${org}`);
   if (event) details.push(`Event: ${event}`);
   if (lang) details.push(`Language: ${lang === "id" ? "Bahasa Indonesia" : "English"}`);
+  if (proposal) details.push(`From the proposal for: ${proposal.label} (link ${proposal.code})`);
   const text = `${details.join("\n")}\n\n${message || "(no message)"}`;
 
-  const subject = rateCard ? `Rate card request from ${name}${org ? ` (${org})` : ""}` : `New ${service} enquiry from ${name}`;
+  const subject = rateCard
+    ? `Rate card request from ${name}${org ? ` (${org})` : ""}`
+    : proposal
+      ? `Reply to your proposal from ${name}`
+      : `New ${service} enquiry from ${name}`;
   const emailed = await emailCopy({ service, subject, name, email, text });
   if (emailed === null && process.env.NODE_ENV !== "production") console.info(`[contact] RESEND_API_KEY not set, so no email copy:\n${text}`);
 
@@ -151,10 +162,10 @@ export async function POST(request: Request) {
   try {
     const { country, device } = describeClick(request);
     const visit = visitFrom(request);
-    const row = await saveEnquiry({ service, name, email, phone: phone || undefined, message, org: org || undefined, event: event || undefined, lang, country, device, emailed: emailed === true });
+    const row = await saveEnquiry({ service, name, email, phone: phone || undefined, message, org: org || undefined, event: event || undefined, lang, proposal, country, device, emailed: emailed === true });
     saved = true;
     const first = message || event;
-    const label = rateCard ? `Rate card request${org ? ` · ${org}` : ""}` : service;
+    const label = rateCard ? `Rate card request${org ? ` · ${org}` : ""}` : proposal ? `${service} · from the proposal` : service;
     const detail = first ? `${label} · ${first.length > 120 ? `${first.slice(0, 117)}…` : first}` : label;
     after(() => report({ at: row.at, kind: "enquiry", ref: `enquiry:${row.id}`, name, detail, country, device, ...visit }));
   } catch (e) {

@@ -25,7 +25,7 @@ export async function POST(request: Request) {
   return Response.json({ id }, { status: 201, headers: noStore });
 }
 
-/** Which kinds of event ping: `{ clicks?, opens?, downloads? }`. */
+/** Which kinds of event ping: `{ enquiries?, clicks?, opens?, downloads?, proposals? }`. */
 export async function PATCH(request: Request) {
   if (!(await signedIn(request))) return unauthorized();
   const body = await request.json().catch(() => null);

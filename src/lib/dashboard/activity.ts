@@ -5,12 +5,13 @@ import { pushToList, readList, removeFromList, setValue } from "./state";
 
 /**
  * What happened on the site, newest first: short-link clicks, tailored CV links opened, their CV and
- * portfolio PDFs downloaded, and messages sent through the contact form. Each event goes to the
+ * portfolio PDFs downloaded, proposals started and watched (one summary per viewing), and messages sent
+ * through the contact form. Each event goes to the
  * dashboard's feed and, when that kind is switched on, to the phone as a notification. Callers have
  * already left out link previews and Novel's own browser (`nb_test`). Server only.
  */
 
-export type ActivityKind = "click" | "open" | "cv" | "portfolio" | "rates" | "rateViews" | "enquiry";
+export type ActivityKind = "click" | "open" | "cv" | "portfolio" | "rates" | "rateViews" | "enquiry" | "proposalStart" | "proposalViewing";
 
 export type ActivityEvent = {
   at: string;
@@ -19,7 +20,7 @@ export type ActivityEvent = {
   ref: string;
   /** The short link's name, who the tailored link is for (private), or who sent the message. */
   name: string;
-  /** A message's service and first words. */
+  /** A message's service and first words; a viewing's summary ("watched 2 of 3 videos, …"). */
   detail?: string;
   country?: string;
   device?: Device;
@@ -34,7 +35,17 @@ export const FEED_SIZE = 300;
 /** One ping per link a minute: a burst of clicks is one notification, and the feed has every one. */
 const QUIET_SECONDS = 60;
 
-const PREF: Record<ActivityKind, keyof Prefs> = { click: "clicks", open: "opens", cv: "downloads", portfolio: "downloads", rates: "downloads", rateViews: "opens", enquiry: "enquiries" };
+const PREF: Record<ActivityKind, keyof Prefs> = {
+  click: "clicks",
+  open: "opens",
+  cv: "downloads",
+  portfolio: "downloads",
+  rates: "downloads",
+  rateViews: "opens",
+  enquiry: "enquiries",
+  proposalStart: "proposals",
+  proposalViewing: "proposals",
+};
 const TITLE: Record<ActivityKind, string> = {
   enquiry: "New message",
   click: "Short link opened",
@@ -43,7 +54,15 @@ const TITLE: Record<ActivityKind, string> = {
   portfolio: "Portfolio downloaded",
   rates: "Rate card downloaded",
   rateViews: "Rate card viewed",
+  proposalStart: "Proposal started",
+  proposalViewing: "Proposal watched",
 };
+
+/**
+ * Proposal events keep a quiet period of their own: the start comes seconds after the link's open, and a
+ * viewing's summary after its start, and each is worth its own ping.
+ */
+const quietKey = (e: ActivityEvent) => `dash:push:quiet:${e.ref}${e.kind.startsWith("proposal") ? `:${e.kind}` : ""}`;
 
 export const listEvents = (count = FEED_SIZE) => readList<ActivityEvent>(FEED, count);
 
@@ -60,7 +79,7 @@ export async function report(event: ActivityEvent) {
 
 async function ping(event: ActivityEvent) {
   if (!(await getPrefs())[PREF[event.kind]]) return;
-  if (!(await setValue(`dash:push:quiet:${event.ref}`, 1, { ex: QUIET_SECONDS, nx: true }))) return;
+  if (!(await setValue(quietKey(event), 1, { ex: QUIET_SECONDS, nx: true }))) return;
   await send(describe(event));
 }
 
@@ -69,6 +88,11 @@ export function describe(e: ActivityEvent): Ping {
     const id = e.ref.slice("enquiry:".length);
     const what = e.detail?.startsWith("Rate card request") ? "rate card request" : "message";
     return { title: `New ${what} from ${e.name}`, body: e.detail ?? "", url: `/dashboard?view=inbox&enquiry=${id}`, tag: e.ref };
+  }
+  if (e.kind === "proposalStart" || e.kind === "proposalViewing") {
+    const body = e.kind === "proposalStart" ? `${e.name} started your proposal` : `${e.name}: ${e.detail ?? "watched your proposal"}`;
+    const where = [e.country && countryName(e.country), e.device].filter(Boolean);
+    return { title: TITLE[e.kind], body: [body, ...where].join(" · "), url: `/dashboard?link=${encodeURIComponent(e.ref)}`, tag: `${e.ref}:${e.kind}` };
   }
   const what = e.kind === "click" ? `/go/${e.name}` : e.name;
   const where = [e.country && countryName(e.country), e.device, e.referrer && `from ${e.referrer}`].filter(Boolean);

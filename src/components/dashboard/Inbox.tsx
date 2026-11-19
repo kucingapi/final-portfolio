@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, CalendarDays, Inbox as InboxIcon, Languages, Mail, Phone, Trash2 } from "lucide-react";
+import { Building2, CalendarDays, Clapperboard, Inbox as InboxIcon, Languages, Mail, Phone, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { RATE_CARD, type Enquiry } from "@/lib/dashboard/enquiry-types";
 import { send } from "./api";
@@ -54,7 +54,8 @@ export function InboxView({ open, onOpen, onClose }: { open: string | null; onOp
 }
 
 /** What the row and the panel call a message: a rate card request is not a project enquiry. */
-const kindOf = (e: Enquiry) => (e.service === RATE_CARD ? `Rate card request${e.org ? ` · ${e.org}` : ""}` : e.service);
+const kindOf = (e: Enquiry) =>
+  e.service === RATE_CARD ? `Rate card request${e.org ? ` · ${e.org}` : ""}` : e.proposal ? `${e.service} · from a proposal` : e.service;
 
 function Row({ e, unread, onOpen }: { e: Enquiry; unread: boolean; onOpen: () => void }) {
   return (
@@ -160,6 +161,7 @@ function Detail({ e, onDeleted }: { e: Enquiry; onDeleted: () => void }) {
           {e.org && <Fact icon={Building2} value={e.org} />}
           {e.event && <Fact icon={CalendarDays} value={e.event} />}
           {e.lang === "id" && <Fact icon={Languages} value="Asked in Bahasa Indonesia" />}
+          {e.proposal && <Fact icon={Clapperboard} value={`From the proposal for ${e.proposal.label}`} />}
         </div>
 
         {rateCard && (
