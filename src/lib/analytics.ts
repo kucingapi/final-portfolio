@@ -62,6 +62,9 @@ export function isTester(): boolean {
   return param === "1" || (param !== "0" && document.cookie.split("; ").includes(`${TEST_COOKIE}=1`));
 }
 
+/** PostHog once it has loaded, for calls that can't wait for a promise (see `track`). */
+let loaded: PostHog | null = null;
+
 declare global {
   interface Window {
     __nbAnalytics?: Promise<PostHog | null>;
@@ -100,6 +103,7 @@ export function loadAnalytics(tags?: Record<string, string>): Promise<PostHog | 
                   ph.onSessionId((session) => remember(session, ph.get_distinct_id()));
                 },
               });
+              loaded = posthog;
               resolve(posthog);
             })
             .catch(() => resolve(null)),
@@ -108,9 +112,15 @@ export function loadAnalytics(tags?: Record<string, string>): Promise<PostHog | 
   return window.__nbAnalytics;
 }
 
-/** `beacon` sends at once with sendBeacon, for an event captured as the page is hidden or left. */
+/**
+ * `beacon` sends at once with sendBeacon, for an event captured as the page is hidden or left. Once
+ * PostHog has loaded the event is captured right away, not a promise later: a page being left doesn't
+ * run that later step, and the event would be lost.
+ */
 export function track(event: string, properties?: Record<string, unknown>, { beacon = false } = {}) {
-  void loadAnalytics().then((ph) => ph?.capture(event, properties, beacon ? { transport: "sendBeacon", send_instantly: true } : undefined));
+  const options = beacon ? { transport: "sendBeacon" as const, send_instantly: true } : undefined;
+  if (loaded) loaded.capture(event, properties, options);
+  else void loadAnalytics().then((ph) => ph?.capture(event, properties, options));
 }
 
 /** Add properties to this visitor's every later event (kept across visits). */

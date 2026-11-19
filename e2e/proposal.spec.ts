@@ -215,6 +215,39 @@ test.describe("watching", () => {
   });
 });
 
+test.describe("when YouTube can't be used", () => {
+  test("a blocked player API shows YouTube links and tells PostHog why", async ({ page }) => {
+    const events = await capturePostHog(page);
+    await page.route("https://www.youtube.com/iframe_api", (route) => route.abort("blockedbyclient"));
+    await page.goto(`/?v=${plain.code}`);
+    await expect(page).toHaveURL(/\/proposal$/);
+    const link = page.getByRole("link", { name: "Watch on YouTube" }).first();
+    await expect(link).toHaveAttribute("href", "https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+    await expect.poll(() => events.find((e) => e.event === "proposal_player_failed")?.properties).toMatchObject({ v_code: plain.code, reason: "script" });
+    await link.click({ modifiers: ["ControlOrMeta"] });
+    await expect.poll(() => events.find((e) => e.event === "proposal_youtube_opened")?.properties).toMatchObject({ v_code: plain.code, video: 1 });
+  });
+
+  test("a player that never gets ready, or reports an error, is reported", async ({ page }) => {
+    await page.clock.install();
+    const events = await capturePostHog(page);
+    // A player that never calls onReady, and one that reports YouTube error 150 (embedding not allowed).
+    await page.route("https://www.youtube.com/iframe_api", (route) =>
+      route.fulfill({
+        contentType: "text/javascript",
+        body: `window.YT = { Player: class { constructor(el, o) { if (o.videoId === "9bZkp7q19f0") setTimeout(() => o.events.onError({ data: 150, target: this }), 10); } destroy() {} } };
+          window.onYouTubeIframeAPIReady && window.onYouTubeIframeAPIReady();`,
+      }),
+    );
+    await page.goto(`/?v=${plain.code}`);
+    await expect(page).toHaveURL(/\/proposal$/);
+    await expect(page.locator("[data-proposal-video]")).toHaveCount(2);
+    await page.clock.runFor(20_000);
+    await expect.poll(() => events.find((e) => e.event === "proposal_video_error")?.properties).toMatchObject({ v_code: plain.code, video: 2, code: 150 });
+    await expect.poll(() => events.find((e) => e.event === "proposal_player_failed")?.properties).toMatchObject({ v_code: plain.code, reason: "not_ready", ready: 0 });
+  });
+});
+
 test.describe("replying", () => {
   test("the contact form from a proposal tags the enquiry with the link", async ({ page, request }) => {
     await fakeYouTube(page);

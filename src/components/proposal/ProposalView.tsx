@@ -12,6 +12,8 @@ import { BUFFERING, ENDED, PLAYING, loadYouTube, type YTPlayer } from "./youtube
 
 const pill = "inline-flex items-center gap-12 rounded-full px-28 py-12 text-lead font-semibold transition-colors";
 const POLL_MS = 1000;
+/** A player that hasn't reported ready by then never will: its page can't be tracked (reported once). */
+const READY_MS = 15_000;
 
 /**
  * The proposal of the visitor's tailored link: Novel's videos in order, his note, and one button on (the
@@ -105,27 +107,35 @@ function Videos({ code, videos }: { code: string; videos: StoredVideo[] }) {
     let stopped = false;
     const playing = (p: YTPlayer) => [PLAYING, BUFFERING].includes(p.getPlayerState());
 
+    let ready = 0;
+    let readyCheck: number | undefined;
     loadYouTube()
       .then((YT) => {
         if (stopped) return;
+        // Every player should report ready within seconds; if one doesn't, its events will never come.
+        readyCheck = window.setTimeout(() => {
+          if (ready < videos.length) track("proposal_player_failed", { v_code: code, reason: "not_ready", ready, videos: videos.length });
+        }, READY_MS);
         videos.forEach((v, i) => {
           const slot = boxes[i];
           if (!slot) return;
           // The player replaces the element it is given with its iframe, so it gets one React doesn't own.
           const el = document.createElement("div");
           slot.replaceChildren(el);
+          // YouTube's own host: the player API reports most reliably from it (youtube-nocookie.com didn't, in Firefox).
           new YT.Player(el, {
             videoId: v.id,
-            host: "https://www.youtube-nocookie.com",
             width: "100%",
             height: "100%",
             playerVars: { rel: 0, playsinline: 1, modestbranding: 1 },
             events: {
               onReady: (e) => {
                 if (stopped) return e.target.destroy();
+                ready++;
                 players[i] = e.target;
                 watch.setDuration(i, e.target.getDuration());
               },
+              onError: (e) => track("proposal_video_error", { v_code: code, video: i + 1, video_id: v.id, code: e.data }),
               onStateChange: (e) => {
                 const p = e.target;
                 watch.setDuration(i, p.getDuration());
@@ -142,7 +152,11 @@ function Videos({ code, videos }: { code: string; videos: StoredVideo[] }) {
           });
         });
       })
-      .catch(() => setFailed(true));
+      .catch(() => {
+        // Blocked (an extension, strict tracking protection) or offline: the videos become links to YouTube.
+        track("proposal_player_failed", { v_code: code, reason: "script", videos: videos.length });
+        setFailed(true);
+      });
 
     const sampleAll = () =>
       players.forEach((p, i) => {
@@ -160,6 +174,7 @@ function Videos({ code, videos }: { code: string; videos: StoredVideo[] }) {
     window.addEventListener("pagehide", onHide);
     return () => {
       stopped = true;
+      window.clearTimeout(readyCheck);
       watch.hide();
       window.clearInterval(poll);
       document.removeEventListener("visibilitychange", onVisibility);
@@ -185,6 +200,7 @@ function Videos({ code, videos }: { code: string; videos: StoredVideo[] }) {
                 href={`https://www.youtube.com/watch?v=${v.id}`}
                 target="_blank"
                 rel="noreferrer"
+                onClick={() => track("proposal_youtube_opened", { v_code: code, video: i + 1, video_id: v.id })}
                 className="absolute inset-0 flex items-center justify-center text-lead font-semibold text-midnight-50 underline"
               >
                 {t.youtube}

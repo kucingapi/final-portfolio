@@ -25,13 +25,14 @@ export default defineConfig({
     {
       command: `node e2e/mock-posthog.mjs ${MOCK_POSTHOG_PORT}`,
       port: MOCK_POSTHOG_PORT,
-      reuseExistingServer: false,
+      reuseExistingServer: Boolean(process.env.REUSE),
     },
     {
       command: `node e2e/dev.mjs ${PORT}`,
-      port: PORT,
+      // A page, not just the port: the port can open a moment before a restart (see e2e/dev.mjs).
+      url: `http://localhost:${PORT}/proposal`,
       timeout: 180_000,
-      reuseExistingServer: false,
+      reuseExistingServer: Boolean(process.env.REUSE),
       env: {
         NEXT_PUBLIC_POSTHOG_KEY: "phc_e2e_test",
         NEXT_PUBLIC_POSTHOG_PROJECT_ID: "4242",

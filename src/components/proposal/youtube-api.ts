@@ -26,7 +26,12 @@ type YTNamespace = {
       width?: string | number;
       height?: string | number;
       playerVars?: Record<string, string | number>;
-      events?: { onReady?: (e: { target: YTPlayer }) => void; onStateChange?: (e: { data: number; target: YTPlayer }) => void };
+      events?: {
+        onReady?: (e: { target: YTPlayer }) => void;
+        onStateChange?: (e: { data: number; target: YTPlayer }) => void;
+        /** 2 bad id, 5 HTML5 player error, 100 not found or private, 101 / 150 embedding not allowed. */
+        onError?: (e: { data: number; target: YTPlayer }) => void;
+      };
     },
   ) => YTPlayer;
 };
